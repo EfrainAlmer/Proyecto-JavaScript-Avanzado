@@ -1,0 +1,74 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="description" content="Ruta introductoria para aprender desarrollo web.">
+<title>Ruta Dev Fundamentos web</title>
+<link rel="stylesheet" href="css/estilos.css">
+<script src="js/app.js" defer></script>
+</head>
+<body>
+<a class="salto-contenido" href="#contenido">Saltar al contenido</a>
+<header class="encabezado">
+<div class="contenedor barra-navegacion">
+<a class="marca" href="#inicio" aria-label="Ruta Dev, inicio">Ruta Dev</a>
+<nav aria-label="Navegación principal">
+<ul class="menu">
+<li><a href="#tecnologias">Tecnologías</a></li>
+<li><a href="#practicas">Buenas prácticas</a></li>
+<li><a href="#meta">Mi meta</a></li>
+</ul>
+</nav>
+<!-- Reto: Botón para cambiar de tema -->
+<button id="boton-tema" class="boton" type="button" aria-pressed="false">Tema oscuro</button>
+</div>
+</header>
+<main id="contenido">
+<section id="inicio" class="hero">
+<div class="contenedor">
+<p class="eyebrow">SEMANA 1 FUNDAMENTOS</p>
+<h1>Construye una base sólida para desarrollar en la Web</h1>
+<p class="introduccion">HTML aporta significado, CSS define la presentación y JavaScript
+incorpora comportamiento.</p>
+<button id="boton-consejo" class="boton" type="button"
+aria-expanded="false" aria-controls="consejo">
+Mostrar consejo
+</button>
+<p id="consejo" class="consejo" hidden>
+Domina primero los estándares web; después comprenderás mejor cualquier framework.
+</p>
+</div>
+</section>
+<section id="tecnologias" class="seccion contenedor" aria-labelledby="titulo-tecnologias">
+<h2 id="titulo-tecnologias">Tecnologías fundamentales</h2>
+<div class="tarjetas">
+<article class="tarjeta"><h3>HTML</h3><p>Estructura el contenido y expresa su
+significado.</p></article>
+<article class="tarjeta"><h3>CSS</h3><p>Controla el diseño, los colores y la
+adaptación.</p></article>
+<article class="tarjeta"><h3>JavaScript</h3><p>Permite responder a acciones y modificar la
+interfaz.</p></article>
+<!-- Reto: Cuarta tarjeta -->
+<article class="tarjeta"><h3>Herramientas del navegador</h3><p>Permiten inspeccionar, medir y depurar el funcionamiento real de la web.</p></article>
+</div>
+</section>
+<section id="practicas" class="seccion seccion-alterna">
+<div class="contenedor">
+<h2>Buenas prácticas desde el inicio</h2>
+<ul class="lista-practicas">
+<li>Usar elementos semánticos.</li><li>Separar responsabilidades.</li>
+<li>Diseñar para teclado y pantallas pequeñas.</li><li>Verificar antes de entregar.</li>
+</ul>
+</div>
+</section>
+<!-- Reto: Sección de meta de aprendizaje -->
+<section id="meta" class="seccion contenedor">
+<h2>Mi meta de aprendizaje</h2>
+<p>Dominar los fundamentos subyacentes del desarrollo web para poder crear interfaces accesibles, rápidas y semánticas, estableciendo un criterio técnico sólido antes de depender de frameworks o automatizaciones avanzadas.</p>
+</section>
+</main>
+<footer class="pie"><div class="contenedor"><p>Laboratorio de Marcos de Desarrollo
+Web</p></div></footer>
+</body>
+</html>
