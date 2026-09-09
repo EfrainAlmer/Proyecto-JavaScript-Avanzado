@@ -2,175 +2,19 @@
 
 /**
  * PROYECTO: CURAR - MÓDULO DE AUTENTICACIÓN Y GESTIÓN DE USUARIOS
- * Aplicación de conceptos de Guías de Laboratorio 1, 2, 3 y 4.
  */
 
 // ==========================================
-// 1. CONFIGURACIÓN Y CONSTANTES (Guía 1 & 2)
+// 1. BASE DE DATOS LOCAL Y SESIÓN (Usando datos.js)
 // ==========================================
 
-// Roles codificados con banderas de bits (Guía 2)
-const ROLE_PACIENTE = 1 << 0; // 01 (1)
-const ROLE_MEDICO   = 1 << 1; // 10 (2)
-const ROLE_ADMIN    = 1 << 2; // 100 (4)
-
-// Permisos codificados con banderas de bits (Guía 2)
-const PERM_RESERVAR  = 1 << 0; // Reservar citas
-const PERM_RECETAR   = 1 << 1; // Emitir recetas médicas
-const PERM_GESTIONAR = 1 << 2; // Controlar panel administrativo
-
-// Mapeo de roles a permisos (Guía 2)
-const PERMISOS_POR_ROL = Object.freeze({
-    [ROLE_PACIENTE]: PERM_RESERVAR,
-    [ROLE_MEDICO]:   PERM_RECETAR,
-    [ROLE_ADMIN]:    PERM_RESERVAR | PERM_RECETAR | PERM_GESTIONAR
-});
-
-// Expresiones Regulares de Validación (Guía 3)
-const PATRONES = Object.freeze({
-    DNI: /^\d{8}$/,
-    NOMBRE: /^[\p{L}\p{M}]+(?:[ '\-][\p{L}\p{M}]+)*$/u,
-    CORREO: /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/u,
-    TELEFONO: /^9\d{8}$/,
-    CMP: /^\d{5,6}$/, // Registro del Colegio Médico del Perú
-    PASSWORD: /^(?=.*[A-Za-z])(?=.*\d)[A-Za-z\d]{6,}$/ // Mínimo 6 caracteres, 1 letra, 1 número
-});
-
-// ==========================================
-// 2. MODELO DE DATOS - CLASES (Guía 4)
-// ==========================================
-
-class Usuario {
-    constructor({ dni, nombre, correo, telefono, rol, password, infoAdicional = {} }) {
-        this.dni = String(dni).trim();
-        this.nombre = String(nombre).trim();
-        this.correo = String(correo).trim().toLowerCase();
-        this.telefono = String(telefono).trim();
-        this.rol = Number(rol);
-        this.password = password; // En un entorno real esto iría hasheado en backend
-        this.infoAdicional = infoAdicional; // Seguro para paciente, CMP/Especialidad para médico
-        this.creadoEn = new Date().toISOString();
-    }
-
-    // Getter para obtener el rol formateado
-    get nombreRol() {
-        if (this.rol & ROLE_ADMIN) return "Administrador";
-        if (this.rol & ROLE_MEDICO) return "Médico Especialista";
-        if (this.rol & ROLE_PACIENTE) return "Paciente";
-        return "Desconocido";
-    }
-
-    // Verificar si el usuario tiene un permiso específico usando AND a nivel de bits
-    tienePermiso(permiso) {
-        const permisosDeUsuario = PERMISOS_POR_ROL[this.rol] ?? 0;
-        return (permisosDeUsuario & permiso) !== 0;
-    }
-
-    // Serialización para JSON (Guía 4)
-    toJSON() {
-        return {
-            dni: this.dni,
-            nombre: this.nombre,
-            correo: this.correo,
-            telefono: this.telefono,
-            rol: this.rol,
-            password: this.password,
-            infoAdicional: this.infoAdicional,
-            creadoEn: this.creadoEn
-        };
-    }
-
-    // Método estático para reconstruir la instancia (Guía 4)
-    static desdeObjeto(datos) {
-        return new Usuario(datos);
-    }
-}
-
-// ==========================================
-// 3. BASE DE DATOS LOCAL Y SESIÓN (Guía 4)
-// ==========================================
-
-// Cargar usuarios del LocalStorage o inicializar por defecto si está vacío
-const KEY_USUARIOS = "curar_usuarios";
-const KEY_SESION = "curar_sesion_activa";
-
-const USUARIOS_PREDETERMINADOS = [
-    {
-        dni: "12345678",
-        nombre: "Ana María Torres",
-        correo: "ana.torres@gmail.com",
-        telefono: "987654321",
-        rol: ROLE_PACIENTE,
-        password: "paciente123",
-        infoAdicional: { seguro: "SIS" }
-    },
-    {
-        dni: "87654321",
-        nombre: "Dr. Carlos Mendoza Arana",
-        correo: "c.mendoza@curar.pe",
-        telefono: "912345678",
-        rol: ROLE_MEDICO,
-        password: "medico123",
-        infoAdicional: { cmp: "54321", especialidad: "Pediatría" }
-    },
-    {
-        dni: "11112222",
-        nombre: "Administrador General",
-        correo: "admin@curar.pe",
-        telefono: "999888777",
-        rol: ROLE_ADMIN,
-        password: "admin123",
-        infoAdicional: { area: "Sistemas Central" }
-    }
-];
-
-function obtenerUsuariosGuardados() {
-    try {
-        const raw = localStorage.getItem(KEY_USUARIOS);
-        if (!raw) {
-            localStorage.setItem(KEY_USUARIOS, JSON.stringify(USUARIOS_PREDETERMINADOS));
-            return USUARIOS_PREDETERMINADOS.map(Usuario.desdeObjeto);
-        }
-        const listaObj = JSON.parse(raw);
-        return listaObj.map(Usuario.desdeObjeto);
-    } catch (e) {
-        console.error("Error al cargar usuarios de localStorage, usando predeterminados", e);
-        return USUARIOS_PREDETERMINADOS.map(Usuario.desdeObjeto);
-    }
-}
-
-// Guardar colección completa de usuarios
-function guardarUsuarios(listaUsuarios) {
-    localStorage.setItem(KEY_USUARIOS, JSON.stringify(listaUsuarios));
-}
-
-// Inicializar el estado de la aplicación
+// Inicializar el estado de la aplicación usando la función que viene de datos.js
 let listaUsuarios = obtenerUsuariosGuardados();
-// Crear un Map para búsquedas en tiempo O(1) por DNI (Guía 4)
+// Crear un Map para búsquedas en tiempo O(1) por DNI
 let mapaUsuariosPorDni = new Map(listaUsuarios.map(u => [u.dni, u]));
 
 // ==========================================
-// 4. FUNCIONES DE NORMALIZACIÓN Y TEXTO (Guía 3)
-// ==========================================
-
-function colapsarEspacios(texto) {
-    return String(texto).trim().replace(/\s+/gu, " ");
-}
-
-function capitalizarNombre(texto) {
-    return colapsarEspacios(texto)
-        .toLocaleLowerCase("es-PE")
-        .replace(/(^|[ '\-])\p{L}/gu, coincidencia =>
-            coincidencia.toLocaleUpperCase("es-PE")
-        );
-}
-
-function limpiarNumero(texto) {
-    return String(texto).replace(/[\s-]/gu, "");
-}
-
-// ==========================================
-// 5. SELECTORES DEL DOM (Guía 1)
+// 2. SELECTORES DEL DOM
 // ==========================================
 
 const DOM = {
@@ -223,7 +67,7 @@ const DOM = {
 };
 
 // ==========================================
-// 6. CONTROLADOR DE VISTAS (Navegación SPA) (Guía 1 & 4)
+// 3. CONTROLADOR DE VISTAS (Navegación SPA)
 // ==========================================
 
 function mostrarVista(vistaSeleccionada) {
@@ -243,7 +87,7 @@ function mostrarVista(vistaSeleccionada) {
     if (vistaSeleccionada) {
         vistaSeleccionada.hidden = false;
         
-        // Foco automático para accesibilidad (Guía 1 & 2)
+        // Foco automático para accesibilidad
         const primerInput = vistaSeleccionada.querySelector("input, select, button");
         if (primerInput) {
             queueMicrotask(() => primerInput.focus());
@@ -252,7 +96,7 @@ function mostrarVista(vistaSeleccionada) {
 }
 
 // ==========================================
-// 7. ORQUESTACIÓN Y EVENTOS (Guía 1, 3 & 4)
+// 4. ORQUESTACIÓN Y EVENTOS
 // ==========================================
 
 // --- VALIDACIONES DE NEGOCIO ---
@@ -331,7 +175,7 @@ function manejarLogin(evento) {
         return;
     }
 
-    // Búsqueda eficiente O(1) usando el Map (Guía 4)
+    // Búsqueda eficiente O(1) usando el Map 
     const usuario = mapaUsuariosPorDni.get(dni);
 
     if (!usuario || usuario.password !== password) {
@@ -343,7 +187,7 @@ function manejarLogin(evento) {
          // Sesión correcta
     sessionStorage.setItem(KEY_SESION, JSON.stringify(usuario.toJSON()));
 
-    // Redirigir según el rol (Guía 2: bits) en vez de mostrar siempre el dashboard local
+    // Redirigir según el rol en vez de mostrar siempre el dashboard local
     if (usuario.rol & ROLE_PACIENTE) {
         window.location.href = "cuenta-paciente.html";
         return;
@@ -389,7 +233,7 @@ function manejarRegistroPaciente(evento) {
 
     // Crear instancia de clase e insertar
     const nuevoPaciente = new Usuario(datos);
-    listaUsuarios = [...listaUsuarios, nuevoPaciente]; // Copia inmutable (Guía 4)
+    listaUsuarios = [...listaUsuarios, nuevoPaciente]; // Copia inmutable
     guardarUsuarios(listaUsuarios);
     mapaUsuariosPorDni.set(nuevoPaciente.dni, nuevoPaciente); // Actualizar índice
 
@@ -474,7 +318,7 @@ function manejarRecuperarPassword(evento) {
         return;
     }
 
-    // Simular envío de código de recuperación (Guía 1 & 3)
+    // Simular envío de código de recuperación
     DOM.forms.recuperar.reset();
     mostrarPanelAlerta(DOM.alertas.login, [
         `Se ha enviado un enlace de recuperación a: ${correo}.`,
@@ -494,7 +338,7 @@ function cargarSesionYMostrarDashboard(usuarioInstancia) {
     DOM.dashboard.correoUsuario.textContent = user.correo;
     DOM.dashboard.celularUsuario.textContent = user.telefono;
 
-    // Mostrar detalles específicos (Guía 4: object unpacking)
+    // Mostrar detalles específicos (object unpacking)
     const { seguro, cmp, especialidad, area } = user.infoAdicional;
     if (seguro) {
         DOM.dashboard.adicionalUsuario.innerHTML = `<strong>Cobertura de Seguro:</strong> Cobertura ${seguro}`;
@@ -506,7 +350,7 @@ function cargarSesionYMostrarDashboard(usuarioInstancia) {
         DOM.dashboard.adicionalUsuario.textContent = "Sin datos adicionales.";
     }
 
-    // Renderizar permisos dinámicos empleando bits (Guía 2)
+    // Renderizar permisos dinámicos empleando bits
     DOM.dashboard.permisosGrid.replaceChildren();
     
     const permisosDef = [
@@ -547,11 +391,11 @@ function manejarCerrarSesion() {
 }
 
 // ==========================================
-// 8. ASOCIACIÓN DE LISTENERS (Eventos) (Guía 1)
+// 5. ASOCIACIÓN DE LISTENERS (Eventos)
 // ==========================================
 
 function inicializarApp() {
-    // Escuchar envíos de formularios (Guía 1: submit)
+    // Escuchar envíos de formularios
     DOM.forms.login.addEventListener("submit", manejarLogin);
     DOM.forms.regPaciente.addEventListener("submit", manejarRegistroPaciente);
     DOM.forms.regMedico.addEventListener("submit", manejarRegistroMedico);
