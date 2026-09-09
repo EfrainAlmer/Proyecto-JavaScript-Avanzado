@@ -340,10 +340,19 @@ function manejarLogin(evento) {
         return;
     }
 
-    // Sesión correcta
+         // Sesión correcta
     sessionStorage.setItem(KEY_SESION, JSON.stringify(usuario.toJSON()));
+
+    // Redirigir según el rol (Guía 2: bits) en vez de mostrar siempre el dashboard local
+    if (usuario.rol & ROLE_PACIENTE) {
+        window.location.href = "cuenta-paciente.html";
+        return;
+    }
+
+    // Médico/Admin: aún no tienen página propia, se quedan con el dashboard de ejemplo
     cargarSesionYMostrarDashboard(usuario);
 }
+
 
 // --- PROCESO: REGISTRO DE PACIENTE ---
 

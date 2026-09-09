@@ -602,3 +602,399 @@ small {
 [hidden] {
   display: none !important;
 }
+/* ==========================================
+   Vista: Cuenta del paciente (Resumen + Mi perfil)
+   ========================================== */
+
+:root {
+    --curar-azul: #2f5fd6;
+    --curar-morado: #6d3fd1;
+    --curar-tinta: #1c2130;
+    --curar-gris-texto: #6b7280;
+    --curar-borde: #e4e7ee;
+    --curar-fondo: #f6f6f4;
+    --curar-verde: #16a34a;
+    --curar-verde-fondo: #eafaf0;
+}
+
+body:has(#app-paciente) {
+    background: var(--curar-fondo);
+}
+
+/* ---------- Estructura general: sidebar + contenido ---------- */
+
+.app-shell {
+    display: grid;
+    grid-template-columns: 4.5rem 1fr;
+    min-height: 100vh;
+}
+
+.app-sidebar {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.75rem;
+    padding: 1.25rem 0;
+    background: linear-gradient(180deg, var(--curar-azul) 0%, var(--curar-morado) 100%);
+    color: #fff;
+}
+
+.app-sidebar__marca {
+    display: grid;
+    place-items: center;
+    width: 2.25rem;
+    height: 2.25rem;
+    border-radius: 999px;
+    background: rgb(255 255 255 / 18%);
+    font-size: 1.25rem;
+    line-height: 1;
+}
+
+.app-sidebar__nombre {
+    writing-mode: vertical-rl;
+    transform: rotate(180deg);
+    font-weight: 700;
+    letter-spacing: 0.08em;
+    font-size: 0.85rem;
+}
+
+.app-shell__contenido {
+    display: flex;
+    flex-direction: column;
+    min-width: 0;
+    padding: 1.75rem 2rem 3rem;
+    gap: 1.5rem;
+}
+
+/* ---------- Cabecera: usuario + pestañas ---------- */
+
+.cuenta-cabecera {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 1rem;
+}
+
+.cuenta-usuario {
+    position: relative;
+}
+
+.cuenta-usuario__disparador {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    padding: 0.25rem;
+    border: none;
+    background: transparent;
+    cursor: pointer;
+    color: inherit;
+    font-family: inherit;
+}
+
+.cuenta-usuario__avatar {
+    display: grid;
+    place-items: center;
+    width: 2.75rem;
+    height: 2.75rem;
+    border-radius: 999px;
+    background: #dce6ff;
+    color: var(--curar-azul);
+    font-weight: 700;
+    font-size: 0.95rem;
+}
+
+.cuenta-usuario__datos {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    text-align: left;
+}
+
+.cuenta-usuario__saludo {
+    font-size: 1.1rem;
+    color: var(--curar-tinta);
+}
+
+.cuenta-usuario__saludo strong {
+    font-weight: 700;
+}
+
+.cuenta-usuario__rol {
+    font-size: 0.85rem;
+    color: var(--curar-gris-texto);
+}
+
+.cuenta-usuario__flecha {
+    color: var(--curar-gris-texto);
+    transition: transform 0.15s ease;
+}
+
+.cuenta-usuario__disparador[aria-expanded="true"] .cuenta-usuario__flecha {
+    transform: rotate(180deg);
+}
+
+.cuenta-usuario__menu {
+    position: absolute;
+    top: calc(100% + 0.5rem);
+    left: 0;
+    min-width: 12rem;
+    padding: 0.4rem;
+    background: #fff;
+    border: 1px solid var(--curar-borde);
+    border-radius: 0.75rem;
+    box-shadow: 0 12px 24px rgb(28 33 48 / 12%);
+    z-index: 10;
+}
+
+.cuenta-usuario__menu-item {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    width: 100%;
+    padding: 0.6rem 0.75rem;
+    border: none;
+    border-radius: 0.5rem;
+    background: transparent;
+    color: #c0362c;
+    font-weight: 600;
+    font-family: inherit;
+    font-size: 0.9rem;
+    cursor: pointer;
+    text-align: left;
+}
+
+.cuenta-usuario__menu-item:hover {
+    background: #fdeeed;
+}
+
+.cuenta-tabs {
+    display: flex;
+    gap: 0.5rem;
+}
+
+.cuenta-tab {
+    padding: 0.55rem 1rem;
+    border: 1px solid transparent;
+    border-radius: 999px;
+    color: var(--curar-gris-texto);
+    background: transparent;
+    font-weight: 700;
+    cursor: pointer;
+}
+
+.cuenta-tab--activo {
+    border-color: var(--curar-azul);
+    color: var(--curar-azul);
+    background: #eef3ff;
+}
+
+/* ---------- Contenido del resumen: dos columnas ---------- */
+
+.cuenta-contenido {
+    display: flex;
+    flex-direction: column;
+}
+
+.vista-resumen {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) 20rem;
+    gap: 1.5rem;
+    align-items: start;
+}
+
+.vista-resumen__principal,
+.vista-resumen__lateral {
+    display: flex;
+    flex-direction: column;
+    gap: 1.5rem;
+}
+
+.dashboard-tarjeta {
+    padding: 1.5rem;
+    border: 1px solid var(--curar-borde);
+    border-radius: 1rem;
+    background: #fff;
+}
+
+.dashboard-tarjeta h3 {
+    margin: 0 0 1rem;
+    color: var(--curar-tinta);
+}
+
+/* Ficha de identificación: filas etiqueta/valor */
+
+.ficha-lista {
+    margin: 0;
+}
+
+.ficha-fila {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: 1rem;
+    padding: 0.65rem 0;
+    border-bottom: 1px solid var(--curar-borde);
+}
+
+.ficha-fila:last-child {
+    border-bottom: none;
+    padding-bottom: 0;
+}
+
+.ficha-fila dt {
+    color: var(--curar-gris-texto);
+    font-size: 0.9rem;
+}
+
+.ficha-fila dd {
+    margin: 0;
+    font-weight: 700;
+    color: var(--curar-tinta);
+    text-align: right;
+}
+
+.ficha-fila--pendiente dd {
+    font-weight: 500;
+    color: #9aa1ab;
+    font-style: italic;
+}
+
+/* Próximas citas */
+
+.proxima-cita {
+    margin: 0;
+    color: var(--curar-gris-texto);
+}
+
+/* Miembro desde */
+
+.dashboard-mini-tarjeta {
+    display: flex;
+    flex-direction: column;
+    gap: 0.15rem;
+    padding: 0 0.25rem;
+}
+
+.dashboard-mini-tarjeta__etiqueta {
+    color: var(--curar-gris-texto);
+    font-size: 0.85rem;
+}
+
+.dashboard-mini-tarjeta strong {
+    font-size: 1.15rem;
+    color: var(--curar-tinta);
+}
+
+/* Permisos: lista compacta con ícono */
+
+.permisos-lista {
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+}
+
+.permiso-fila {
+    display: flex;
+    align-items: center;
+    gap: 0.6rem;
+    font-weight: 600;
+}
+
+.permiso-fila__icono {
+    display: grid;
+    place-items: center;
+    width: 1.4rem;
+    height: 1.4rem;
+    border-radius: 999px;
+    font-size: 0.8rem;
+    flex-shrink: 0;
+}
+
+.permiso-fila--activo {
+    color: var(--curar-verde);
+}
+
+.permiso-fila--activo .permiso-fila__icono {
+    background: var(--curar-verde-fondo);
+    color: var(--curar-verde);
+}
+
+.permiso-fila--inactivo {
+    color: #9aa1ab;
+}
+
+.permiso-fila--inactivo .permiso-fila__icono {
+    background: #f1f2f5;
+    color: #9aa1ab;
+}
+
+/* Notificaciones */
+
+.dashboard-notificaciones p {
+    margin: 0 0 0.5rem;
+    color: var(--curar-gris-texto);
+    font-size: 0.9rem;
+}
+
+.dashboard-notificaciones__vacio {
+    margin-bottom: 0 !important;
+    color: #b0b5bd !important;
+}
+
+/* ---------- Vista: Mi perfil ---------- */
+
+.grid-perfil {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    gap: 1.5rem;
+}
+
+.tarjeta-perfil {
+    padding: 1.5rem;
+    border: 1px solid var(--curar-borde);
+    border-radius: 1rem;
+    background: #ffffff;
+}
+
+.tarjeta-perfil h3 {
+    margin-top: 0;
+}
+
+/* ---------- Responsivo ---------- */
+
+@media (max-width: 64rem) {
+    .vista-resumen {
+        grid-template-columns: 1fr;
+    }
+}
+
+@media (max-width: 48rem) {
+    .app-shell {
+        grid-template-columns: 1fr;
+    }
+
+    .app-sidebar {
+        flex-direction: row;
+        justify-content: flex-start;
+        padding: 0.75rem 1rem;
+    }
+
+    .app-sidebar__nombre {
+        writing-mode: horizontal-tb;
+        transform: none;
+    }
+
+    .app-shell__contenido {
+        padding: 1.25rem 1rem 2rem;
+    }
+
+    .cuenta-cabecera {
+        flex-wrap: wrap;
+        gap: 1rem;
+    }
+
+    .cuenta-tabs {
+        order: 3;
+        width: 100%;
+    }
+}
