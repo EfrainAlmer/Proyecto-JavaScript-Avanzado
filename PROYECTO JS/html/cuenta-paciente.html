@@ -1,0 +1,235 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="CURAR - Cuenta del paciente: resumen y edición de perfil">
+    <title>CURAR - Mi Cuenta</title>
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="../css/styles.css">
+    <!-- datos.js debe cargar SIEMPRE antes que el script propio de la vista -->
+    <script src="../js/datos.js" defer></script>
+    <script src="../js/cuenta-paciente.js" defer></script>
+</head>
+<body>
+
+    <!-- Mensaje visible mientras se valida o si no hay sesión de paciente -->
+    <div id="guardia-sesion" class="mensaje-alerta" role="alert" hidden></div>
+
+    <div id="app-paciente" class="app-shell" hidden>
+
+        <!-- Barra lateral de marca (compartida por las vistas internas de CURAR) -->
+        <aside class="app-sidebar" aria-hidden="true">
+            <span class="app-sidebar__marca">
+                <span class="app-sidebar__icono">+</span>
+            </span>
+            <span class="app-sidebar__nombre">CURAR</span>
+        </aside>
+
+        <div class="app-shell__contenido">
+
+            <header class="cuenta-cabecera">
+
+                <div class="cuenta-usuario">
+                    <button
+                        type="button"
+                        id="btn-menu-usuario"
+                        class="cuenta-usuario__disparador"
+                        aria-haspopup="true"
+                        aria-expanded="false"
+                        aria-controls="menu-usuario"
+                    >
+                        <span class="cuenta-usuario__avatar" id="cabecera-avatar">🙂</span>
+                        <span class="cuenta-usuario__datos">
+                            <span class="cuenta-usuario__saludo">
+                                Hola, <strong id="cabecera-nombre">Nombre de Usuario</strong>
+                            </span>
+                            <span id="cabecera-rol" class="cuenta-usuario__rol">Paciente</span>
+                        </span>
+                        <svg class="cuenta-usuario__flecha" width="14" height="14" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+                            <path d="M6 9l6 6 6-6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                        </svg>
+                    </button>
+
+                    <div id="menu-usuario" class="cuenta-usuario__menu" hidden>
+                        <button type="button" id="btn-logout" class="cuenta-usuario__menu-item">
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+                                <path d="M15 3h4a1 1 0 0 1 1 1v16a1 1 0 0 1-1 1h-4M10 17l5-5-5-5M15 12H3"
+                                    stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                            </svg>
+                            Cerrar sesión
+                        </button>
+                    </div>
+                </div>
+
+                <nav class="cuenta-tabs" aria-label="Secciones de mi cuenta">
+                    <button type="button" id="tab-resumen" class="cuenta-tab cuenta-tab--activo" data-vista="resumen">
+                        Resumen
+                    </button>
+                    <button type="button" id="tab-perfil" class="cuenta-tab" data-vista="perfil">
+                        Mi perfil
+                    </button>
+                </nav>
+            </header>
+
+            <main class="cuenta-contenido">
+
+                <!-- ==========================================
+                     VISTA: RESUMEN (DASHBOARD)
+                     ========================================== -->
+                <section id="vista-resumen" class="vista-cuenta vista-resumen">
+
+                    <div class="vista-resumen__principal">
+
+                        <article class="dashboard-tarjeta">
+                            <h3>Ficha de identificación</h3>
+                            <dl class="ficha-lista">
+                                <div class="ficha-fila">
+                                    <dt>DNI</dt>
+                                    <dd id="resumen-dni">-</dd>
+                                </div>
+                                <div class="ficha-fila">
+                                    <dt>Correo electrónico</dt>
+                                    <dd id="resumen-correo">-</dd>
+                                </div>
+                                <div class="ficha-fila">
+                                    <dt>Celular de contacto</dt>
+                                    <dd id="resumen-celular">-</dd>
+                                </div>
+                                <div class="ficha-fila">
+                                    <dt>Cobertura de salud</dt>
+                                    <dd id="resumen-seguro">-</dd>
+                                </div>
+                                <div class="ficha-fila ficha-fila--pendiente">
+                                    <dt>Fecha de nacimiento</dt>
+                                    <dd>— pendiente</dd>
+                                </div>
+                                <div class="ficha-fila ficha-fila--pendiente">
+                                    <dt>Dirección</dt>
+                                    <dd>— pendiente</dd>
+                                </div>
+                            </dl>
+                        </article>
+
+                        <article class="dashboard-tarjeta">
+                            <h3>Próximas citas</h3>
+                            <p id="resumen-cita" class="proxima-cita">
+                                Aún no tienes citas registradas. Esta sección se conectará con el
+                                módulo de reserva de citas del equipo.
+                            </p>
+                        </article>
+
+                    </div>
+
+                    <aside class="vista-resumen__lateral">
+
+                        <article class="dashboard-mini-tarjeta">
+                            <span class="dashboard-mini-tarjeta__etiqueta">Miembro desde</span>
+                            <strong id="resumen-miembro-desde">-</strong>
+                        </article>
+
+                        <article class="dashboard-tarjeta">
+                            <h3>Permisos</h3>
+                            <div id="resumen-permisos" class="permisos-lista">
+                                <!-- Filas de permisos generadas dinámicamente -->
+                            </div>
+                        </article>
+
+                        <article class="dashboard-tarjeta dashboard-notificaciones">
+                            <h3>Notificaciones</h3>
+                            <p>Completa tu perfil para agilizar tus citas.</p>
+                            <p class="dashboard-notificaciones__vacio">No tienes notificaciones nuevas.</p>
+                        </article>
+
+                    </aside>
+
+                </section>
+
+                <!-- ==========================================
+                     VISTA: MI PERFIL
+                     ========================================== -->
+                <section id="vista-perfil" class="vista-cuenta" hidden>
+
+                    <div class="grid-perfil">
+
+                        <article class="tarjeta-perfil">
+                            <h3>Editar datos personales</h3>
+
+                            <div id="alerta-perfil" class="mensaje-alerta" role="alert" hidden></div>
+
+                            <form id="form-perfil" novalidate>
+                                <div class="campo campo--completo">
+                                    <label for="perfil-dni">DNI</label>
+                                    <input id="perfil-dni" type="text" disabled>
+                                    <small>El DNI no puede modificarse.</small>
+                                </div>
+
+                                <div class="campo campo--completo">
+                                    <label for="perfil-nombre">Nombre completo</label>
+                                    <input id="perfil-nombre" type="text" required>
+                                </div>
+
+                                <div class="campo campo--completo">
+                                    <label for="perfil-correo">Correo electrónico</label>
+                                    <input id="perfil-correo" type="email" required>
+                                </div>
+
+                                <div class="campo campo--completo">
+                                    <label for="perfil-telefono">Teléfono celular</label>
+                                    <input id="perfil-telefono" type="tel" placeholder="9XXXXXXXX" required>
+                                </div>
+
+                                <div class="campo campo--completo">
+                                    <label for="perfil-seguro">Cobertura de salud / Seguro</label>
+                                    <select id="perfil-seguro" required>
+                                        <option value="SIS">SIS (Sistema Integrado de Salud)</option>
+                                        <option value="EsSalud">EsSalud</option>
+                                        <option value="Particular">Seguro Particular / Sin Seguro</option>
+                                    </select>
+                                </div>
+
+                                <div class="campo campo--completo" style="margin-top: 0.5rem;">
+                                    <button type="submit" class="btn btn--primario">Guardar cambios</button>
+                                </div>
+                            </form>
+                        </article>
+
+                        <article class="tarjeta-perfil">
+                            <h3>Cambiar contraseña</h3>
+
+                            <div id="alerta-password" class="mensaje-alerta" role="alert" hidden></div>
+
+                            <form id="form-password" novalidate>
+                                <div class="campo campo--completo">
+                                    <label for="password-actual">Contraseña actual</label>
+                                    <input id="password-actual" type="password" placeholder="••••••••" required>
+                                </div>
+
+                                <div class="campo campo--completo">
+                                    <label for="password-nueva">Nueva contraseña</label>
+                                    <input id="password-nueva" type="password" placeholder="Mín. 6 caracteres" required>
+                                </div>
+
+                                <div class="campo campo--completo">
+                                    <label for="password-confirmar">Confirmar nueva contraseña</label>
+                                    <input id="password-confirmar" type="password" placeholder="Repite la contraseña" required>
+                                </div>
+
+                                <div class="campo campo--completo" style="margin-top: 0.5rem;">
+                                    <button type="submit" class="btn btn--primario">Actualizar contraseña</button>
+                                </div>
+                            </form>
+                        </article>
+
+                    </div>
+
+                </section>
+
+            </main>
+
+        </div>
+
+    </div>
+
+</body>
+</html>
