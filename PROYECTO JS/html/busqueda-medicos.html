@@ -1,0 +1,141 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>CURAR - Búsqueda de Médicos</title>
+
+    <link
+        href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700;800&display=swap"
+        rel="stylesheet">
+
+    <link rel="stylesheet" href="../css/styles.css">
+
+    <script src="../js/datos.js" defer></script>
+    <script src="../js/busqueda-medicos.js" defer></script>
+</head>
+
+<body>
+
+<div class="app-shell">
+
+    <aside class="app-sidebar">
+        <span class="app-sidebar__marca">
+            <span class="app-sidebar__icono">+</span>
+        </span>
+
+        <span class="app-sidebar__nombre">
+            CURAR
+        </span>
+    </aside>
+
+
+    <div class="app-shell__contenido">
+
+        <header class="cuenta-cabecera">
+
+            <div>
+                <h1>Buscar médicos</h1>
+                <p>
+                    Encuentra al especialista que necesitas.
+                </p>
+            </div>
+
+            <button
+                id="btn-volver"
+                type="button"
+                class="btn btn--secundario"
+                style="width: auto;">
+
+                Volver
+            </button>
+
+        </header>
+
+
+        <main class="cuenta-contenido">
+
+            <!-- BUSCADOR -->
+            <section class="dashboard-tarjeta">
+
+                <h3>Búsqueda de especialistas</h3>
+
+                <div class="grupo-campos">
+
+                    <div class="campo">
+
+                        <label for="buscar-nombre">
+                            Nombre del médico
+                        </label>
+
+                        <input
+                            id="buscar-nombre"
+                            type="text"
+                            placeholder="Ej. Carlos Mendoza">
+
+                    </div>
+
+
+                    <div class="campo">
+
+                        <label for="buscar-especialidad">
+                            Especialidad
+                        </label>
+
+                        <select id="buscar-especialidad">
+
+                            <option value="">
+                                Todas
+                            </option>
+
+                            <option value="Medicina General">
+                                Medicina General
+                            </option>
+
+                            <option value="Pediatría">
+                                Pediatría
+                            </option>
+
+                            <option value="Cardiología">
+                                Cardiología
+                            </option>
+
+                            <option value="Ginecología">
+                                Ginecología
+                            </option>
+
+                            <option value="Geriatría">
+                                Geriatría
+                            </option>
+
+                        </select>
+
+                    </div>
+
+                </div>
+
+            </section>
+
+
+            <!-- RESULTADOS -->
+            <section>
+
+                <h2>Médicos disponibles</h2>
+
+                <div
+                    id="lista-medicos"
+                    class="permisos-grid">
+                </div>
+
+            </section>
+
+        </main>
+
+    </div>
+
+</div>
+
+</body>
+</html>
