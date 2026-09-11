@@ -191,6 +191,10 @@ function manejarLogin(evento) {
     if (usuario.rol & ROLE_PACIENTE) {
         window.location.href = "cuenta-paciente.html";
         return;
+    } else if (usuario.rol & ROLE_MEDICO) {
+        // Redirección exclusiva a tu panel médico
+        window.location.href = "panel-medico.html"; 
+        return;
     }
 
     // Médico/Admin: aún no tienen página propia, se quedan con el dashboard de ejemplo
@@ -412,12 +416,22 @@ function inicializarApp() {
     DOM.nav.seleccionarMedico.addEventListener("click", () => mostrarVista(DOM.vistas.registroMedico));
 
     // Verificar si ya hay una sesión activa guardada
-    try {
+  try {
         const sesionGuardada = sessionStorage.getItem(KEY_SESION);
         if (sesionGuardada) {
             const datosObj = JSON.parse(sesionGuardada);
             const usuarioInstancia = Usuario.desdeObjeto(datosObj);
-            cargarSesionYMostrarDashboard(usuarioInstancia);
+            
+            // Redirigir automáticamente según el rol si refrescan la página
+            if (usuarioInstancia.rol & ROLE_PACIENTE) {
+                window.location.href = "cuenta-paciente.html";
+            } else if (usuarioInstancia.rol & ROLE_MEDICO) {
+                // Redirección exclusiva a tu panel médico
+                window.location.href = "panel-medico.html"; 
+            } else {
+                // Los administradores se quedan con el dashboard de ejemplo
+                cargarSesionYMostrarDashboard(usuarioInstancia);
+            }
         } else {
             mostrarVista(DOM.vistas.login);
         }

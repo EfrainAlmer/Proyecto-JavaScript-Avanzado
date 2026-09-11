@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gestión de Citas - CURAR</title>
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="../css/styles.css">
+    <style>
+        /* Estilos limpios y seguros para asegurar que la tabla no se rompa */
+        .app-shell-medico { display: flex; height: 100vh; background-color: #f4f7fa; font-family: 'Montserrat', sans-serif; }
+        .sidebar-medico { width: 250px; background: #5a4fcf; color: white; display: flex; flex-direction: column; padding: 20px; box-sizing: border-box; }
+        .sidebar-medico .logo-texto { font-size: 24px; font-weight: bold; margin-bottom: 40px; }
+        .menu-medico { display: flex; flex-direction: column; gap: 15px; flex-grow: 1; }
+        .menu-item { color: #d1d0f5; text-decoration: none; padding: 12px 15px; border-radius: 8px; font-weight: bold; transition: background 0.3s; }
+        .menu-item:hover, .menu-item.activo { background: rgba(255,255,255,0.2); color: white; }
+        .btn-logout { background: transparent; border: 1px solid white; color: white; padding: 10px; border-radius: 8px; cursor: pointer; margin-top: auto; font-weight: bold; }
+        
+        .contenido-medico { flex-grow: 1; padding: 40px; overflow-y: auto; box-sizing: border-box; }
+        .tarjeta-datos { background: white; padding: 25px; border-radius: 12px; box-shadow: 0 4px 6px rgba(0,0,0,0.05); margin-top: 20px; }
+        
+        /* Tabla corregida con ancho fijo y distribución perfecta */
+        .tabla-citas { width: 100%; border-collapse: collapse; text-align: left; }
+        .tabla-citas th { padding: 15px; color: #666; font-weight: 700; border-bottom: 2px solid #eee; font-size: 14px; }
+        .tabla-citas td { padding: 18px 15px; border-bottom: 1px solid #f0f0f0; font-size: 14px; color: #333; vertical-align: middle; }
+    </style>
+</head>
+<body>
+
+<div class="app-shell-medico">
+    <!-- BARRA LATERAL -->
+    <aside class="sidebar-medico">
+        <div class="logo-texto">✚ CURAR</div>
+        <nav class="menu-medico">
+            <a href="panel-medico.html" class="menu-item">🏠 Mi Panel</a>
+            <a href="gestion-citas.html" class="menu-item activo">📅 Gestión de Citas</a>
+        </nav>
+        <button class="btn-logout" id="btn-logout-medico" onclick="sessionStorage.removeItem('curar_sesion_activa'); location.href='autenticacion.html';">🚪 Cerrar Sesión</button>
+    </aside>
+
+    <!-- CONTENIDO PRINCIPAL -->
+    <main class="contenido-medico">
+        <header>
+            <h1 style="color: #1f2937; font-size: 26px; margin-bottom: 5px;">Gestión de Pacientes</h1>
+            <p style="color: #6b7280; margin: 0;">Administra y actualiza el estado de tus citas programadas.</p>
+        </header>
+
+        <section class="tarjeta-datos">
+            <table class="tabla-citas">
+                <thead>
+                    <tr>
+                        <th style="width: 30%;">Paciente</th>
+                        <th style="width: 30%;">Fecha y Hora</th>
+                        <th style="width: 20%;">Sede</th>
+                        <th style="width: 20%;">Estado / Acción</th>
+                    </tr>
+                </thead>
+                <tbody id="cuerpo-tabla-medico">
+                    <!-- Los datos se inyectarán de forma dinámica aquí mediante el script -->
+                </tbody>
+            </table>
+        </section>
+    </main>
+</div>
+
+<script src="../js/gestion-citas.js"></script>
+</body>
+</html>
