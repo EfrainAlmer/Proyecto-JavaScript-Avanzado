@@ -443,3 +443,19 @@ function inicializarApp() {
 
 // Ejecutar inicialización una vez que el DOM esté cargado (script cargado con defer)
 inicializarApp();
+const formLoginRedireccion = document.getElementById('form-login');
+
+if (formLoginRedireccion) {
+    formLoginRedireccion.addEventListener('submit', function() {
+        // Damos un pequeño margen de 150 milisegundos para que tu código 
+        // principal termine de validar y ejecutar "guardarSesionActiva"
+        setTimeout(() => {
+            const sesionActual = obtenerSesionActiva();
+            
+            // Si el login fue exitoso y el usuario es el Administrador...
+            if (sesionActual && sesionActual.rol === ROLE_ADMIN) {
+                window.location.href = 'panel-administrativo.html';
+            }
+        }, 150); 
+    });
+}

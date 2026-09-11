@@ -7,8 +7,8 @@
  *
  * IMPORTANTE: este archivo debe cargarse ANTES que el script propio
  * de cada vista, por ejemplo:
- *   <script src="/PROYECTO JS/js/datos.js" defer></script>
- *   <script src="/PROYECTO JS/js/cuenta-paciente.js" defer></script>
+ *   <script src="../js/datos.js" defer></script>
+ *   <script src="../js/cuenta-paciente.js" defer></script>
  */
 
 // ==========================================
@@ -39,7 +39,7 @@ const PATRONES = Object.freeze({
     CORREO: /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/u,
     TELEFONO: /^9\d{8}$/,
     CMP: /^\d{5,6}$/,
-    PASSWORD: /^(?=.*[A-Za-z])(?=.*\d)[A-Za-z\d]{6,}$/
+    PASSWORD: /^(?=.*[A-Za-z])(?=.*\d)[A-Za-z\d]{6,}$/ // Nota: El patrón requiere letras y números. "admin" no lo pasa, pero esto solo aplica a los nuevos registros, no a los hardcodeados
 });
 
 // ==========================================
@@ -127,6 +127,16 @@ const USUARIOS_PREDETERMINADOS = [
         rol: ROLE_ADMIN,
         password: "admin123",
         infoAdicional: { area: "Sistemas Central" }
+    },
+    // NUEVO ADMINISTRADOR AÑADIDO
+    {
+        dni: "70490991",
+        nombre: "Administrador Principal",
+        correo: "admin.principal@curar.pe",
+        telefono: "900000000",
+        rol: ROLE_ADMIN,
+        password: "admin",
+        infoAdicional: { area: "Panel Administrativo" }
     }
 ];
 
