@@ -1,0 +1,343 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="CURAR - Panel de Administración Avanzado">
+    <title>CURAR - Panel Administrativo</title>
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    
+    <!-- Tu hoja de estilos principal (INTACTA) -->
+    <link rel="stylesheet" href="../css/styles.css">
+    
+    <!-- Librerías Externas añadidas para gráficos y alertas bonitas -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
+    <!-- Estilos específicos para los botones y elementos nuevos añadidos aquí para no tocar tu styles.css -->
+    <style>
+        .chart-container { position: relative; height: 250px; width: 100%; margin-top: 15px; }
+        .btn-accion { margin: 2px; padding: 6px 12px; border: none; border-radius: 6px; cursor: pointer; color: white; font-weight: 600; font-size: 0.85em; transition: all 0.3s ease; box-shadow: 0 2px 4px rgba(0,0,0,0.1); }
+        .btn-accion:hover { transform: translateY(-2px); box-shadow: 0 4px 6px rgba(0,0,0,0.15); }
+        .btn-ver { background-color: #3498db; }
+        .btn-editar { background-color: #f39c12; }
+        .btn-eliminar { background-color: #e74c3c; }
+        .btn-cancelar { background-color: #c0392b; }
+        .badge-success { background: #2ecc71; color: white; padding: 4px 8px; border-radius: 12px; font-size: 0.8em; }
+        .badge-danger { background: #e74c3c; color: white; padding: 4px 8px; border-radius: 12px; font-size: 0.8em; }
+        .badge-espera { background: #f1c40f; color: white; padding: 4px 8px; border-radius: 12px; font-size: 0.8em; }
+        .badge-cancelada { background: #95a5a6; color: white; padding: 4px 8px; border-radius: 12px; font-size: 0.8em; text-decoration: line-through; }
+        .badge-confirmada { background: #2ecc71; color: white; padding: 4px 8px; border-radius: 12px; font-size: 0.8em; }
+        .seguridad-status { display: block; padding: 10px; font-size: 0.85em; color: #155724; background-color: #d4edda; border-bottom: 1px solid #c3e6cb; text-align: center; font-weight: bold; border-radius: 4px 4px 0 0;}
+    </style>
+
+    <script src="../js/panel-administrativo.js" defer></script>
+</head>
+<body>
+    <div class="app-shell" id="app-admin">
+        
+        <!-- ==================== BARRA LATERAL (SIDEBAR) ==================== -->
+        <aside class="app-sidebar">
+            <div class="app-sidebar__marca">
+                <span class="icono-marca">🏥</span>
+                <h1 class="texto-marca">CURAR</h1>
+            </div>
+            
+            <nav class="app-sidebar__navegacion">
+                <span class="nav-categoria">PRINCIPAL</span>
+                <ul class="nav-lista">
+                    <li><a href="#" class="nav-link cuenta-tab cuenta-tab--activo" data-target="resumen"><span class="nav-icono">📊</span> Dashboard</a></li>
+                    <li><a href="#" class="nav-link cuenta-tab" data-target="gestion-medicos"><span class="nav-icono">👨‍⚕️</span> Médicos</a></li>
+                    <li><a href="#" class="nav-link cuenta-tab" data-target="gestion-pacientes"><span class="nav-icono">🫂</span> Pacientes</a></li>
+                    <li><a href="#" class="nav-link cuenta-tab" data-target="citas"><span class="nav-icono">📅</span> Citas Activas</a></li>
+                </ul>
+                
+                <span class="nav-categoria">SISTEMA</span>
+                <ul class="nav-lista">
+                    <li><a href="#" class="nav-link" id="nav-btn-reportes"><span class="nav-icono">📈</span> Reportes Rápido</a></li>
+                    <li><a href="#" class="nav-link cuenta-tab" data-target="configuracion"><span class="nav-icono">⚙️</span> Configuración</a></li>
+                    <li><a href="busqueda-medicos.html" class="nav-link"><span class="nav-icono">🏠</span> Portal Público</a></li>
+                </ul>
+            </nav>
+        </aside>
+
+        <!-- ==================== CONTENIDO PRINCIPAL ==================== -->
+        <main class="app-shell__contenido">
+            
+            <!-- Cabecera Superior (Topbar) -->
+            <header class="topbar">
+                <div class="topbar__busqueda">
+                    <span class="icono-buscar">🔍</span>
+                    <input type="text" placeholder="Buscar expedientes, médicos o citas..." id="input-busqueda-global" class="input-transparente">
+                </div>
+                
+                <div class="topbar__acciones">
+                    <!-- Notificaciones -->
+                    <button class="btn-icono" aria-label="Notificaciones" id="btn-notificaciones">
+                        🔔
+                        <span class="badge-notificacion">3</span>
+                    </button>
+
+                    <!-- Menú de Usuario -->
+                    <div class="cuenta-usuario">
+                        <button class="cuenta-usuario__disparador" id="btn-menu-usuario" aria-expanded="false">
+                            <div class="cuenta-usuario__avatar">AD</div>
+                            <div class="cuenta-usuario__datos">
+                                <span class="cuenta-usuario__saludo">Hola, <strong>Admin</strong></span>
+                                <span class="cuenta-usuario__rol">Superusuario</span>
+                            </div>
+                            <span class="cuenta-usuario__flecha">▼</span>
+                        </button>
+                        
+                        <div class="cuenta-usuario__menu" id="menu-desplegable" hidden>
+                            <!-- Estado de Seguridad Añadido -->
+                            <span class="seguridad-status">🛡️ Seguridad: Sistema Óptimo</span>
+                            
+                            <a href="#" class="cuenta-usuario__menu-item">👤 Mi Perfil</a>
+                            <a href="#" class="cuenta-usuario__menu-item">🔐 Config. Seguridad</a>
+                            <a href="#" class="cuenta-usuario__menu-item" id="btn-descargar-reporte-menu">📥 Descargar Reportes</a>
+                            <hr class="separador-menu">
+                            <button class="cuenta-usuario__menu-item texto-peligro" id="btn-cerrar-sesion">🚪 Cerrar Sesión</button>
+                        </div>
+                    </div>
+                </div>
+            </header>
+
+            <!-- Migas de pan (Breadcrumbs) -->
+            <div class="breadcrumbs">
+                <span>CURAR</span> &gt; <span class="breadcrumb-actual">Panel de Administración</span>
+            </div>
+
+            <!-- Contenedor de Vistas -->
+            <div id="vistas-container" class="vistas-contenedor">
+                
+                <!-- VISTA 1: DASHBOARD -->
+                <section id="vista-resumen" class="vista-seccion">
+                    <div class="vista-cabecera">
+                        <h2 class="vista-titulo">Resumen del Sistema</h2>
+                        <span class="vista-subtitulo">Monitoreo en tiempo real de la clínica</span>
+                    </div>
+
+                    <!-- Tarjetas de Métricas -->
+                    <div class="grid-metricas">
+                        <article class="tarjeta-metrica">
+                            <div class="metrica-icono fondo-azul">👥</div>
+                            <div class="metrica-datos">
+                                <span class="metrica-etiqueta">Pacientes</span>
+                                <strong class="metrica-valor" id="stat-pacientes">0</strong>
+                            </div>
+                        </article>
+                        <article class="tarjeta-metrica">
+                            <div class="metrica-icono fondo-verde">👨‍⚕️</div>
+                            <div class="metrica-datos">
+                                <span class="metrica-etiqueta">Médicos</span>
+                                <strong class="metrica-valor" id="stat-medicos">0</strong>
+                            </div>
+                        </article>
+                        <article class="tarjeta-metrica">
+                            <div class="metrica-icono fondo-naranja">📅</div>
+                            <div class="metrica-datos">
+                                <span class="metrica-etiqueta">Citas Pendientes</span>
+                                <strong class="metrica-valor" id="stat-citas">0</strong>
+                            </div>
+                        </article>
+                        <article class="tarjeta-metrica">
+                            <div class="metrica-icono fondo-morado">💵</div>
+                            <div class="metrica-datos">
+                                <span class="metrica-etiqueta">Ingresos (Mes)</span>
+                                <strong class="metrica-valor">S/ 24,500</strong>
+                            </div>
+                        </article>
+                    </div>
+
+                    <!-- Layout Dividido para Gráficos y Próximas Citas -->
+                    <div class="grid-layout-dos-columnas" style="margin-top: 20px;">
+                        <div class="tarjeta-panel">
+                            <h3 class="tarjeta-titulo">Evolución de Ingresos y Citas</h3>
+                            <!-- Contenedor de Gráfico Chart.js -->
+                            <div class="chart-container">
+                                <canvas id="chartEvolucion"></canvas>
+                            </div>
+                        </div>
+
+                        <div class="tarjeta-panel">
+                            <h3 class="tarjeta-titulo">Citas Recientes y Próximas</h3>
+                            <table class="tabla-minimalista">
+                                <thead>
+                                    <tr>
+                                        <th>Paciente</th>
+                                        <th>Hora</th>
+                                        <th>Estado</th>
+                                        <th>Acciones</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="tbody-citas-dashboard">
+                                    <!-- Llenado por JS -->
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- VISTA 2: MÉDICOS -->
+                <section id="vista-gestion-medicos" class="vista-seccion" hidden>
+                    <div class="vista-cabecera">
+                        <h2 class="vista-titulo">Directorio Médico</h2>
+                        <div class="acciones-grupo">
+                            <input type="text" id="buscar-medico" placeholder="Buscar médico..." class="input-busqueda">
+                            <button class="btn btn--primario btn-abrir-modal" id="btn-nuevo-medico" data-modal="modal-medico">
+                                <span class="btn-icono">+</span> Nuevo Médico
+                            </button>
+                        </div>
+                    </div>
+                    
+                    <div class="tarjeta-panel contenedor-tabla">
+                        <table class="tabla-admin">
+                            <thead>
+                                <tr>
+                                    <th>ID</th>
+                                    <th>Nombre Completo</th>
+                                    <th>Especialidad</th>
+                                    <th>Estado</th>
+                                    <th>Acciones</th>
+                                </tr>
+                            </thead>
+                            <tbody id="tbody-medicos">
+                                <!-- Llenado dinámicamente por JS -->
+                            </tbody>
+                        </table>
+                    </div>
+                </section>
+
+                <!-- VISTA 3: PACIENTES -->
+                <section id="vista-gestion-pacientes" class="vista-seccion" hidden>
+                    <div class="vista-cabecera">
+                        <h2 class="vista-titulo">Registro de Pacientes</h2>
+                        <div class="filtros-avanzados">
+                            <input type="text" id="buscar-paciente" placeholder="Buscar por DNI..." class="input-busqueda">
+                        </div>
+                    </div>
+                    
+                    <div class="tarjeta-panel contenedor-tabla">
+                        <table class="tabla-admin">
+                            <thead>
+                                <tr>
+                                    <th>DNI</th>
+                                    <th>Nombre del Paciente</th>
+                                    <th>Última Consulta</th>
+                                    <th>Historial</th>
+                                    <th>Acciones</th>
+                                </tr>
+                            </thead>
+                            <tbody id="tbody-pacientes">
+                                <!-- Llenado por JS -->
+                            </tbody>
+                        </table>
+                    </div>
+                </section>
+
+                <!-- VISTA 4: CITAS (Nueva Vista para cancelar) -->
+                <section id="vista-citas" class="vista-seccion" hidden>
+                    <div class="vista-cabecera">
+                        <h2 class="vista-titulo">Gestión de Citas Activas</h2>
+                    </div>
+                    <div class="tarjeta-panel contenedor-tabla">
+                        <table class="tabla-admin">
+                            <thead>
+                                <tr>
+                                    <th>ID Cita</th>
+                                    <th>Paciente</th>
+                                    <th>Médico</th>
+                                    <th>Fecha/Hora</th>
+                                    <th>Estado</th>
+                                    <th>Acciones</th>
+                                </tr>
+                            </thead>
+                            <tbody id="tbody-citas-completas">
+                                <!-- Llenado por JS -->
+                            </tbody>
+                        </table>
+                    </div>
+                </section>
+
+                <!-- VISTA 5: CONFIGURACIÓN -->
+                <section id="vista-configuracion" class="vista-seccion" hidden>
+                    <div class="vista-cabecera">
+                        <h2 class="vista-titulo">Configuración del Sistema</h2>
+                    </div>
+                    <div class="grid-layout-dos-columnas">
+                        <div class="tarjeta-panel">
+                            <h3>Ajustes Generales</h3>
+                            <form class="formulario-ajustes" id="form-configuracion">
+                                <div class="form-grupo">
+                                    <label>Nombre de la Clínica</label>
+                                    <input type="text" class="input-form" value="Centro Médico CURAR">
+                                </div>
+                                <div class="form-grupo">
+                                    <label>Correo de Contacto Administrativo</label>
+                                    <input type="email" class="input-form" value="admin@curar.com">
+                                </div>
+                                <button type="submit" class="btn btn--primario">Guardar Cambios</button>
+                            </form>
+                        </div>
+                        <div class="tarjeta-panel">
+                            <h3>Mantenimiento y Reportes</h3>
+                            <p class="texto-ayuda">Realice copias de seguridad y descargue reportes del sistema.</p>
+                            <br>
+                            <button class="btn btn--secundario" id="btn-backup">Descargar Backup (.sql)</button>
+                            <button class="btn btn--primario" id="btn-reporte-general" style="margin-top:10px;">Generar Reporte Excel (.csv)</button>
+                        </div>
+                    </div>
+                </section>
+
+            </div>
+            
+            <!-- Pie de página del panel -->
+            <footer class="footer-admin">
+                <p>&copy; 2026 CURAR. Todos los derechos reservados. Versión del sistema: 1.2.4</p>
+            </footer>
+        </main>
+    </div>
+
+    <!-- ==================== MODALES ==================== -->
+    <div id="modal-medico" class="modal-overlay" hidden>
+        <div class="modal-contenido">
+            <header class="modal-cabecera">
+                <h3 id="titulo-modal-medico">Registrar Nuevo Médico</h3>
+                <button class="btn-cerrar-modal" aria-label="Cerrar modal">✖</button>
+            </header>
+            <form id="form-medico" class="modal-cuerpo">
+                <input type="hidden" id="medico-id">
+                <div class="form-fila">
+                    <div class="form-grupo">
+                        <label>Nombres y Apellidos</label>
+                        <input type="text" id="medico-nombre" required class="input-form" placeholder="Ej: Dr. Carlos Ruiz">
+                    </div>
+                </div>
+                <div class="form-grupo">
+                    <label>Especialidad</label>
+                    <select id="medico-especialidad" class="input-form" required>
+                        <option value="">Seleccione especialidad...</option>
+                        <option value="Cardiología">Cardiología</option>
+                        <option value="Pediatría">Pediatría</option>
+                        <option value="Medicina General">Medicina General</option>
+                        <option value="Dermatología">Dermatología</option>
+                        <option value="Neurología">Neurología</option>
+                    </select>
+                </div>
+                <div class="form-grupo">
+                    <label>Estado</label>
+                    <select id="medico-estado" class="input-form" required>
+                        <option value="Activo">Activo</option>
+                        <option value="Inactivo">Inactivo</option>
+                    </select>
+                </div>
+            </form>
+            <footer class="modal-pie">
+                <button class="btn btn--secundario btn-cerrar-modal">Cancelar</button>
+                <button type="submit" form="form-medico" class="btn btn--primario">Guardar Datos</button>
+            </footer>
+        </div>
+    </div>
+</body>
+</html>
