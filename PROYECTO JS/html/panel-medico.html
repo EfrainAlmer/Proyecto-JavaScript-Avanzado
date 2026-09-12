@@ -6,117 +6,64 @@
     <title>CURAR - Panel Médico</title>
     <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700;800&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="../css/styles.css">
+    <script src="../js/datos.js" defer></script>
     <script src="../js/panel-medico.js" defer></script>
 </head>
 <body class="pm-body">
-
 <div class="pm-layout">
-    <!-- BARRA LATERAL (Morada) -->
   <aside class="pm-sidebar">
         <div class="pm-logo">✚</div>
        <nav class="pm-nav">
-    <!-- Botón de Inicio (Panel actual) -->
     <button class="pm-nav-btn active" title="Inicio" onclick="location.href='panel-medico.html'">🏠</button>
-    
-    <!-- Botón directo hacia Gestión de Citas -->
     <button class="pm-nav-btn" title="Gestión de Citas" onclick="location.href='gestion-citas.html'">📅</button>
 </nav>
-        
-        <!-- El botón de cerrar sesión sí funciona y limpia el sessionStorage -->
         <button class="pm-nav-btn pm-logout" id="btn-logout-medico" title="Cerrar Sesión">🚪</button>
     </aside>
-
-    <!-- CONTENIDO CENTRAL -->
     <main class="pm-main">
         <header class="pm-header">
-            <div class="pm-search-box">
-                🔍 <input type="text" id="pm-search" placeholder="Buscar citas...">
-            </div>
+            <div class="pm-search-box">🔍 <input type="text" id="pm-search" placeholder="Buscar citas..."></div>
             <div class="pm-header-actions">
-               <a href="gestion-citas.html" class="pm-history-link" style="text-decoration: none; color: #4b5563; font-weight: 500; cursor: pointer;">
-    Historial de Citas ▾
-</a>
+               <a href="gestion-citas.html" class="pm-history-link" style="text-decoration: none; color: #4b5563; font-weight: 500; cursor: pointer;">Historial de Citas ▾</a>
                 <button class="pm-btn-primary">+ Añadir Paciente</button>
             </div>
         </header>
-
         <section class="pm-welcome">
             <div>
                 <h1 id="pm-doc-name">Buenos días, Dr. Smith</h1>
                 <p>Que tenga un excelente día de trabajo</p>
             </div>
         </section>
-
         <section class="pm-reports">
             <h3>Reportes Semanales</h3>
             <div class="pm-report-cards">
-                <div class="pm-card pm-card--active">
-                    <span class="pm-icon">👥</span>
-                    <p>Pacientes Totales</p>
-                    <h2 id="metric-patients">0</h2>
-                </div>
-                <div class="pm-card">
-                    <span class="pm-icon pm-icon--orange">📞</span>
-                    <p>Llamadas</p>
-                    <h2>24</h2>
-                </div>
-                <div class="pm-card">
-                    <span class="pm-icon pm-icon--green">📅</span>
-                    <p>Citas Programadas</p>
-                    <h2 id="metric-appointments">0</h2>
-                </div>
-                <div class="pm-card">
-                    <span class="pm-icon pm-icon--purple">✉️</span>
-                    <p>Mensajes Nuevos</p>
-                    <h2>05</h2>
-                </div>
+                <div class="pm-card pm-card--active"><span class="pm-icon">👥</span><p>Pacientes Totales</p><h2 id="metric-patients">0</h2></div>
+                <div class="pm-card"><span class="pm-icon pm-icon--orange">📞</span><p>Llamadas</p><h2>24</h2></div>
+                <div class="pm-card"><span class="pm-icon pm-icon--green">📅</span><p>Citas Programadas</p><h2 id="metric-appointments">0</h2></div>
+                <div class="pm-card"><span class="pm-icon pm-icon--purple">✉️</span><p>Mensajes Nuevos</p><h2>05</h2></div>
             </div>
         </section>
-
         <section class="pm-appointments-list">
             <h3>Mis citas</h3>
-            <div class="pm-table-header">
-                <span>Nombre ↕</span>
-                <span>Sede ↕</span>
-                <span>Fecha ↕</span>
-                <span>Hora ↕</span>
-                <span>Estado ↕</span>
-            </div>
-            <div id="pm-citas-container">
-                <!-- Se inyectan las citas vía JS -->
-            </div>
+            <div class="pm-table-header"><span>Nombre ↕</span><span>Sede ↕</span><span>Fecha ↕</span><span>Hora ↕</span><span>Estado ↕</span></div>
+            <div id="pm-citas-container"></div>
         </section>
     </main>
-
-    <!-- PANEL DERECHO -->
     <aside class="pm-right-panel">
         <div class="pm-profile">
-            <div class="pm-profile-text">
-                <strong id="pm-profile-name">Karenath Smith</strong>
-                <span>Ver perfil</span>
-            </div>
+            <div class="pm-profile-text"><strong id="pm-profile-name">Karenath Smith</strong><span>Ver perfil</span></div>
             <div class="pm-avatar">👩‍⚕️</div>
         </div>
-
         <div class="pm-calendar-widget">
             <h4>Calendario</h4>
             <div class="pm-days">
-                <div class="pm-day">Lun<br><strong>23</strong></div>
-                <div class="pm-day">Mar<br><strong>24</strong></div>
-                <div class="pm-day">Mié<br><strong>25</strong></div>
-                <div class="pm-day pm-day--active">Jue<br><strong>26</strong></div>
-                <div class="pm-day">Vie<br><strong>27</strong></div>
+                <div class="pm-day">Lun<br><strong>23</strong></div><div class="pm-day">Mar<br><strong>24</strong></div><div class="pm-day">Mié<br><strong>25</strong></div><div class="pm-day pm-day--active">Jue<br><strong>26</strong></div><div class="pm-day">Vie<br><strong>27</strong></div>
             </div>
         </div>
-
         <div class="pm-monthly-reports">
             <h4>Próximos Pacientes</h4>
-            <div id="pm-next-patients" class="pm-mini-patients">
-                <!-- JS inyecta próximos pacientes -->
-            </div>
+            <div id="pm-next-patients" class="pm-mini-patients"></div>
         </div>
     </aside>
 </div>
-
 </body>
 </html>
