@@ -253,7 +253,7 @@ function manejarGuardarPerfil(evento) {
     }
 
     try {
-        // Fusión inmutable con spread (Guía 2 y 4)
+        // Fusión inmutable con spread 
         const actualizado = actualizarUsuario(usuarioActual.dni, {
             nombre,
             correo,
