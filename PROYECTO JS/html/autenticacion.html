@@ -11,12 +11,8 @@
     <script src="../js/login.js" defer></script>
 </head>
 <body>
-
     <main class="contenedor-auth">
-
-        <!-- ==========================================
-             CONTENEDOR DE AUTENTICACIÓN (LOGIN/REGISTRO)
-             ========================================== -->
+        <!-- CONTENEDOR DE AUTENTICACIÓN (LOGIN/REGISTRO) -->
         <div id="auth-main-container" class="auth-grid">
             
             <!-- Columna Izquierda: Mensaje de Marca (Identidad de CURAR) -->
@@ -28,12 +24,10 @@
                     </svg>
                     <span>CURAR</span>
                 </div>
-                
                 <div class="auth-lateral__mensaje">
                     <h2>Tu salud en manos expertas, al instante.</h2>
                     <p>Optimiza tus citas en el sector de salud pública peruana. Reserva, consulta recetas y mantén contacto con profesionales verificados en un solo lugar.</p>
                 </div>
-                
                 <div class="auth-lateral__footer">
                     <p>© 2026 CURAR. Aplicación Web de Optimización Médica.</p>
                 </div>
@@ -41,74 +35,62 @@
 
             <!-- Columna Derecha: Formularios Dinámicos (SPA) -->
             <section class="auth-formulario">
-
-                <!-- 1. VISTA: INICIO DE SESIÓN (LOGIN) -->
+                <!-- VISTA: INICIO DE SESIÓN -->
                 <div id="vista-login">
                     <div class="auth-formulario__cabecera">
                         <h1>Iniciar Sesión</h1>
                         <p>Ingresa tus credenciales para acceder a tu panel.</p>
                     </div>
-
-                    <!-- Alerta de validación-->
                     <div id="alerta-login" class="mensaje-alerta" role="alert" hidden></div>
-
                     <form id="form-login" novalidate>
                         <div class="campo campo--completo">
                             <label for="login-dni">Documento de Identidad (DNI)</label>
                             <input id="login-dni" type="text" maxlength="8" placeholder="Ingresa tu DNI" autocomplete="username" inputmode="numeric" required>
                             <small>Ejemplo: 12345678 (Paciente), 87654321 (Médico) o 70490991 (Admin)</small>
                         </div>
-                        
                         <div class="campo campo--completo">
                             <label for="login-password">Contraseña</label>
                             <input id="login-password" type="password" placeholder="••••••••" autocomplete="current-password" required>
                             <small>Ejemplos: paciente123, medico123 o admin</small>
                         </div>
-
                         <div class="campo campo--completo" style="margin-top: 0.5rem;">
                             <button type="submit" class="btn btn--primario">Ingresar al Sistema</button>
                         </div>
                     </form>
-
                     <div class="auth-enlaces">
                         <a href="#" id="btn-ir-recuperar">¿Olvidaste tu contraseña?</a>
                         <span>¿No tienes una cuenta? <a href="#" class="btn-ir-registro-rol">Regístrate aquí</a></span>
                     </div>
                 </div>
 
-                <!-- 2. VISTA: SELECCIÓN DE ROL REGISTRO -->
+                <!-- VISTA: SELECCIÓN DE ROL REGISTRO -->
                 <div id="vista-registro-rol" hidden>
                     <div class="auth-formulario__cabecera">
                         <h1>Elige tu Perfil</h1>
                         <p>Selecciona qué tipo de usuario deseas registrar en CURAR.</p>
                     </div>
-
                     <div class="seleccion-rol">
                         <article id="btn-select-paciente" class="tarjeta-rol">
                             <span class="tarjeta-rol__icono">🏥</span>
                             <h3>Soy Paciente</h3>
                             <p>Deseo reservar citas médicas, ver mis recetas y consultar mi historial.</p>
                         </article>
-
                         <article id="btn-select-medico" class="tarjeta-rol">
                             <span class="tarjeta-rol__icono">🩺</span>
                             <h3>Soy Médico</h3>
                             <p>Deseo administrar mis pacientes, programar mis horarios y emitir recetas.</p>
                         </article>
                     </div>
-
                     <button type="button" class="btn btn--secundario btn-ir-login">Volver al Inicio</button>
                 </div>
 
-                <!-- 3. VISTA: REGISTRO PACIENTE -->
+                <!-- VISTA: REGISTRO PACIENTE -->
                 <div id="vista-registro-paciente" hidden>
                     <div class="auth-formulario__cabecera">
                         <h1>Registro de Paciente</h1>
                         <p>Completa tus datos personales para afiliarte al sistema.</p>
                     </div>
-
                     <div id="alerta-reg-paciente" class="mensaje-alerta" role="alert" hidden></div>
-
                     <form id="form-registro-paciente" novalidate>
                         <div class="grupo-campos">
                             <div class="campo">
@@ -120,17 +102,14 @@
                                 <input id="reg-paciente-telefono" type="tel" placeholder="9XXXXXXXX" required>
                             </div>
                         </div>
-
                         <div class="campo campo--completo">
                             <label for="reg-paciente-nombre">Nombre Completo</label>
                             <input id="reg-paciente-nombre" type="text" placeholder="Ej: Ana María Torres" required>
                         </div>
-
                         <div class="campo campo--completo">
                             <label for="reg-paciente-correo">Correo Electrónico</label>
                             <input id="reg-paciente-correo" type="email" placeholder="correo@ejemplo.com" required>
                         </div>
-
                         <div class="campo campo--completo">
                             <label for="reg-paciente-seguro">Cobertura de Salud / Seguro</label>
                             <select id="reg-paciente-seguro" required>
@@ -140,7 +119,6 @@
                                 <option value="Particular">Seguro Particular / Sin Seguro</option>
                             </select>
                         </div>
-
                         <div class="grupo-campos">
                             <div class="campo">
                                 <label for="reg-paciente-password">Contraseña</label>
@@ -151,26 +129,22 @@
                                 <input id="reg-paciente-confirm" type="password" placeholder="Repite contraseña" required>
                             </div>
                         </div>
-
                         <div class="campo campo--completo" style="margin-top: 0.5rem;">
                             <button type="submit" class="btn btn--primario">Registrarme como Paciente</button>
                         </div>
                     </form>
-
                     <div class="auth-enlaces">
                         <span>¿Ya tienes una cuenta? <a href="#" class="btn-ir-login">Inicia Sesión</a></span>
                     </div>
                 </div>
 
-                <!-- 4. VISTA: REGISTRO MÉDICO -->
+                <!-- VISTA: REGISTRO MÉDICO -->
                 <div id="vista-registro-medico" hidden>
                     <div class="auth-formulario__cabecera">
                         <h1>Registro Médico</h1>
                         <p>Ingresa tus datos colegiados para postular al staff de CURAR.</p>
                     </div>
-
                     <div id="alerta-reg-medico" class="mensaje-alerta" role="alert" hidden></div>
-
                     <form id="form-registro-medico" novalidate>
                         <div class="grupo-campos">
                             <div class="campo">
@@ -182,17 +156,14 @@
                                 <input id="reg-medico-telefono" type="tel" placeholder="9XXXXXXXX" required>
                             </div>
                         </div>
-
                         <div class="campo campo--completo">
                             <label for="reg-medico-nombre">Nombre Completo (con Título)</label>
                             <input id="reg-medico-nombre" type="text" placeholder="Ej: Dr. Carlos Mendoza Arana" required>
                         </div>
-
                         <div class="campo campo--completo">
                             <label for="reg-medico-correo">Correo Corporativo / Personal</label>
                             <input id="reg-medico-correo" type="email" placeholder="medico@curar.pe" required>
                         </div>
-
                         <div class="grupo-campos">
                             <div class="campo">
                                 <label for="reg-medico-cmp">N° Colegiatura CMP</label>
@@ -210,7 +181,6 @@
                                 </select>
                             </div>
                         </div>
-
                         <div class="grupo-campos">
                             <div class="campo">
                                 <label for="reg-medico-password">Contraseña</label>
@@ -221,55 +191,44 @@
                                 <input id="reg-medico-confirm" type="password" placeholder="Repite contraseña" required>
                             </div>
                         </div>
-
                         <div class="campo campo--completo" style="margin-top: 0.5rem;">
                             <button type="submit" class="btn btn--morado">Postular al Staff Médico</button>
                         </div>
                     </form>
-
                     <div class="auth-enlaces">
                         <span>¿Ya tienes una cuenta? <a href="#" class="btn-ir-login">Inicia Sesión</a></span>
                     </div>
                 </div>
 
-                <!-- 5. VISTA: RECUPERAR CONTRASEÑA -->
+                <!-- VISTA: RECUPERAR CONTRASEÑA -->
                 <div id="vista-recuperar" hidden>
                     <div class="auth-formulario__cabecera">
                         <h1>Recuperar Contraseña</h1>
                         <p>Ingresa tus datos vinculados para restablecer tu cuenta.</p>
                     </div>
-
                     <div id="alerta-recuperar" class="mensaje-alerta" role="alert" hidden></div>
-
                     <form id="form-recuperar" novalidate>
                         <div class="campo campo--completo">
                             <label for="recuperar-dni">Número de DNI</label>
                             <input id="recuperar-dni" type="text" maxlength="8" placeholder="DNI registrado" required>
                         </div>
-
                         <div class="campo campo--completo">
                             <label for="recuperar-correo">Correo Electrónico Registrado</label>
                             <input id="recuperar-correo" type="email" placeholder="correo@ejemplo.com" required>
                         </div>
-
                         <div class="campo campo--completo" style="margin-top: 0.5rem;">
                             <button type="submit" class="btn btn--primario">Enviar Instrucciones</button>
                         </div>
                     </form>
-
                     <div class="auth-enlaces">
                         <span>¿Recordaste tu clave? <a href="#" class="btn-ir-login">Inicia Sesión</a></span>
                     </div>
                 </div>
-
             </section>
         </div>
-
-        <!-- ==========================================
-             VISTA DE SESIÓN ACTIVA (DASHBOARD SIMULADO)
-             ========================================== -->
+        
+        <!-- VISTA DE SESIÓN ACTIVA (DASHBOARD SIMULADO) -->
         <section id="vista-dashboard" class="dashboard-panel" hidden>
-            
             <header class="dashboard-cabecera">
                 <div class="dashboard-usuario">
                     <div id="dash-avatar" class="dashboard-usuario__avatar">👨‍⚕️</div>
@@ -280,44 +239,22 @@
                 </div>
                 <button id="btn-logout" class="btn btn--secundario" style="width: auto;">Cerrar Sesión Activa</button>
             </header>
-
             <main class="dashboard-contenido">
-                
-                <!-- Ficha del Usuario -->
                 <article class="dashboard-ficha">
                     <h3>Ficha de Identificación</h3>
                     <dl>
-                        <div>
-                            <dt>DNI / Identificador</dt>
-                            <dd id="dash-dni">12345678</dd>
-                        </div>
-                        <div>
-                            <dt>Correo Electrónico</dt>
-                            <dd id="dash-correo">usuario@ejemplo.com</dd>
-                        </div>
-                        <div>
-                            <dt>Celular de Contacto</dt>
-                            <dd id="dash-celular">987654321</dd>
-                        </div>
-                        <div id="dash-adicional">
-                            <!-- Datos dinámicos -->
-                        </div>
+                        <div><dt>DNI / Identificador</dt><dd id="dash-dni">12345678</dd></div>
+                        <div><dt>Correo Electrónico</dt><dd id="dash-correo">usuario@ejemplo.com</dd></div>
+                        <div><dt>Celular de Contacto</dt><dd id="dash-celular">987654321</dd></div>
+                        <div id="dash-adicional"></div>
                     </dl>
                 </article>
-
-                <!-- Panel de Permisos del Rol -->
                 <article class="dashboard-acciones">
-                    <h3>Permisos y Capacidades del Rol (Mapeo a nivel de bits)</h3>
-                    <div id="dash-permisos-grid" class="permisos-grid">
-                        <!-- Tarjetas de permisos generadas dinámicamente -->
-                    </div>
+                    <h3>Permisos y Capacidades del Rol</h3>
+                    <div id="dash-permisos-grid" class="permisos-grid"></div>
                 </article>
-
             </main>
-
         </section>
-
     </main>
-
 </body>
 </html>
