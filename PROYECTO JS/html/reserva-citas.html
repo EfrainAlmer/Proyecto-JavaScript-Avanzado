@@ -1,230 +1,46 @@
 <!DOCTYPE html>
 <html lang="es">
-
 <head>
     <meta charset="UTF-8">
-
-    <meta name="viewport"
-          content="width=device-width, initial-scale=1.0">
-
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>CURAR - Reserva de Citas</title>
-
-    <link
-        href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700;800&display=swap"
-        rel="stylesheet">
-
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700;800&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="../css/styles.css">
-
     <script src="../js/datos.js" defer></script>
     <script src="../js/reserva-citas.js" defer></script>
-
 </head>
-
 <body>
-
 <div class="app-shell">
-
-    <aside class="app-sidebar">
-
-        <span class="app-sidebar__marca">
-            <span class="app-sidebar__icono">+</span>
-        </span>
-
-        <span class="app-sidebar__nombre">
-            CURAR
-        </span>
-
-    </aside>
-
-
+    <aside class="app-sidebar"><span class="app-sidebar__marca"><span class="app-sidebar__icono">+</span></span><span class="app-sidebar__nombre">CURAR</span></aside>
     <div class="app-shell__contenido">
-
         <header class="cuenta-cabecera">
-
-            <div>
-
-                <h1>Reservar cita</h1>
-
-                <p>
-                    Completa la información de tu cita médica.
-                </p>
-
-            </div>
-
-
-            <button
-                id="btn-volver-medicos"
-                type="button"
-                class="btn btn--secundario"
-                style="width:auto;">
-
-                Volver a médicos
-
-            </button>
-
+            <div><h1>Reservar cita</h1><p>Completa la información de tu cita médica.</p></div>
+            <button id="btn-volver-medicos" type="button" class="btn btn--secundario" style="width:auto;">Volver a médicos</button>
         </header>
-
-
         <main class="cuenta-contenido">
-
             <section class="dashboard-tarjeta">
-
                 <h3>Información de la cita</h3>
-
-
-                <div
-                    id="alerta-reserva"
-                    class="mensaje-alerta"
-                    hidden>
-                </div>
-
-
+                <div id="alerta-reserva" class="mensaje-alerta" hidden></div>
                 <form id="form-reserva">
-
-
-                    <div class="campo campo--completo">
-
-                        <label>
-                            Médico
-                        </label>
-
-                        <input
-                            id="medico-nombre"
-                            type="text"
-                            disabled>
-
-                    </div>
-
-
-                    <div class="campo campo--completo">
-
-                        <label>
-                            Especialidad
-                        </label>
-
-                        <input
-                            id="medico-especialidad"
-                            type="text"
-                            disabled>
-
-                    </div>
-
-
-                    <div class="campo campo--completo">
-
-                        <label>
-                            CMP
-                        </label>
-
-                        <input
-                            id="medico-cmp"
-                            type="text"
-                            disabled>
-
-                    </div>
-
-
+                    <div class="campo campo--completo"><label>Médico</label><input id="medico-nombre" type="text" disabled></div>
+                    <div class="campo campo--completo"><label>Especialidad</label><input id="medico-especialidad" type="text" disabled></div>
+                    <div class="campo campo--completo"><label>CMP</label><input id="medico-cmp" type="text" disabled></div>
                     <div class="grupo-campos">
-
-                        <div class="campo">
-
-                            <label for="fecha-cita">
-                                Fecha
-                            </label>
-
-                            <input
-                                id="fecha-cita"
-                                type="date"
-                                required>
-
-                        </div>
-
-
-                        <div class="campo">
-
-                            <label for="hora-cita">
-                                Hora
-                            </label>
-
-                            <select
-                                id="hora-cita"
-                                required>
-
-                                <option value="">
-                                    Selecciona
-                                </option>
-
-                                <option value="08:00">
-                                    08:00 AM
-                                </option>
-
-                                <option value="09:00">
-                                    09:00 AM
-                                </option>
-
-                                <option value="10:00">
-                                    10:00 AM
-                                </option>
-
-                                <option value="11:00">
-                                    11:00 AM
-                                </option>
-
-                                <option value="14:00">
-                                    02:00 PM
-                                </option>
-
-                                <option value="15:00">
-                                    03:00 PM
-                                </option>
-
-                                <option value="16:00">
-                                    04:00 PM
-                                </option>
-
+                        <div class="campo"><label for="fecha-cita">Fecha</label><input id="fecha-cita" type="date" required></div>
+                        <div class="campo"><label for="hora-cita">Hora</label>
+                            <select id="hora-cita" required>
+                                <option value="">Selecciona</option>
+                                <option value="08:00">08:00 AM</option><option value="09:00">09:00 AM</option><option value="10:00">10:00 AM</option><option value="11:00">11:00 AM</option>
+                                <option value="14:00">02:00 PM</option><option value="15:00">03:00 PM</option><option value="16:00">04:00 PM</option>
                             </select>
-
                         </div>
-
                     </div>
-
-
-                    <div class="campo campo--completo">
-
-                        <label for="motivo-cita">
-                            Motivo de consulta
-                        </label>
-
-                        <input
-                            id="motivo-cita"
-                            type="text"
-                            placeholder="Ej. Dolor de cabeza"
-                            required>
-
-                    </div>
-
-
-                    <div class="campo campo--completo">
-
-                        <button
-                            type="submit"
-                            class="btn btn--primario">
-
-                            Confirmar reserva
-
-                        </button>
-
-                    </div>
-
+                    <div class="campo campo--completo"><label for="motivo-cita">Motivo de consulta</label><input id="motivo-cita" type="text" placeholder="Ej. Dolor de cabeza" required></div>
+                    <div class="campo campo--completo"><button type="submit" class="btn btn--primario">Confirmar reserva</button></div>
                 </form>
-
             </section>
-
         </main>
-
     </div>
-
 </div>
-
 </body>
 </html>
