@@ -1,0 +1,272 @@
+{
+  "sedes": [
+    {
+      "id": "s1",
+      "nombre": "Policlínico Pincos – Surco",
+      "tipo": "Policlínicos",
+      "direccion": "Av. Primavera 1250, Surco, Lima",
+      "seguros": [
+        "EsSalud"
+      ],
+      "telefono": "(01) 612-0000"
+    },
+    {
+      "id": "s2",
+      "nombre": "Policlínico Santa Cruz",
+      "tipo": "Policlínicos",
+      "direccion": "Av. Arequipa 1500, Lima",
+      "seguros": [
+        "EsSalud",
+        "SIS"
+      ],
+      "telefono": "(01) 612-0000"
+    },
+    {
+      "id": "s3",
+      "nombre": "Hospital Central",
+      "tipo": "Hospitales",
+      "direccion": "Av. Salaverry 2200, Jesús María, Lima",
+      "seguros": [
+        "EsSalud",
+        "SIS"
+      ],
+      "telefono": "(01) 612-0000"
+    },
+    {
+      "id": "s4",
+      "nombre": "Clínica Curar Sur",
+      "tipo": "Clínicas",
+      "direccion": "Av. Benavides 3100, Surco, Lima",
+      "seguros": [
+        "EsSalud"
+      ],
+      "telefono": "(01) 612-0000"
+    }
+  ],
+  "medicos": [
+    {
+      "id": "m1",
+      "nombre": "Franco Espinola",
+      "especialidad": "Medicina General",
+      "calificacion": 4.2,
+      "centro": "Hospitales",
+      "sedeId": "s3",
+      "cmp": "54321",
+      "estado": "Activo",
+      "universidad": "Universidad Privada de Ciencias Aplicadas",
+      "experiencia": "Más de 20 años de experiencia en medicina general y atención primaria.",
+      "reconocimientos": [
+        "Primer puesto en investigación clínica ",
+        "Reconocimiento por atención al adulto mayor "
+      ],
+      "horario": [
+        "08:00",
+        "09:30",
+        "10:00",
+        "11:15",
+        "15:30",
+        "16:00"
+      ],
+      "foto": "/medicos/m1.jpg"
+    },
+    {
+      "id": "m2",
+      "nombre": "Rosa Linares",
+      "especialidad": "Pediatría",
+      "calificacion": 4.6,
+      "centro": "Policlínicos",
+      "sedeId": "s2",
+      "cmp": "65432",
+      "estado": "Activo",
+      "universidad": "Universidad Peruana Cayetano Heredia",
+      "experiencia": "15 años en pediatría ambulatoria.",
+      "reconocimientos": [
+        "Mejor trato al paciente "
+      ],
+      "horario": [
+        "08:30",
+        "09:00",
+        "10:30",
+        "14:00"
+      ],
+      "foto": "/medicos/m2.jpg"
+    },
+    {
+      "id": "m3",
+      "nombre": "Jorge Salas",
+      "especialidad": "Cardiología",
+      "calificacion": 4.4,
+      "centro": "Clínicas",
+      "sedeId": "s4",
+      "cmp": "76543",
+      "estado": "Activo",
+      "universidad": "Universidad Peruana Cayetano Heredia",
+      "experiencia": "12 años en cardiología clínica.",
+      "reconocimientos": [
+        "Publicación en revista médica "
+      ],
+      "horario": [
+        "09:00",
+        "11:00",
+        "15:00",
+        "16:30"
+      ],
+      "foto": "/medicos/m3.jpg"
+    },
+    {
+      "id": "m4",
+      "nombre": "Andrea Salazar Ruiz",
+      "especialidad": "Ginecología",
+      "calificacion": 4.5,
+      "centro": "Policlínicos",
+      "sedeId": "s1",
+      "cmp": "87654",
+      "estado": "Activo",
+      "universidad": "Universidad Nacional Mayor de San Marcos",
+      "experiencia": "10 años en ginecología y obstetricia.",
+      "reconocimientos": [],
+      "horario": [
+        "10:00",
+        "11:00",
+        "14:00",
+        "16:00"
+      ],
+      "foto": "/medicos/m4.jpg"
+    },
+    {
+      "id": "m5",
+      "nombre": "Roberto Castillo",
+      "especialidad": "Geriatría",
+      "calificacion": 4.1,
+      "centro": "Hospitales",
+      "sedeId": "s3",
+      "cmp": "98765",
+      "estado": "Activo",
+      "universidad": "Universidad Nacional Mayor de San Marcos",
+      "experiencia": "18 años en geriatría.",
+      "reconocimientos": [
+        "Programa de envejecimiento saludable "
+      ],
+      "horario": [
+        "08:00",
+        "09:00",
+        "10:00",
+        "11:00"
+      ],
+      "foto": "/medicos/m5.jpg"
+    }
+  ],
+  "usuarios": [
+    {
+      "id": "u1",
+      "dni": "12345678",
+      "nombre": "Ana María Torres",
+      "correo": "paciente@curar.pe",
+      "telefono": "987654321",
+      "seguro": "SIS",
+      "rol": 1,
+      "password": "paciente123",
+      "creadoEn": "2026-01-15T10:00:00.000Z"
+    },
+    {
+      "id": "u2",
+      "dni": "87654321",
+      "nombre": "Franco Espinola",
+      "correo": "medico@curar.pe",
+      "telefono": "912345678",
+      "rol": 2,
+      "medicoId": "m1",
+      "cmp": "54321",
+      "password": "medico123",
+      "creadoEn": "2026-01-10T10:00:00.000Z"
+    },
+    {
+      "id": "u3",
+      "dni": "11112222",
+      "nombre": "Administrador General",
+      "correo": "admin@curar.pe",
+      "telefono": "999888777",
+      "rol": 4,
+      "password": "admin123",
+      "creadoEn": "2026-01-01T10:00:00.000Z"
+    }
+  ],
+  "citas": [
+    {
+      "id": "c1",
+      "dniPaciente": "12345678",
+      "paciente": "Ana María Torres",
+      "medicoId": "m1",
+      "seguro": "EsSalud",
+      "fecha": "2026-11-05",
+      "hora": "10:00",
+      "estado": "Confirmada",
+      "motivo": "Control general"
+    },
+    {
+      "id": "c2",
+      "dniPaciente": "12345678",
+      "paciente": "Ana María Torres",
+      "medicoId": "m1",
+      "seguro": "SIS",
+      "fecha": "2026-11-06",
+      "hora": "09:30",
+      "estado": "Pendiente",
+      "motivo": "Dolor de cabeza"
+    },
+    {
+      "id": "c3",
+      "dniPaciente": "12345678",
+      "paciente": "Ana María Torres",
+      "medicoId": "m2",
+      "seguro": "SIS",
+      "fecha": "2026-10-01",
+      "hora": "09:00",
+      "estado": "Atendida",
+      "motivo": "Control de rutina"
+    }
+  ],
+  "recetas": [
+    {
+      "id": "r1",
+      "dniPaciente": "12345678",
+      "paciente": "Ana María Torres",
+      "medicoId": "m2",
+      "medicoNombre": "Rosa Linares",
+      "fecha": "2026-10-01",
+      "medicamento": "Paracetamol 500 mg",
+      "cantidad": 2,
+      "indicaciones": "Una tableta cada 8 horas por 3 días"
+    }
+  ],
+  "favoritos": [],
+  "mensajes": [
+    {
+      "id": "s1",
+      "dni": "12345678",
+      "centro": "Policlínico Pincos – Surco",
+      "texto": "Tu cita fue registrada. Llega 15 minutos antes con tu DNI.",
+      "tipo": "Recibido",
+      "fecha": "2026-10-14"
+    }
+  ],
+  "familiares": [],
+  "comentarios": [
+    {
+      "id": "k1",
+      "sedeId": "s2",
+      "autor": "Ana",
+      "texto": "Atención ordenada y puntual.",
+      "puntaje": 4,
+      "fecha": "2026-09-20"
+    },
+    {
+      "id": "k2",
+      "sedeId": "s3",
+      "autor": "Luis",
+      "texto": "Mucha espera, pero buen trato del personal.",
+      "puntaje": 3,
+      "fecha": "2026-09-28"
+    }
+  ]
+}

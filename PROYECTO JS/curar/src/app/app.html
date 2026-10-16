@@ -1,0 +1,54 @@
+<a class="skip" href="#main">Saltar al contenido</a>
+<div class="topbar">
+  <div class="topbar-in">
+    <p><b>Emergencias:</b> <a href="tel:106">106 (SAMU)</a></p>
+    <p>Central telefónica: <a href="tel:+5116120000">(01) 612-0000</a></p>
+    <p class="hide-sm">WhatsApp: <a href="https://wa.me/51999000111">999 000 111</a></p>
+    <p class="hide-sm">Lunes a sábado, las 24 horas del día.</p>
+    <a class="reclamos" routerLink="/reclamaciones">Libro de Reclamaciones</a>
+  </div>
+</div>
+<header class="top">
+  <div class="bar">
+    <a class="logo" routerLink="/" aria-label="Curar, inicio">
+      <span class="cross" aria-hidden="true"><svg viewBox="0 0 14 14"><path d="M5 0h4v5h5v4H9v5H5V9H0V5h5z" fill="var(--bg)"/></svg></span>Curar
+    </a>
+    <nav aria-label="Principal">@switch (rol()) {
+  @case ('anonimo') { <a routerLink="/">Inicio</a><a routerLink="/seguro">Buscar médico</a><a routerLink="/centros">Centros</a> }
+@case ('paciente') { <a routerLink="/panel">Mi panel</a><a routerLink="/citas">Mis citas</a><a routerLink="/recetas">Recetas</a><a routerLink="/mensajes">Mensajes</a><a routerLink="/centros">Centros</a><a routerLink="/cuenta">Mi cuenta</a> }
+  @case ('medico') { <a routerLink="/panel-medico">Mi panel</a><a routerLink="/gestion-citas">Gestión de citas</a><a routerLink="/agenda">Agenda</a> }
+  @case ('admin') { <a routerLink="/admin">Administración</a><a routerLink="/seguro">Portal público</a> } }</nav>
+    @if (auth.usuario()) {<button class="btn brand" type="button" (click)="auth.salir()">Salir</button>} @else {<a class="btn brand" routerLink="/login">Iniciar sesión</a>}
+  </div>
+</header>
+<main id="main" tabindex="-1"><router-outlet /></main>
+<footer>
+  <div class="cols">
+    <div class="brand">
+      <a class="logo" routerLink="/" aria-label="Curar, inicio"><span class="cross" aria-hidden="true"><svg viewBox="0 0 14 14"><path d="M5 0h4v5h5v4H9v5H5V9H0V5h5z" fill="var(--bg)"/></svg></span>Curar</a>
+      <p class="tag">Atención pública más cerca de ti.</p>
+    </div>
+    <div>
+      <h3>Explora</h3>
+      <ul>
+        <li><a routerLink="/">Inicio</a></li>
+        <li><a routerLink="/seguro">Buscar médico</a></li>
+        <li><a routerLink="/centros">Centros de salud</a></li>
+        @if (!auth.usuario()) { <li><a routerLink="/registro">Crear cuenta</a></li> }
+      </ul>
+    </div>
+    <div>
+      <h3>Legal</h3>
+      <ul>
+        <li><a href="#">Términos y condiciones</a></li>
+        <li><a href="#">Política de privacidad</a></li>
+        <li><a href="#">Consentimiento de datos de salud</a></li>
+        <li><a routerLink="/reclamaciones">Libro de Reclamaciones</a></li>
+      </ul>
+    </div>
+  </div>
+  <div class="bottom">
+    <p class="legal">Tus datos de salud son datos sensibles: los tratamos solo con tu autorización previa, libre, expresa e informada, conforme a la Ley 29733.</p>
+    <p class="rights">© 2026 Curar · Demo académico</p>
+  </div>
+</footer>
