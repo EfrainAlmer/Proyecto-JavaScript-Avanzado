@@ -1,0 +1,37 @@
+PORTAL ACADÉMICO - Laboratorio 08 (Angular)
+===========================================
+
+REQUISITOS
+- Node.js 24.x y npm 11.x (los de la guía). Comprueba con: node --version
+- Un navegador actualizado.
+
+CÓMO EJECUTARLO
+1. Descomprime el ZIP y abre una terminal DENTRO de la carpeta portal-academico.
+2. Instala las dependencias (necesita internet, solo la primera vez):
+       npm install
+3. Inicia la aplicación:
+       npm start
+4. Abre http://localhost:4200 en el navegador.
+   (No abras index.html con doble clic: Angular necesita el servidor.)
+
+OTROS COMANDOS (en otra terminal, con npm start detenido o aparte)
+   npm run build      compila para producción (crea dist/portal-academico)
+   npm run test:ci    ejecuta las 13 pruebas automáticas
+   npm run verify     compila y prueba en secuencia
+
+QUÉ HAY EN LA CARPETA
+   package.json, angular.json, tsconfig*.json   configuración del proyecto
+   public/favicon.ico                           icono de la pestaña
+   src/index.html, src/main.ts, src/styles.css  documento base, arranque y estilos
+   src/app/app.*                                cabecera, menú y router-outlet
+   src/app/app.routes.ts / app.config.ts        rutas y configuración (es-PE)
+   src/app/modelos/                             tipos Estudiante y regla del estado académico
+   src/app/datos/                               los 6 estudiantes iniciales
+   src/app/estado/                              EstudiantesStore (estado compartido)
+   src/app/pipes/                               pipe estadoAcademico
+   src/app/componentes/                         TarjetaEstudiante (input y output)
+   src/app/paginas/                             resumen, estudiantes, registro, no-encontrada
+   src/app/*.spec.ts                            pruebas automáticas
+
+NOTA
+Los datos se guardan solo en memoria: al recargar el navegador vuelven a los 6 iniciales.
