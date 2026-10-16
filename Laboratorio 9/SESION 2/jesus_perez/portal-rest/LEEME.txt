@@ -1,0 +1,44 @@
+PORTAL REST - Laboratorio 09 (Angular + API simulada con JSON Server)
+=====================================================================
+
+DE QUÉ TRATA
+El portal académico de la semana 8, ahora conectado a una API REST local.
+Se pueden consultar, registrar, editar y eliminar estudiantes (CRUD), y los
+cambios se guardan en el archivo api/db.json, incluso al recargar o reiniciar.
+
+REQUISITOS
+- Node.js 24.x y npm 11.x (comprueba con: node --version)
+
+CÓMO EJECUTARLO (se necesitan DOS terminales dentro de la carpeta portal-rest)
+1. Instala las dependencias (solo la primera vez, con internet):
+       npm install
+2. Terminal A: enciende la API (déjala abierta):
+       npm run api
+   Comprueba en el navegador: http://127.0.0.1:3000/estudiantes (debe verse un arreglo de 6 estudiantes)
+3. Terminal B: enciende Angular:
+       npm start
+4. Abre http://localhost:4200
+
+OTROS COMANDOS
+   npm run api:reset   restaura los 6 estudiantes iniciales (con la API detenida;
+                       BORRA los cambios hechos)
+   npm run build       compila para producción
+   npm run test:ci     ejecuta las 19 pruebas automáticas
+   npm run verify      compila y prueba en secuencia
+
+QUÉ HAY EN LA CARPETA
+   api/seed.json        datos iniciales (copia de seguridad)
+   api/db.json          datos que modifica la API (empieza igual que seed.json)
+   scripts/             script para restaurar los datos
+   src/app/servicios/   EstudiantesApi (GET, POST, PATCH, PUT, DELETE) y mensajes de error
+   src/app/modelos/     tipo Estudiante y regla del estado académico
+   src/app/paginas/     resumen, estudiantes (con eliminar), registro/edición y no-encontrada
+   src/app/componentes/ TarjetaEstudiante
+   src/app/pipes/       pipe estadoAcademico
+   *.spec.ts            pruebas (App 2, EstudiantesApi 8, vistas con HTTP 9)
+
+NOTA
+Este proyecto reproduce el código de la guía. No se pudo compilar ni probar
+en el entorno donde se armó el zip; si algo falla al compilar, guarda el mensaje.
+angular.json y tsconfig.app/spec.json los genera normalmente la CLI y aquí
+se escribieron a mano.

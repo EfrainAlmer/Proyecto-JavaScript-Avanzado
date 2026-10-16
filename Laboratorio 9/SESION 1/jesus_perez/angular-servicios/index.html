@@ -1,0 +1,193 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Servicios, HttpClient y JSON Server en Angular</title>
+<link rel="stylesheet" href="styles.css">
+</head>
+<body>
+<header>
+  <h1>Servicios, HttpClient y JSON Server en Angular</h1>
+  <p>Explicado con un restaurante. Cada tema tiene una explicación simple, una prueba que puedes hacer y el código.</p>
+</header>
+
+<main>
+<section class="resumen">
+  <h2>Resumen rápido</h2>
+  <table>
+    <tr><th>Pieza</th><th>Qué hace</th><th>En el restaurante</th></tr>
+    <tr><td><b>Servicio</b></td><td>Guarda la lógica y los datos que usan varias pantallas</td><td>La cocina</td></tr>
+    <tr><td><b>HttpClient</b></td><td>Pide y envía datos a un servidor</td><td>El repartidor</td></tr>
+    <tr><td><b>JSON Server</b></td><td>Servidor falso para practicar</td><td>Un almacén de juguete</td></tr>
+    <tr><td><b>Pruebas</b></td><td>Comprueban que el servicio funciona</td><td>El inspector</td></tr>
+  </table>
+  <nav>
+    <a href="#servicios">1. Servicios</a>
+    <a href="#httpclient">2. HttpClient</a>
+    <a href="#jsonserver">3. JSON Server</a>
+    <a href="#pruebas">4. Probar servicios</a>
+  </nav>
+</section>
+
+<section id="servicios">
+  <h2>1. Servicios (Services)</h2>
+  <p class="frase">Un servicio es una clase con código o datos que varios componentes necesitan.</p>
+  <p class="analogia"><b>Piensa en:</b> la cocina. Los meseros (componentes) no cocinan: le piden los platos a la cocina. Así no repiten el trabajo.</p>
+  <h3>Pruébalo</h3>
+  <p>Toma pedidos con los dos meseros y cambia la opción para ver la diferencia.</p>
+  <div class="demo">
+    <p>
+      <label><input type="radio" name="modo" value="una" checked> Una sola cocina compartida</label><br>
+      <label><input type="radio" name="modo" value="dos"> Cada mesero con su propia cocina</label>
+    </p>
+    <div class="dos-col">
+      <div class="caja"><b>Mesero A</b><br><button data-mesero="a">Tomar pedido de pizza</button><ul id="lista-a"></ul></div>
+      <div class="caja"><b>Mesero B</b><br><button data-mesero="b">Tomar pedido de pizza</button><ul id="lista-b"></ul></div>
+    </div>
+    <p id="explica-servicio" class="resultado"></p>
+  </div>
+  <h3>Así se escribe</h3>
+  <pre><code>// pedidos.service.ts  (la cocina)
+@Injectable({ providedIn: 'root' })   // Angular crea UNA sola
+export class PedidosService {
+  pedidos = signal&lt;string[]&gt;([]);
+  agregar(plato: string) {
+    this.pedidos.update(lista =&gt; [...lista, plato]);
+  }
+}
+
+// en un componente (el mesero): se pide con inject(), no con new
+export class MenuComponent {
+  cocina = inject(PedidosService);
+}</code></pre>
+</section>
+
+<section id="httpclient">
+  <h2>2. HttpClient</h2>
+  <p class="frase">HttpClient es la herramienta de Angular para comunicarse con un servidor.</p>
+  <p class="analogia"><b>Piensa en:</b> el repartidor. Va al almacén, trae los productos y los entrega. A veces tarda, y a veces el almacén está cerrado (error).</p>
+  <h3>Pruébalo</h3>
+  <p>Esta demo simula un servidor dentro de tu navegador. Pulsa una acción y lee qué pasó.</p>
+  <div class="demo">
+    <p>
+      <button data-accion="GET">Pedir la lista (GET)</button>
+      <button data-accion="POST">Agregar un plato (POST)</button>
+      <button data-accion="DELETE">Borrar el primero (DELETE)</button>
+    </p>
+    <p><label><input type="checkbox" id="caido"> Simular que el servidor está caído</label></p>
+    <pre id="salida-http" class="salida">Pulsa una acción.</pre>
+  </div>
+  <h3>Así se escribe</h3>
+  <pre><code>// 1) Activar HttpClient una vez, en app.config.ts
+providers: [ provideHttpClient() ]
+
+// 2) Usarlo dentro de un servicio
+@Injectable({ providedIn: 'root' })
+export class PlatosService {
+  private http = inject(HttpClient);
+  private url = 'http://localhost:3000/platos';
+
+  listar()            { return this.http.get&lt;Plato[]&gt;(this.url); }
+  crear(plato: Plato) { return this.http.post&lt;Plato&gt;(this.url, plato); }
+  borrar(id: number)  { return this.http.delete(`${this.url}/${id}`); }
+}
+
+// 3) En el componente: subscribe espera la respuesta
+this.servicio.listar().subscribe({
+  next:  (platos) =&gt; this.platos.set(platos),       // salió bien
+  error: ()       =&gt; this.mensaje.set('Falló la carga') // salió mal
+});</code></pre>
+</section>
+
+<section id="jsonserver">
+  <h2>3. JSON Server</h2>
+  <p class="frase">JSON Server convierte un archivo <code>db.json</code> en una API falsa que funciona de verdad.</p>
+  <p class="analogia"><b>Piensa en:</b> un almacén de juguete para practicar con el repartidor, sin construir un servidor real.</p>
+  <h3>Paso 1: crea el archivo db.json</h3>
+  <pre><code>{
+  "platos": [
+    { "id": 1, "nombre": "Pizza",   "categoria": "comida", "precio": 28 },
+    { "id": 2, "nombre": "Ceviche", "categoria": "comida", "precio": 35 },
+    { "id": 3, "nombre": "Limonada","categoria": "bebida", "precio": 8 }
+  ]
+}</code></pre>
+  <h3>Paso 2: enciende el servidor</h3>
+  <pre><code>npx json-server db.json
+# Queda en http://localhost:3000
+# (en versiones antiguas: json-server --watch db.json)</code></pre>
+  <h3>Pruébalo: filtrar por categoría</h3>
+  <div class="demo">
+    <p><label>Categoría: <select id="categoria"><option value="">todas</option><option>comida</option><option>bebida</option></select></label></p>
+    <pre id="salida-json" class="salida"></pre>
+  </div>
+  <h3>Direcciones que crea solo</h3>
+  <table>
+    <tr><th>Petición</th><th>Qué hace</th></tr>
+    <tr><td><code>GET /platos</code></td><td>Lista todos los platos</td></tr>
+    <tr><td><code>GET /platos/1</code></td><td>Trae un plato por su id</td></tr>
+    <tr><td><code>POST /platos</code></td><td>Crea un plato nuevo</td></tr>
+    <tr><td><code>PUT /platos/1</code></td><td>Reemplaza el plato completo</td></tr>
+    <tr><td><code>PATCH /platos/1</code></td><td>Cambia solo algunos campos</td></tr>
+    <tr><td><code>DELETE /platos/1</code></td><td>Borra el plato</td></tr>
+  </table>
+  <p class="aviso">JSON Server es solo para practicar y desarrollar. No es un servidor seguro para una aplicación real.</p>
+</section>
+
+<section id="pruebas">
+  <h2>4. Herramientas para probar los servicios</h2>
+  <p class="frase">Probar un servicio es comprobar que funciona sin usar el servidor real.</p>
+  <p class="analogia"><b>Piensa en:</b> el inspector. Le da un pedido falso a la cocina y revisa que el resultado sea el correcto.</p>
+  <h3>Pruébalo</h3>
+  <p>Ejecuta las pruebas. Luego activa "romper el servicio" y vuelve a ejecutarlas: verás cómo una prueba detecta el error.</p>
+  <div class="demo">
+    <p><label><input type="checkbox" id="romper"> Romper el servicio (URL mal escrita)</label>
+    <button id="ejecutar">Ejecutar pruebas</button></p>
+    <div id="pruebas-lista"></div>
+  </div>
+  <h3>Así se escribe una prueba</h3>
+  <pre><code>beforeEach(() =&gt; {
+  TestBed.configureTestingModule({
+    // servidor falso para las pruebas
+    providers: [provideHttpClient(), provideHttpClientTesting()],
+  });
+  servicio = TestBed.inject(PlatosService);
+  http = TestBed.inject(HttpTestingController);
+});
+
+it('listar() hace un GET a /platos', () =&gt; {
+  servicio.listar().subscribe(r =&gt; expect(r).toHaveLength(2));
+
+  const req = http.expectOne('http://localhost:3000/platos'); // atrapa la petición
+  expect(req.request.method).toBe('GET');
+  req.flush([{ id: 1 }, { id: 2 }]);  // responde con datos falsos
+});
+
+afterEach(() =&gt; http.verify());  // no deben quedar peticiones sin responder</code></pre>
+  <h3>Otras herramientas</h3>
+  <table>
+    <tr><th>Herramienta</th><th>Para qué sirve</th></tr>
+    <tr><td>Pruebas unitarias (<code>ng test</code>)</td><td>Ejecutan los casos de prueba del servicio</td></tr>
+    <tr><td>HttpTestingController</td><td>Servidor falso dentro de las pruebas</td></tr>
+    <tr><td>Pestaña Red del navegador (F12)</td><td>Ver las peticiones reales de tu app y sus respuestas</td></tr>
+    <tr><td>Postman o Thunder Client</td><td>Probar la API a mano, sin Angular</td></tr>
+    <tr><td>El navegador o curl</td><td>Abrir <code>http://localhost:3000/platos</code> y ver el JSON</td></tr>
+  </table>
+</section>
+
+<section>
+  <h2>Mini glosario</h2>
+  <dl>
+    <dt>Servicio</dt><dd>Clase con lógica o datos compartidos entre componentes.</dd>
+    <dt>Inyección de dependencias</dt><dd>Angular te entrega lo que pides con <code>inject()</code>; tú no lo construyes.</dd>
+    <dt>API REST</dt><dd>Direcciones de un servidor que se usan con GET, POST, PUT, PATCH y DELETE.</dd>
+    <dt>Observable y subscribe</dt><dd>Una respuesta que llega más tarde; <code>subscribe</code> espera a que llegue.</dd>
+    <dt>JSON</dt><dd>Formato de texto para datos, por ejemplo <code>{"nombre": "Pizza"}</code>.</dd>
+    <dt>Simulación (mock)</dt><dd>Respuesta falsa que se usa para probar sin servidor real.</dd>
+  </dl>
+</section>
+</main>
+<footer>Las demostraciones son simuladas en tu navegador: no hay un servidor real detrás.</footer>
+<script src="script.js"></script>
+</body>
+</html>
