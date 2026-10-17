@@ -1,0 +1,23 @@
+ANGULAR ES UNA CIUDAD - Producto creativo
+=========================================
+
+CÓMO ABRIRLO
+1. Descomprime el ZIP.
+2. Haz doble clic en index.html (se abre en el navegador). No necesita internet,
+   salvo para la tipografía (si no hay internet usa otra letra y funciona igual).
+
+QUÉ HAY EN LA CARPETA
+- index.html : el contenido (textos, secciones y ejemplos de código).
+- styles.css : los colores y el diseño.
+- script.js  : las demostraciones interactivas.
+
+IDEA DEL PROYECTO
+Angular se explica como una ciudad:
+- Router (navegación)  = el metro: te lleva de una pantalla a otra.
+- Componentes          = los edificios: piezas reutilizables.
+- Pipes                = las tuberías: transforman cómo se ve un dato.
+- Formularios          = la ventanilla: recogen y validan datos.
+
+NOTA
+Las demos son simuladas con JavaScript para que se entienda la idea sin instalar
+nada. Los bloques de código muestran cómo se escribe de verdad en Angular.

@@ -1,6 +1,52 @@
 {
-  "reclamos": [],
-  "informes": [],
+  "reclamos": [
+    {
+      "codigo": "LR-2026-996030",
+      "tipo": "Reclamo",
+      "nombre": "Administrador General",
+      "dni": "11112222",
+      "correo": "efrainalmerconajera@gmail.com",
+      "telefono": "908765123",
+      "domicilio": "Huaycan",
+      "sede": "Policlínico Pincos – Surco",
+      "servicio": "Reserva de citas en línea",
+      "detalle": "No me atendieron bien",
+      "pedido": "Mas amable",
+      "fecha": "2026-10-16",
+      "estado": "Respondido",
+      "id": "Gr3RM_gxHTg"
+    }
+  ],
+  "informes": [
+    {
+      "citaId": "VuwxgtCJ_oc",
+      "dniPaciente": "12345678",
+      "paciente": "Ana María Torres",
+      "medicoId": "m1",
+      "medicoNombre": "Franco Espinola",
+      "fecha": "2026-10-16",
+      "sintomas": "DOLOR DE PIE",
+      "hallazgos": "ILGKKGWQRLKJQE",
+      "diagnostico": "ADRQ",
+      "plan": "QEQRQRE",
+      "id": "fUJmWFEkSVI"
+    },
+    {
+      "citaId": "rGX4_-X0_ig",
+      "dniPaciente": "12345678",
+      "paciente": "Ana María Torres",
+      "medicoId": "m1",
+      "medicoNombre": "Franco Espinola",
+      "fecha": "2026-10-16",
+      "presion": "120/80",
+      "frecuencia": 72,
+      "sintomas": "ADARA",
+      "hallazgos": "tiene cancer",
+      "diagnostico": "Cefalea",
+      "plan": "Paracetamol cada 8 horas antes de cada comida",
+      "id": "cdnKmW-GmdQ"
+    }
+  ],
   "sedes": [
     {
       "id": "s1",
@@ -279,8 +325,41 @@
       "fecha": "2026-10-17",
       "hora": "10:00",
       "motivo": "Dolor de cabeza",
-      "estado": "Pendiente",
+      "estado": "Cancelada",
       "id": "13nSLPKCytw"
+    },
+    {
+      "dniPaciente": "12345678",
+      "paciente": "Ana María Torres",
+      "medicoId": "m1",
+      "seguro": "EsSalud",
+      "fecha": "2026-10-17",
+      "hora": "10:00",
+      "motivo": "DOLOR DE PIE",
+      "estado": "Atendida",
+      "id": "VuwxgtCJ_oc"
+    },
+    {
+      "dniPaciente": "12345678",
+      "paciente": "Ana María Torres",
+      "medicoId": "m2",
+      "seguro": "EsSalud",
+      "fecha": "2026-10-17",
+      "hora": "10:30",
+      "motivo": "AAA",
+      "estado": "Pendiente",
+      "id": "yEeFdgjONxw"
+    },
+    {
+      "dniPaciente": "12345678",
+      "paciente": "Ana María Torres",
+      "medicoId": "m1",
+      "seguro": "EsSalud",
+      "fecha": "2026-10-17",
+      "hora": "16:00",
+      "motivo": "ADARA",
+      "estado": "Atendida",
+      "id": "rGX4_-X0_ig"
     }
   ],
   "recetas": [
@@ -294,6 +373,30 @@
       "medicamento": "Paracetamol 500 mg",
       "cantidad": 2,
       "indicaciones": "Una tableta cada 8 horas por 3 días"
+    },
+    {
+      "citaId": "VuwxgtCJ_oc",
+      "dniPaciente": "12345678",
+      "paciente": "Ana María Torres",
+      "medicoId": "m1",
+      "medicoNombre": "Franco Espinola",
+      "fecha": "2026-10-16",
+      "medicamento": "PARACETAMOL",
+      "cantidad": 4,
+      "indicaciones": "DESPUES DE COMER",
+      "id": "blZz4aM5Y7Y"
+    },
+    {
+      "citaId": "rGX4_-X0_ig",
+      "dniPaciente": "12345678",
+      "paciente": "Ana María Torres",
+      "medicoId": "m1",
+      "medicoNombre": "Franco Espinola",
+      "fecha": "2026-10-16",
+      "medicamento": "Parecetamol",
+      "cantidad": 1,
+      "indicaciones": "Una tableta cada 8 horas",
+      "id": "BuKg39bmFts"
     }
   ],
   "favoritos": [

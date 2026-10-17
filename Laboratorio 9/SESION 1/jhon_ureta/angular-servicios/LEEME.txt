@@ -1,0 +1,23 @@
+SERVICIOS, HTTPCLIENT Y JSON SERVER EN ANGULAR - Producto creativo
+===================================================================
+
+CÓMO ABRIRLO
+1. Descomprime el ZIP.
+2. Haz doble clic en index.html (se abre en el navegador).
+   No necesita internet ni instalar nada.
+
+QUÉ HAY EN LA CARPETA
+- index.html : textos, explicaciones y ejemplos de código.
+- styles.css : colores y diseño.
+- script.js  : las 4 demostraciones interactivas.
+
+DE QUÉ TRATA
+Explica con la analogía de un restaurante los temas del objetivo:
+1. Servicios (la cocina)       : lógica y datos compartidos entre componentes.
+2. HttpClient (el repartidor)  : comunicarse con un servidor.
+3. JSON Server (el almacén de juguete): API falsa creada desde db.json.
+4. Probar servicios (el inspector): HttpTestingController y otras herramientas.
+
+NOTA
+Las demostraciones son simuladas en el navegador para entender la idea.
+Los bloques de código muestran cómo se escribe de verdad en Angular.
