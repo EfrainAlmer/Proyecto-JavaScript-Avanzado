@@ -6,12 +6,12 @@
 <title>Arquitectura Angular 22 · Proyecto Curar</title>
 <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600;700;800&family=Fira+Code:wght@400;600&display=swap" rel="stylesheet">
 <style>
-:root{--blue:#3ba8f8;--violet:#a469e9;--bg:#0b1120;--card:#0f172a;--deep:#060b17;--line:#1e293b;--tx:#e2e8f0;--mut:#94a3b8;--font:'Montserrat',system-ui,sans-serif;--mono:'Fira Code',ui-monospace,monospace}
+:root{--blue:#1f6fb5;--violet:#5b5fc7;--bg:#f3f6fa;--card:#ffffff;--deep:#f8fafc;--line:#d6dfe9;--tx:#0f172a;--mut:#1f2937;--font:'Montserrat',system-ui,sans-serif;--mono:'Fira Code',ui-monospace,monospace}
 *{box-sizing:border-box}
 body{margin:0;background:var(--bg);color:var(--tx);font:400 14px/1.5 var(--font);padding-bottom:40px}
-code{font:400 11px var(--mono);color:#fcd34d}
+code{font:400 11px var(--mono);color:#7c2d12}
 .grad{background:linear-gradient(135deg,var(--blue),var(--violet))}
-header{position:sticky;top:0;z-index:50;background:rgb(15 23 42/.93);backdrop-filter:blur(10px);border-bottom:1px solid var(--line);padding:12px 16px}
+header{position:sticky;top:0;z-index:50;background:rgb(255 255 255/.95);backdrop-filter:blur(10px);box-shadow:0 1px 6px rgb(30 42 58/.08);border-bottom:1px solid var(--line);padding:12px 16px}
 .wrap{max-width:1280px;margin:0 auto}
 .top{display:flex;flex-wrap:wrap;gap:12px;align-items:center;justify-content:space-between}
 .brand{display:flex;gap:12px;align-items:center}
@@ -19,21 +19,21 @@ header{position:sticky;top:0;z-index:50;background:rgb(15 23 42/.93);backdrop-fi
 h1{margin:0;font-size:17px;font-weight:800}
 .sub{margin:0;font-size:12px;color:var(--mut)}
 .btns{display:flex;flex-wrap:wrap;gap:8px}
-button{font:600 12px var(--font);cursor:pointer;border-radius:999px;padding:8px 14px;border:1px solid #475569;background:#1e293b;color:var(--tx)}
-button:hover{filter:brightness(1.2)}
+button{font:600 12px var(--font);cursor:pointer;border-radius:999px;padding:8px 14px;border:1px solid #b8c4d2;background:#fff;color:var(--tx)}
+button:hover{filter:brightness(.95)}
 button.p{border:0;color:#fff}
 .bar{margin-top:10px;background:var(--deep);border:1px solid var(--line);border-radius:12px;padding:8px 12px;display:flex;flex-wrap:wrap;gap:10px;align-items:center;justify-content:space-between}
-.say{display:flex;gap:10px;align-items:center;font-weight:600;font-size:13px;color:#7dd3fc;flex:1 1 380px}
+.say{display:flex;gap:10px;align-items:center;font-weight:600;font-size:13px;color:#1f6fb5;flex:1 1 380px}
 .dot{width:9px;height:9px;border-radius:50%;background:var(--blue);flex:none;animation:pu 2s infinite}
 @keyframes pu{50%{opacity:.4;transform:scale(1.3)}}
 .pills{display:flex;flex-wrap:wrap;gap:6px}
-.pill{font-size:11px;padding:4px 10px;border-radius:8px;background:#1e293b;border:0;color:var(--mut)}
+.pill{font-size:11px;padding:4px 10px;border-radius:8px;background:#e6ecf3;border:0;color:var(--mut)}
 .pill.on{color:#fff;background:linear-gradient(135deg,var(--blue),var(--violet))}
 main{max-width:1280px;margin:20px auto 0;padding:0 16px;display:grid;grid-template-columns:minmax(0,1fr) 380px;gap:24px;align-items:start}
 @media(max-width:1100px){main{grid-template-columns:1fr}aside{position:static!important}}
-.layer{background:rgb(15 23 42/.95);border:2px solid #334155;border-radius:16px;padding:16px;cursor:pointer;opacity:.4;transform:scale(.985);transition:all .45s cubic-bezier(.16,1,.3,1)}
+.layer{background:#fff;border:2px solid #cfd9e5;border-radius:16px;padding:16px;cursor:pointer;opacity:.55;transform:scale(.985);transition:all .45s cubic-bezier(.16,1,.3,1)}
 .layer.active{opacity:1;transform:none}
-.layer.glow{border-color:var(--blue);box-shadow:0 0 28px -4px rgb(59 168 248/.55),0 0 12px -2px rgb(164 105 233/.4)}
+.layer.glow{border-color:var(--blue);box-shadow:0 6px 24px -6px rgb(31 111 181/.35)}
 .lh{display:flex;flex-wrap:wrap;gap:8px;justify-content:space-between;align-items:center;margin-bottom:12px}
 .lt{display:flex;gap:8px;align-items:center}
 .tag{font-size:11px;font-weight:800;padding:2px 10px;border-radius:6px;color:var(--c);background:color-mix(in srgb,var(--c) 18%,transparent);border:1px solid color-mix(in srgb,var(--c) 35%,transparent)}
@@ -42,23 +42,23 @@ h2{margin:0;font-size:14px;font-weight:800}
 .grid{display:grid;gap:10px;grid-template-columns:repeat(auto-fit,minmax(215px,1fr))}
 .node{background:var(--deep);border:1px solid var(--line);border-radius:12px;padding:10px 12px;transition:all .3s}
 .node:hover{transform:translateY(-2px);border-color:var(--blue)}
-.node.hl{border-color:var(--violet);background:rgb(164 105 233/.16);box-shadow:0 0 15px rgb(164 105 233/.35)}
+.node.hl{border-color:var(--violet);background:rgb(91 95 199/.08);box-shadow:0 3px 12px rgb(91 95 199/.2)}
 .node b{display:block;font-size:12px;color:var(--c);margin-bottom:4px}
-.node p{margin:0;font-size:11px;color:#cbd5e1;line-height:1.6}
+.node p{margin:0;font-size:11px;color:#111827;line-height:1.6}
 .conn{display:flex;flex-direction:column;align-items:center;margin:2px 0}
 .pipe{width:4px;height:30px;background:var(--line);border-radius:99px;position:relative;overflow:hidden}
-.pipe.flow::after{content:"";position:absolute;left:0;width:100%;height:100%;background:linear-gradient(180deg,transparent,var(--blue),#fff,var(--violet));animation:ds .85s infinite linear}
+.pipe.flow::after{content:"";position:absolute;left:0;width:100%;height:100%;background:linear-gradient(180deg,transparent,var(--blue),var(--violet));animation:ds .85s infinite linear}
 @keyframes ds{from{top:-100%}to{top:100%}}
 .cap{font:400 10px var(--mono);color:var(--mut);background:var(--card);border:1px solid var(--line);border-radius:6px;padding:2px 8px;margin-top:-4px;z-index:2;text-align:center}
-aside{position:sticky;top:150px;background:rgb(15 23 42/.97);border:1px solid var(--line);border-radius:16px;padding:18px}
+aside{position:sticky;top:150px;background:#fff;border:1px solid var(--line);box-shadow:0 4px 18px rgb(30 42 58/.08);border-radius:16px;padding:18px}
 aside h3{margin:4px 0 0;font-size:15px;font-weight:800}
-.badge{font-size:10px;font-weight:800;padding:2px 8px;border-radius:6px;background:rgb(59 168 248/.2);color:#7dd3fc}
+.badge{font-size:10px;font-weight:800;padding:2px 8px;border-radius:6px;background:rgb(31 111 181/.12);color:#1f6fb5}
 .pts{display:grid;gap:6px;margin:12px 0;font-size:12px}
-.pt{display:flex;gap:8px;background:rgb(6 11 23/.7);border:1px solid var(--line);border-radius:8px;padding:6px 8px}
+.pt{display:flex;gap:8px;background:#f8fafc;border:1px solid var(--line);border-radius:8px;padding:6px 8px}
 .pt i{color:var(--blue);font-style:normal;font-weight:700}
 pre{margin:6px 0 0;background:var(--deep);border:1px solid var(--line);border-radius:12px;padding:10px;overflow-x:auto;font:400 11px/1.55 var(--mono);color:var(--tx);max-height:300px}
 .lbl{font-size:11px;font-weight:700;color:var(--mut);display:flex;justify-content:space-between;margin-top:10px}
-.leg{margin-top:14px;padding-top:12px;border-top:1px solid var(--line);font-size:11px;color:#cbd5e1;display:flex;flex-wrap:wrap;gap:6px 16px}
+.leg{margin-top:14px;padding-top:12px;border-top:1px solid var(--line);font-size:11px;color:#111827;display:flex;flex-wrap:wrap;gap:6px 16px}
 .leg span::before{content:"";display:inline-block;width:10px;height:10px;border-radius:50%;margin-right:6px;background:var(--k)}
 </style>
 </head>
@@ -70,7 +70,7 @@ pre{margin:6px 0 0;background:var(--deep);border:1px solid var(--line);border-ra
       <p class="sub">Componentes · Router · Pipes · Forms · Services · JSON Server</p></div></div>
     <div class="btns">
       <button id="play" class="p grad" onclick="recorrido()">▶ Reproducir recorrido</button>
-      <button onclick="simular()" style="background:rgb(147 51 234/.3);border-color:rgb(192 132 252/.4);color:#e9d5ff">⚡ Simular reserva de cita</button>
+      <button onclick="simular()" style="background:#ece9fb;border-color:#b9b3ec;color:#4338a8">⚡ Simular reserva de cita</button>
       <button onclick="todo()">👁 Ver todo activo</button>
     </div>
   </div>
@@ -85,17 +85,17 @@ pre{margin:6px 0 0;background:var(--deep);border:1px solid var(--line);border-ra
   <aside>
     <span id="iBadge" class="badge">Sustento técnico</span>
     <h3 id="iTitle">Resumen de elementos Angular</h3>
-    <p id="iDesc" style="font-size:12px;color:#cbd5e1;margin:6px 0 0">Selecciona una capa o inicia el recorrido para ver cómo se aplica cada elemento en el código real de Curar.</p>
+    <p id="iDesc" style="font-size:12px;color:#111827;margin:6px 0 0">Selecciona una capa o inicia el recorrido para ver cómo se aplica cada elemento en el código real de Curar.</p>
     <div class="pts" id="iPts"></div>
-    <div class="lbl"><span>CÓDIGO REAL DEL PROYECTO</span><span id="iFile" style="font-family:var(--mono);color:#38bdf8"></span></div>
+    <div class="lbl"><span>CÓDIGO REAL DEL PROYECTO</span><span id="iFile" style="font-family:var(--mono);color:#1f6fb5"></span></div>
     <pre><code id="iCode"></code></pre>
-    <div class="leg"><span style="--k:#3ba8f8">Primario #3ba8f8</span><span style="--k:#a469e9">Secundario #a469e9</span><span style="--k:#334155">Angular 22.1 · TypeScript 6 · RxJS 7.8</span></div>
+    <div class="leg"><span style="--k:#1f6fb5">Primario #1f6fb5</span><span style="--k:#5b5fc7">Secundario #5b5fc7</span><span style="--k:#8a99ab">Angular 22.1 · TypeScript 6 · RxJS 7.8</span></div>
   </aside>
 </main>
 
 <script>
 const L=[
-{c:'#38bdf8',tag:'CAPA 1',t:'Arranque y configuración',file:'main.ts · app.config.ts · app.ts',cap:'bootstrapApplication(App, appConfig)',
+{c:'#1f6fb5',tag:'CAPA 1',t:'Arranque y configuración',file:'main.ts · app.config.ts · app.ts',cap:'bootstrapApplication(App, appConfig)',
  say:'Paso 1/6: main.ts arranca App con appConfig; ahí se registran HttpClient, Router y el idioma es-PE.',
  pts:['App es el componente raíz (OnPush) con header, <router-outlet /> y footer.','El menú del header cambia según el rol con @switch (rol()): anónimo, paciente, médico o admin.','rol es un computed() derivado de auth.usuario() (signal de sesión).','Bootstrap 5.3.8 + styles.css global y fuente Montserrat.'],
  code:`export const appConfig: ApplicationConfig = {
@@ -109,7 +109,7 @@ const L=[
  n:[['Providers globales','[[provideHttpClient()]], [[provideRouter(routes)]], [[provideBrowserGlobalErrorListeners()]] y [[LOCALE_ID]] = es-PE con [[registerLocaleData]].'],
     ['App (componente raíz)','[[ChangeDetectionStrategy.OnPush]], [[inject(Auth)]], [[computed()]] para el rol y menú con [[@switch]].'],
     ['Estilos y recursos','[[bootstrap]] 5.3.8, [[styles.css]] (variables CSS) y [[public/]] con fotos de médicos y fondo.']]},
-{c:'#a78bfa',tag:'CAPA 2',t:'Navegación y enrutamiento (@angular/router)',file:'src/app/app.routes.ts',cap:'Resuelve la URL, evalúa el guard y carga la vista',
+{c:'#6d4fc2',tag:'CAPA 2',t:'Navegación y enrutamiento (@angular/router)',file:'src/app/app.routes.ts',cap:'Resuelve la URL, evalúa el guard y carga la vista',
  say:'Paso 2/6: el Router lee la URL, ejecuta el guard conPermiso y carga la página con loadComponent (lazy loading).',
  pts:['21 rutas: 9 públicas, 11 protegidas con canActivate y la comodín "**".','Lazy loading: cada página se importa bajo demanda con loadComponent.','Guard funcional conPermiso(permiso): CanActivateFn que redirige a /login o a /.','Parámetro :id en medicos/:id y queryParamMap en /reservar, leídos con ActivatedRoute.'],
  code:`const paciente = [conPermiso(PERM_RESERVAR)],
@@ -129,7 +129,7 @@ export const routes: Routes = [
  n:[['Lazy loading','[[loadComponent: () => import(...)]] en las 21 rutas y [[title]] por página.'],
     ['Guards (CanActivateFn)','[[conPermiso()]] con 3 perfiles: paciente (7 rutas), médico (3 rutas) y admin (1 ruta).'],
     ['Directivas y parámetros','[[<router-outlet />]], [[routerLink]], [[ActivatedRoute]] (en reservar y perfil-medico), ruta [[**]].']]},
-{c:'#34d399',tag:'CAPA 3',t:'Componentes de página (21 standalone)',file:'src/app/paginas/',cap:'Cada página es un componente standalone con OnPush',
+{c:'#15803d',tag:'CAPA 3',t:'Componentes de página (21 standalone)',file:'src/app/paginas/',cap:'Cada página es un componente standalone con OnPush',
  say:'Paso 3/6: se monta el componente standalone de la página; todas usan OnPush e inject().',
  pts:['21 páginas standalone; ninguna usa NgModule.','Flujo de reserva: elegir seguro → sede → médicos → perfil → reservar.','Roles por bits: ROLE_PACIENTE, ROLE_MEDICO y ROLE_ADMIN con permisos PERM_*.','Las vistas se agrupan por tipo de usuario, no por integrante.'],
  code:`@Component({
@@ -150,7 +150,7 @@ export class Reservar {
     ['Médico','Panel médico · Gestión de citas · Agenda.'],
     ['Administración','Admin: indicadores (pacientes, médicos, citas), registrar, editar y eliminar médicos, y ajustes generales.'],
     ['Generales','Home (carrusel + buscador) y No encontrada (404).']]},
-{c:'#fbbf24',tag:'CAPA 4',t:'Elementos de plantilla: hijos, directivas, pipes, forms y signals',file:'componentes/ · pipes/ · directivas/',cap:'input() / output() + formularios reactivos + signals',
+{c:'#b45309',tag:'CAPA 4',t:'Elementos de plantilla: hijos, directivas, pipes, forms y signals',file:'componentes/ · pipes/ · directivas/',cap:'input() / output() + formularios reactivos + signals',
  say:'Paso 4/6: TarjetaMedico recibe datos con input.required y emite eventos con output; los pipes formatean y los formularios reactivos validan.',
  pts:['TarjetaMedico: input.required<Medico>() y dos output<string>() (reservar y perfil).','Directiva ResaltarEstado [appResaltarEstado] con host bindings; usada en agenda, citas y panel médico.','Pipes: ValoracionPipe (propio, puro), DatePipe y DecimalPipe (nativos).','Forms: FormBuilder, fb.nonNullable, Validators y validadores de grupo con AbstractControl.','Control flow: @if, @for (track), @switch y @empty. Reactividad: signal, computed, effect y toSignal.'],
  code:`@Pipe({ name: 'valoracion' })
@@ -167,7 +167,7 @@ export class TarjetaMedico {
     ['Pipes','Propio: [[ValoracionPipe]] (Nuevo, Buena, Muy buena, Excelente). Nativos: [[DatePipe]] en cuenta-paciente y [[DecimalPipe]] en 3 archivos.'],
     ['Reactive Forms','[[FormBuilder]] en 11 archivos, [[nonNullable]], [[Validators]] y validadores de grupo (contraseña y confirmar, familiares).'],
     ['Signals y control flow','[[signal]], [[computed]], [[effect]] y [[toSignal]] (reservar); [[@if]], [[@for]], [[@switch]], [[@empty]].']]},
-{c:'#fb923c',tag:'CAPA 5',t:'Servicios, estado y modelos tipados',file:'servicios/ · estado/ · modelos/ · utilidades/',cap:'inject() + Observables de HttpClient + signals de estado',
+{c:'#c2410c',tag:'CAPA 5',t:'Servicios, estado y modelos tipados',file:'servicios/ · estado/ · modelos/ · utilidades/',cap:'inject() + Observables de HttpClient + signals de estado',
  say:'Paso 5/6: la página llama a CitasStore, que usa CurarApi (HttpClient) y actualiza sus signals con el resultado.',
  pts:['Auth: sesión en signal + sessionStorage; ingresar, registrar, verificar y salir.','CurarApi: único servicio HTTP con ~30 métodos que devuelven Observable<T>.','CitasStore: signals (medicos, citas, sedes, favoritos, familiares) y computed (total, activas, activos).','Flujo: signals seguro, tipo, sede, especialidad y fecha compartidos entre pasos de la reserva.','ejecutar() + finalize() controlan cargando/error; mensajeHttp() traduce errores 0, 404 y 5xx.'],
  code:`@Injectable({ providedIn: 'root' })
@@ -184,7 +184,7 @@ export class CurarApi {
     ['RxJS','[[map]], [[switchMap]], [[of]] y [[finalize]] en [[ejecutar()]]; errores con [[mensajeHttp()]].'],
     ['Modelos (TypeScript strict)','[[Medico]], [[Cita]], [[BorradorCita]], [[Sesion]], [[Receta]], [[Mensaje]], [[Favorito]], [[Sede]], [[Familiar]], [[Comentario]]. [[EstadoCita]] = Pendiente | Confirmada | Atendida | Cancelada.'],
     ['Validación y pruebas','[[utilidades/validacion.ts]]: DNI (8 dígitos), CMP (5-6), teléfono (9xxxxxxxx), correo, clave. Pruebas con [[Vitest]] ([[curar.spec.ts]]).']]},
-{c:'#fb7185',tag:'CAPA 6',t:'JSON Server · API REST local',file:'api/db.json · api/seed.json · package.json',cap:'',
+{c:'#be123c',tag:'CAPA 6',t:'JSON Server · API REST local',file:'api/db.json · api/seed.json · package.json',cap:'',
  say:'Paso 6/6: JSON Server recibe la petición en el puerto 3000, guarda el cambio en api/db.json y responde con el recurso.',
  pts:['Se inicia con "npm run api": json-server --port 3000 api/db.json.','9 colecciones con datos reales: 4 sedes, 5 médicos, 3 usuarios, 3 citas, 1 receta, 1 mensaje y 2 comentarios; favoritos y familiares empiezan vacíos.','Los cambios se guardan en db.json y sobreviven al recargar el navegador.','api/seed.json es la copia con los datos iniciales para restaurar la base.','CurarApi filtra algunas listas en el cliente (por DNI o médico), con GET de la colección completa.'],
  code:`// package.json
