@@ -1,0 +1,145 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Angular City: los 4 elementos principales</title>
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:wght@400;600;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="styles.css">
+</head>
+<body>
+<main>
+<h1>Angular es una <b>ciudad</b></h1>
+<p class="lead">Una app Angular se entiende mejor como una ciudad: tiene calles para moverse, edificios para vivir, tuberías que transforman lo que pasa por ellas y ventanillas donde la gente entrega datos. Toca cada pestaña y prueba cada elemento.</p>
+
+<nav role="tablist" id="tabs">
+<button role="tab" aria-selected="true" data-t="router">🚇 Router</button>
+<button role="tab" aria-selected="false" data-t="comp">🏢 Componentes</button>
+<button role="tab" aria-selected="false" data-t="pipes">🚰 Pipes</button>
+<button role="tab" aria-selected="false" data-t="forms">📝 Formularios</button>
+</nav>
+
+<section id="router" class="on">
+<h2>Navegación (Router)</h2>
+<p class="meta">En la ciudad: el mapa del metro</p>
+<p class="simple"><b>En palabras simples:</b> el Router decide qué pantalla mostrar según la dirección (URL) del navegador. Si escribes <code>/menu</code>, muestra la pantalla del menú. Todo pasa sin que la página se recargue.</p>
+<p>El Router une una URL con un componente. Cambias de "estación" sin recargar la página: es una SPA (Single Page Application). Haz clic en una estación.</p>
+<div class="demo">
+<div class="metro" id="metro"></div>
+<div class="url" id="url"></div>
+<div class="view" id="view"></div>
+</div>
+<pre><code>// app.routes.ts
+export const routes: Routes = [
+  { path: '',         component: InicioComponent },
+  { path: 'menu',     component: MenuComponent },
+  { path: 'pedido/:id', component: PedidoComponent },
+  { path: '**',       component: NoEncontradoComponent }
+];
+
+&lt;a routerLink="/menu"&gt;Ver menú&lt;/a&gt;
+&lt;router-outlet /&gt;   &lt;!-- aquí aparece la vista --&gt;</code></pre>
+</section>
+
+<section id="comp">
+<h2>Componentes</h2>
+<p class="meta">En la ciudad: los edificios</p>
+<p class="simple"><b>En palabras simples:</b> un componente es una pieza de la pantalla (un botón, una tarjeta, un menú). La creas una sola vez y la puedes repetir todas las veces que quieras, cada una con datos distintos.</p>
+<p>Un componente es una pieza reutilizable: HTML (lo que se ve), CSS (cómo se ve) y TypeScript (qué hace). Se escribe una vez y se usa muchas veces, cambiando sus <code>@Input</code>. Añade edificios:</p>
+<div class="demo">
+<div class="row">
+<input type="text" id="cn" placeholder="Nombre" value="Panadería">
+<select id="cc"><option>🥖</option><option>☕</option><option>📚</option><option>🌮</option></select>
+<button class="act" id="cadd">Construir &lt;app-tienda&gt;</button>
+</div>
+<div class="bricks" id="bricks"></div>
+</div>
+<pre><code>@Component({
+  selector: 'app-tienda',
+  standalone: true,
+  template: `&lt;h3&gt;{{ icono }} {{ nombre }}&lt;/h3&gt;`,
+  styles: [`h3 { color: #DD0031 }`]
+})
+export class TiendaComponent {
+  @Input() nombre = '';
+  @Input() icono = '';
+}
+
+&lt;app-tienda nombre="Panadería" icono="🥖" /&gt;</code></pre>
+</section>
+
+<section id="pipes">
+<h2>Pipes</h2>
+<p class="meta">En la ciudad: las tuberías de la planta de agua</p>
+<p class="simple"><b>En palabras simples:</b> un pipe cambia cómo se ve un dato, sin tocar el dato original. Por ejemplo, mostrar un texto en mayúsculas o un número como dinero.</p>
+<p>Un pipe transforma un dato solo para mostrarlo, sin cambiar el original. Se pueden encadenar con <code>|</code>. Activa tuberías y mira cómo cambia el resultado.</p>
+<div class="demo">
+<div class="row"><input type="text" id="pin" value="angular es genial" aria-label="Texto de entrada"></div>
+<div class="pipe" id="pp">
+<label><input type="checkbox" value="upper">uppercase</label>
+<label><input type="checkbox" value="slice">slice:0:10</label>
+<label><input type="checkbox" value="title">titlecase</label>
+</div>
+<div class="row">
+<label>Número: <input type="number" id="pnum" value="1234.5" step="0.5"></label>
+<label><input type="checkbox" id="pcur"> currency</label>
+</div>
+<div class="out" id="pout"></div>
+<div class="url" id="ptpl"></div>
+</div>
+<pre><code>{{ nombre | uppercase }}
+{{ precio | currency:'PEN' }}
+{{ fecha  | date:'dd/MM/yyyy' }}
+
+// Pipe propio
+@Pipe({ name: 'saludo', standalone: true })
+export class SaludoPipe implements PipeTransform {
+  transform(v: string) { return '¡Hola, ' + v + '!'; }
+}</code></pre>
+</section>
+
+<section id="forms">
+<h2>Formularios</h2>
+<p class="meta">En la ciudad: la ventanilla de trámites</p>
+<p class="simple"><b>En palabras simples:</b> un formulario sirve para que el usuario escriba datos. Angular revisa que sean correctos (por ejemplo, que el correo tenga @) y bloquea el botón si algo falla.</p>
+<p>Los formularios recogen datos y los validan antes de enviarlos. Angular sigue el estado de cada campo (válido, tocado, con error). Prueba a enviar uno incompleto.</p>
+<div class="demo">
+<div class="row"><label>Correo<br><input type="email" id="fe" placeholder="tu@correo.com"></label></div>
+<div class="err" id="fee"></div>
+<div class="row"><label>Contraseña<br><input type="password" id="fp" placeholder="mínimo 6"></label></div>
+<div class="err" id="fpe"></div>
+<div class="row"><button class="act" id="fs" disabled>Enviar trámite</button><span id="fmsg"></span></div>
+<div class="state" id="fst"></div>
+</div>
+<pre><code>form = new FormGroup({
+  correo: new FormControl('', [Validators.required, Validators.email]),
+  clave:  new FormControl('', [Validators.required, Validators.minLength(6)])
+});
+
+&lt;form [formGroup]="form" (ngSubmit)="enviar()"&gt;
+  &lt;input formControlName="correo"&gt;
+  &lt;button [disabled]="form.invalid"&gt;Enviar&lt;/button&gt;
+&lt;/form&gt;</code></pre>
+</section>
+
+<section class="on" id="glosario" style="display:block;margin-top:22px">
+<h2>Mini glosario</h2>
+<p><b>SPA:</b> aplicación web que cambia de pantalla sin recargar la página.<br>
+<b>URL:</b> la dirección que ves arriba en el navegador.<br>
+<b>Selector:</b> el nombre de la etiqueta de un componente, por ejemplo <code>&lt;app-tienda&gt;</code>.<br>
+<b>@Input:</b> un dato que le pasas a un componente desde afuera.<br>
+<b>Template:</b> la parte HTML de un componente.<br>
+<b>Validación:</b> revisar que lo que escribió el usuario sea correcto.<br>
+<b>TypeScript:</b> el lenguaje en el que se programa Angular (es JavaScript con tipos).</p>
+</section>
+<div class="map">
+<div style="--c:var(--teal)"><b>Router</b>conecta URLs con vistas</div>
+<div style="--c:var(--red)"><b>Componentes</b>construyen la interfaz</div>
+<div style="--c:var(--gold)"><b>Pipes</b>transforman lo que se muestra</div>
+<div style="--c:var(--ink)"><b>Formularios</b>capturan y validan datos</div>
+</div>
+<footer>Proyecto creativo: elementos principales de Angular.</footer>
+</main>
+<script src="script.js"></script>
+</body>
+</html>
