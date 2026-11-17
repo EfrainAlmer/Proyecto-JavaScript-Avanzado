@@ -1,0 +1,11 @@
+/* Estilos del componente (antes encapsulados por Angular); el selector raíz evita colisiones globales. */
+.pg-panel-paciente {
+
+  & i.bi { margin-right: 8px; color: var(--brand); }
+  .sep { margin-bottom: 24px; }
+  .mas { margin-top: 12px; }
+  .cab { display: flex; justify-content: space-between; align-items: center; gap: 8px; margin-bottom: 16px; }
+  .cab h2 { margin: 0; }
+  .fam { display: flex; justify-content: space-between; align-items: center; gap: 10px; padding: 12px 0; border-top: 1px solid var(--line); }
+
+}
