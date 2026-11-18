@@ -1,24 +1,51 @@
-import { Suspense, useEffect } from 'react';
-import { Link, Outlet, useMatches } from 'react-router-dom';
+import { useEffect, useRef } from 'react';
+import { Link, matchPath, NavLink, Outlet, useLocation } from 'react-router';
 import { useAuth } from '../context/AuthContext';
 import { ROLE_ADMIN, ROLE_MEDICO } from '../types/cita';
 import { Cruz } from './Logo';
 
 type RolVista = 'anonimo' | 'paciente' | 'medico' | 'admin';
 
-interface RutaHandle {
-  readonly titulo?: string;
-}
+/** Título de cada ruta. matchPath entiende parámetros como :id. */
+const TITULOS: readonly (readonly [string, string])[] = [
+  ['/', 'Curar · Reserva de citas médicas'],
+  ['/login', 'Iniciar sesión'],
+  ['/registro', 'Crear cuenta'],
+  ['/verificar', 'Verificar correo'],
+  ['/seguro', 'Elige tu seguro'],
+  ['/sede', 'Elige tu sede'],
+  ['/medicos', 'Buscar médicos'],
+  ['/medicos/:id', 'Perfil del médico'],
+  ['/centros', 'Centros de salud'],
+  ['/reclamaciones', 'Libro de Reclamaciones'],
+  ['/panel', 'Mi panel'],
+  ['/citas', 'Mis citas'],
+  ['/reservar', 'Reservar cita'],
+  ['/recetas', 'Mis recetas'],
+  ['/historial', 'Historial médico'],
+  ['/familiares', 'Mis familiares'],
+  ['/mensajes', 'Mensajes'],
+  ['/cuenta', 'Mi cuenta'],
+  ['/panel-medico', 'Panel médico'],
+  ['/gestion-citas', 'Gestión de citas'],
+  ['/consulta/:id', 'Atención médica'],
+  ['/agenda', 'Mi agenda'],
+  ['/admin', 'Administración'],
+];
+
+const tituloDe = (pathname: string): string =>
+  TITULOS.find(([patron]) => matchPath(patron, pathname))?.[1] ?? 'Página no encontrada';
 
 export function Layout() {
   const { usuario, salir } = useAuth();
-  const matches = useMatches();
+  const { pathname } = useLocation();
+  const mainRef = useRef<HTMLElement>(null);
 
-  // Título del documento: el de la ruta más específica que lo defina.
-  const titulo = matches.map((m) => (m.handle as RutaHandle | undefined)?.titulo).findLast(Boolean);
+  // Al cambiar de ruta: actualiza el título y lleva el foco al contenido (accesibilidad).
   useEffect(() => {
-    document.title = titulo ?? 'Curar';
-  }, [titulo]);
+    document.title = tituloDe(pathname);
+    mainRef.current?.focus();
+  }, [pathname]);
 
   // Derivado del rol de la sesión.
   const r = usuario?.rol ?? 0;
@@ -40,15 +67,15 @@ export function Layout() {
         <div className="bar">
           <Link className="logo" to="/" aria-label="Curar, inicio"><Cruz />Curar</Link>
           <nav aria-label="Principal">
-            {rol === 'anonimo' && (<><Link to="/">Inicio</Link><Link to="/seguro">Buscar médico</Link><Link to="/centros">Centros</Link></>)}
+            {rol === 'anonimo' && (<><NavLink to="/" end>Inicio</NavLink><NavLink to="/seguro">Buscar médico</NavLink><NavLink to="/centros">Centros</NavLink></>)}
             {rol === 'paciente' && (
               <>
-                <Link to="/panel">Mi panel</Link><Link to="/citas">Mis citas</Link><Link to="/recetas">Recetas</Link>
-                <Link to="/mensajes">Mensajes</Link><Link to="/centros">Centros</Link><Link to="/cuenta">Mi cuenta</Link>
+                <NavLink to="/panel">Mi panel</NavLink><NavLink to="/citas">Mis citas</NavLink><NavLink to="/recetas">Recetas</NavLink>
+                <NavLink to="/mensajes">Mensajes</NavLink><NavLink to="/centros">Centros</NavLink><NavLink to="/cuenta">Mi cuenta</NavLink>
               </>
             )}
-            {rol === 'medico' && (<><Link to="/panel-medico">Mi panel</Link><Link to="/gestion-citas">Gestión de citas</Link><Link to="/agenda">Agenda</Link></>)}
-            {rol === 'admin' && (<><Link to="/admin">Administración</Link><Link to="/seguro">Portal público</Link></>)}
+            {rol === 'medico' && (<><NavLink to="/panel-medico">Mi panel</NavLink><NavLink to="/gestion-citas">Gestión de citas</NavLink><NavLink to="/agenda">Agenda</NavLink></>)}
+            {rol === 'admin' && (<><NavLink to="/admin">Administración</NavLink><NavLink to="/seguro">Portal público</NavLink></>)}
           </nav>
           {usuario ? (
             <button className="btn brand" type="button" onClick={salir}>Salir</button>
@@ -57,10 +84,8 @@ export function Layout() {
           )}
         </div>
       </header>
-      <main id="main" tabIndex={-1}>
-        <Suspense fallback={<p className="wrap" role="status" style={{ padding: '48px 20px' }}>Cargando…</p>}>
-          <Outlet />
-        </Suspense>
+      <main id="main" tabIndex={-1} ref={mainRef}>
+        <Outlet />
       </main>
       <footer>
         <div className="cols">

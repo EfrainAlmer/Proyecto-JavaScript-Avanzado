@@ -1,4 +1,4 @@
-import { Link, useNavigate } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router';
 import { useFlujo } from '../context/FlujoContext';
 import type { Seguro } from '../types/cita';
 

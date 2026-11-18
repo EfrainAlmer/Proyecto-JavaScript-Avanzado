@@ -1,4 +1,6 @@
 {
+  "reclamos": [],
+  "informes": [],
   "sedes": [
     {
       "id": "s1",
@@ -56,8 +58,8 @@
       "universidad": "Universidad Privada de Ciencias Aplicadas",
       "experiencia": "Más de 20 años de experiencia en medicina general y atención primaria.",
       "reconocimientos": [
-        "Primer puesto en investigación clínica ",
-        "Reconocimiento por atención al adulto mayor "
+        "Primer puesto en investigación clínica",
+        "Reconocimiento por atención al adulto mayor"
       ],
       "horario": [
         "08:00",
@@ -81,7 +83,7 @@
       "universidad": "Universidad Peruana Cayetano Heredia",
       "experiencia": "15 años en pediatría ambulatoria.",
       "reconocimientos": [
-        "Mejor trato al paciente "
+        "Mejor trato al paciente"
       ],
       "horario": [
         "08:30",
@@ -103,7 +105,7 @@
       "universidad": "Universidad Peruana Cayetano Heredia",
       "experiencia": "12 años en cardiología clínica.",
       "reconocimientos": [
-        "Publicación en revista médica "
+        "Publicación en revista médica"
       ],
       "horario": [
         "09:00",
@@ -145,7 +147,7 @@
       "universidad": "Universidad Nacional Mayor de San Marcos",
       "experiencia": "18 años en geriatría.",
       "reconocimientos": [
-        "Programa de envejecimiento saludable "
+        "Programa de envejecimiento saludable"
       ],
       "horario": [
         "08:00",

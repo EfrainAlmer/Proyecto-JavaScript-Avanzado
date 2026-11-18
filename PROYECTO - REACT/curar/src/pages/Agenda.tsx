@@ -1,23 +1,13 @@
-import { useEffect, useState, type FormEvent } from 'react';
+import { zodResolver } from '@hookform/resolvers/zod';
+import { useEffect, useState } from 'react';
+import { useForm } from 'react-hook-form';
 import { ArticuloEstado } from '../components/ArticuloEstado';
+import { FieldMessage } from '../components/FieldMessage';
 import { useAuth } from '../context/AuthContext';
 import { useCarga } from '../hooks/useCarga';
-import { useFormulario, type Errores } from '../hooks/useFormulario';
+import { MEDICAMENTO_VACIO, medicamentoSchema, type MedicamentoData, type MedicamentoInput } from '../model/consulta';
 import { curarApi } from '../services/curarApi';
 import type { Cita, EstadoCita } from '../types/cita';
-
-interface RecetaValores {
-  readonly medicamento: string;
-  readonly cantidad: number;
-  readonly indicaciones: string;
-}
-const INICIAL: RecetaValores = { medicamento: '', cantidad: 1, indicaciones: '' };
-
-const validar = (v: RecetaValores): Errores<RecetaValores> => ({
-  medicamento: v.medicamento.length < 3,
-  cantidad: !Number.isFinite(v.cantidad) || v.cantidad < 1 || v.cantidad > 99,
-  indicaciones: v.indicaciones.length < 5,
-});
 
 export function Agenda() {
   const { usuario } = useAuth();
@@ -25,9 +15,12 @@ export function Agenda() {
   const [citas, setCitas] = useState<readonly Cita[]>([]);
   const [receta, setReceta] = useState<Cita | null>(null);
   const [aviso, setAviso] = useState('');
-  const form = useFormulario<RecetaValores>(INICIAL);
-  const errores = validar(form.valores);
-  const invalido = Object.values(errores).some(Boolean);
+  // Reutiliza el esquema de un medicamento de la consulta: mismas reglas, un solo lugar.
+  const { register, handleSubmit, reset, formState: { errors, isSubmitting } } = useForm<MedicamentoInput, unknown, MedicamentoData>({
+    resolver: zodResolver(medicamentoSchema),
+    defaultValues: { ...MEDICAMENTO_VACIO },
+    mode: 'onBlur',
+  });
   const medicoId = usuario?.medicoId;
 
   useEffect(() => {
@@ -46,20 +39,17 @@ export function Agenda() {
     if (r.ok) setCitas((l) => l.map((x) => (x.id === c.id ? r.valor : x)));
   }
 
-  async function emitir(evento: FormEvent, c: Cita): Promise<void> {
-    evento.preventDefault();
-    form.setIntento(true);
+  async function emitir(c: Cita, data: MedicamentoData): Promise<void> {
     setAviso('');
-    if (invalido || !usuario || cargando) return;
-    const v = form.valores;
+    if (!usuario) return;
     const r = await ejecutar(curarApi.crearReceta({
       dniPaciente: c.dniPaciente, paciente: c.paciente ?? '', medicoId: c.medicoId, medicoNombre: usuario.nombre,
-      fecha: new Date().toISOString().slice(0, 10), medicamento: v.medicamento.trim(), cantidad: v.cantidad, indicaciones: v.indicaciones.trim(),
+      fecha: new Date().toISOString().slice(0, 10), ...data,
     }));
     if (!r.ok) return;
     setAviso('Receta emitida.');
     setReceta(null);
-    form.reiniciar(INICIAL);
+    reset({ ...MEDICAMENTO_VACIO });
   }
 
   return (
@@ -79,20 +69,16 @@ export function Agenda() {
       ))}
       {citas.length === 0 && !cargando && <p className="tabla" role="status">No tienes citas programadas.</p>}
       {receta && (
-        <form className="tabla" onSubmit={(e) => void emitir(e, receta)} noValidate style={{ display: 'grid', gap: 10, maxWidth: 560 }}>
+        <form className="tabla" onSubmit={handleSubmit((data) => emitir(receta, data))} noValidate style={{ display: 'grid', gap: 10, maxWidth: 560 }}>
           <h2 style={{ fontSize: 20 }}>Receta para el DNI {receta.dniPaciente}</h2>
-          <label>Medicamento
-            <input value={form.valores.medicamento} aria-invalid={form.malo(errores, 'medicamento')} onChange={(e) => form.cambiar('medicamento', e.target.value)} onBlur={() => form.tocar('medicamento')} />
-          </label>
-          <label>Cantidad (envases)
-            <input type="number" min={1} max={99} value={form.valores.cantidad} aria-invalid={form.malo(errores, 'cantidad')} onChange={(e) => form.cambiar('cantidad', e.target.valueAsNumber)} onBlur={() => form.tocar('cantidad')} />
-          </label>
-          <label>Indicaciones
-            <input value={form.valores.indicaciones} aria-invalid={form.malo(errores, 'indicaciones')} onChange={(e) => form.cambiar('indicaciones', e.target.value)} onBlur={() => form.tocar('indicaciones')} />
-          </label>
-          <p className="err" role="alert">{form.intento && invalido && 'Completa medicamento (3+ letras), cantidad entre 1 y 99 e indicaciones (5+ letras).'}</p>
+          <label>Medicamento<input aria-invalid={Boolean(errors.medicamento)} {...register('medicamento')} /></label>
+          <FieldMessage id="medicamento-error" message={errors.medicamento?.message} />
+          <label>Cantidad (envases)<input inputMode="numeric" aria-invalid={Boolean(errors.cantidad)} {...register('cantidad')} /></label>
+          <FieldMessage id="cantidad-error" message={errors.cantidad?.message} />
+          <label>Indicaciones<input aria-invalid={Boolean(errors.indicaciones)} {...register('indicaciones')} /></label>
+          <FieldMessage id="indicaciones-error" message={errors.indicaciones?.message} />
           <div style={{ display: 'flex', gap: 8 }}>
-            <button className="btn brand" type="submit" disabled={cargando}>Guardar receta</button>
+            <button className="btn brand" type="submit" disabled={isSubmitting}>Guardar receta</button>
             <button className="btn ghost" type="button" onClick={() => setReceta(null)}>Cancelar</button>
           </div>
         </form>

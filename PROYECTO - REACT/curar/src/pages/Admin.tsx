@@ -1,11 +1,11 @@
-import { useEffect, useState, type FormEvent } from 'react';
+import { useEffect, useState } from 'react';
+import { MedicoForm } from '../components/admin/MedicoForm';
 import { useCitas } from '../context/CitasContext';
 import { useCarga } from '../hooks/useCarga';
-import { useFormulario, type Errores } from '../hooks/useFormulario';
+import { medicoInicial, type MedicoData, type MedicoInput } from '../model/medico';
 import { curarApi } from '../services/curarApi';
 import { HORARIO_BASE, type Cita, type Medico, type Reclamo, type UsuarioApi } from '../types/cita';
 import { isoLocal } from '../utils/formato';
-import { capitalizarNombre, PATRON_CMP, PATRON_NOMBRE } from '../utils/validacion';
 
 type Tab = 'medicos' | 'citas' | 'reclamos';
 const TABS: readonly { readonly id: Tab; readonly n: string }[] = [
@@ -14,24 +14,11 @@ const TABS: readonly { readonly id: Tab; readonly n: string }[] = [
   { id: 'reclamos', n: 'Libro de Reclamaciones' },
 ];
 
-interface MedicoValores {
-  readonly nombre: string;
-  readonly especialidad: string;
-  readonly cmp: string;
-  readonly sedeId: string;
-  readonly estado: 'Activo' | 'Inactivo';
-}
-const INICIAL: MedicoValores = { nombre: '', especialidad: 'Medicina General', cmp: '', sedeId: '', estado: 'Activo' };
-const validar = (v: MedicoValores): Errores<MedicoValores> => ({
-  nombre: v.nombre.length < 5 || !PATRON_NOMBRE.test(v.nombre),
-  cmp: !PATRON_CMP.test(v.cmp),
-});
-
 const colorReclamo = (e: Reclamo['estado']): string => (e === 'Recibido' ? 'Pendiente' : e === 'En revisión' ? 'Confirmada' : 'Atendida');
 
 export function Admin() {
   const { medicos, sedes, setMedicos, cargarMedicos, cargarSedes } = useCitas();
-  const { cargando, error, setError, ejecutar } = useCarga();
+  const { cargando, error, ejecutar } = useCarga();
   const [tab, setTab] = useState<Tab>('medicos');
   const [usuarios, setUsuarios] = useState<readonly UsuarioApi[]>([]);
   const [citas, setCitas] = useState<readonly Cita[]>([]);
@@ -40,9 +27,6 @@ export function Admin() {
   const [qMed, setQMed] = useState('');
   const [editando, setEditando] = useState<Medico | 'nuevo' | null>(null);
   const [borrando, setBorrando] = useState('');
-  const form = useFormulario<MedicoValores>(INICIAL);
-  const errores = validar(form.valores);
-  const invalido = errores.nombre === true || errores.cmp === true;
   const hoyIso = isoLocal(new Date());
 
   useEffect(() => {
@@ -70,42 +54,33 @@ export function Admin() {
   const sedeDeMedico = (id: string): string => sedeDe(medicos.find((m) => m.id === id)?.sedeId);
 
   function nuevo(): void {
-    form.reiniciar(INICIAL);
     setEditando('nuevo');
   }
   function editar(m: Medico): void {
-    form.reiniciar({ nombre: m.nombre, especialidad: m.especialidad, cmp: m.cmp ?? '', sedeId: m.sedeId ?? '', estado: m.estado ?? 'Activo' });
     setEditando(m);
   }
+  const valoresIniciales = (): MedicoInput =>
+    editando === null || editando === 'nuevo'
+      ? medicoInicial()
+      : { nombre: editando.nombre, especialidad: editando.especialidad as MedicoInput['especialidad'], cmp: editando.cmp ?? '', sedeId: editando.sedeId ?? '', estado: editando.estado ?? 'Activo' };
+  const cmpRepetido = (cmp: string): string | null =>
+    editando === 'nuevo' && medicos.some((m) => m.id === `m${cmp}`) ? 'Ya existe un médico con ese CMP.' : null;
 
-  async function guardar(evento: FormEvent): Promise<void> {
-    evento.preventDefault();
-    form.setIntento(true);
+  async function guardar(data: MedicoData): Promise<void> {
     setAviso('');
-    if (invalido || !editando || cargando) return;
-    const v = form.valores;
-    const centro = sedes.find((s) => s.id === v.sedeId)?.tipo ?? 'Por asignar';
-    const nombre = capitalizarNombre(v.nombre);
-    const cerrar = (): void => {
-      setEditando(null);
-      setAviso('Médico guardado.');
-    };
+    if (!editando) return;
+    const centro = sedes.find((s) => s.id === data.sedeId)?.tipo ?? 'Por asignar';
     if (editando === 'nuevo') {
-      const id = `m${v.cmp}`;
-      if (medicos.some((m) => m.id === id)) {
-        setError('Ya existe un médico con ese CMP.');
-        return;
-      }
-      const r = await ejecutar(curarApi.altaMedico({ id, nombre, especialidad: v.especialidad, calificacion: 0, centro, horario: [...HORARIO_BASE], sedeId: v.sedeId, cmp: v.cmp, estado: v.estado }));
+      const r = await ejecutar(curarApi.altaMedico({ id: `m${data.cmp}`, ...data, calificacion: 0, centro, horario: [...HORARIO_BASE] }));
       if (!r.ok) return;
       setMedicos((l) => [...l, r.valor]);
-      cerrar();
     } else {
-      const r = await ejecutar(curarApi.guardarMedico({ ...editando, nombre, especialidad: v.especialidad, centro, sedeId: v.sedeId, cmp: v.cmp, estado: v.estado }));
+      const r = await ejecutar(curarApi.guardarMedico({ ...editando, ...data, centro }));
       if (!r.ok) return;
       setMedicos((l) => l.map((x) => (x.id === r.valor.id ? r.valor : x)));
-      cerrar();
     }
+    setEditando(null);
+    setAviso('Médico guardado.');
   }
 
   async function eliminar(id: string): Promise<void> {
@@ -154,36 +129,16 @@ export function Admin() {
             <label style={{ minWidth: 260 }}>Buscar médico<input type="search" value={qMed} onChange={(e) => setQMed(e.target.value)} /></label>
           </div>
           {editando && (
-            <form className="tabla" onSubmit={(e) => void guardar(e)} noValidate style={{ display: 'grid', gap: 10, maxWidth: 560 }}>
-              <h2 style={{ fontSize: 20 }}>{editando === 'nuevo' ? 'Registrar nuevo médico' : 'Editar médico'}</h2>
-              <label>Nombre completo
-                <input value={form.valores.nombre} aria-invalid={form.malo(errores, 'nombre')} onChange={(e) => form.cambiar('nombre', e.target.value)} onBlur={() => form.tocar('nombre')} />
-              </label>
-              <label>Especialidad
-                <select value={form.valores.especialidad} onChange={(e) => form.cambiar('especialidad', e.target.value)}>
-                  <option>Medicina General</option><option>Pediatría</option><option>Cardiología</option><option>Ginecología</option><option>Geriatría</option>
-                </select>
-              </label>
-              <label>Código CMP (solo se valida el formato)
-                <input value={form.valores.cmp} inputMode="numeric" maxLength={6} aria-invalid={form.malo(errores, 'cmp')} onChange={(e) => form.cambiar('cmp', e.target.value)} onBlur={() => form.tocar('cmp')} />
-              </label>
-              <label>Sede
-                <select value={form.valores.sedeId} onChange={(e) => form.cambiar('sedeId', e.target.value)}>
-                  <option value="">Sin asignar</option>
-                  {sedes.map((s) => <option key={s.id} value={s.id}>{s.nombre}</option>)}
-                </select>
-              </label>
-              <label>Estado
-                <select value={form.valores.estado} onChange={(e) => form.cambiar('estado', e.target.value as MedicoValores['estado'])}>
-                  <option>Activo</option><option>Inactivo</option>
-                </select>
-              </label>
-              <p className="err" role="alert">{form.intento && invalido && 'Nombre (5+ letras) y CMP de 5 o 6 dígitos son obligatorios.'}</p>
-              <div style={{ display: 'flex', gap: 8 }}>
-                <button className="btn brand" type="submit" disabled={cargando}>Guardar</button>
-                <button className="btn ghost" type="button" onClick={() => setEditando(null)}>Cancelar</button>
-              </div>
-            </form>
+            <MedicoForm
+              // key: al cambiar de médico se monta un formulario nuevo con sus valores iniciales.
+              key={editando === 'nuevo' ? 'nuevo' : editando.id}
+              titulo={editando === 'nuevo' ? 'Registrar nuevo médico' : 'Editar médico'}
+              valoresIniciales={valoresIniciales()}
+              sedes={sedes}
+              cmpRepetido={cmpRepetido}
+              onGuardar={guardar}
+              onCancelar={() => setEditando(null)}
+            />
           )}
           <div className="tabla" style={{ overflowX: 'auto' }}>
             <h2 style={{ fontSize: 20, marginBottom: 12 }}>Médicos registrados</h2>

@@ -1,56 +1,40 @@
-import { useEffect, useState, type FormEvent } from 'react';
-import { Link } from 'react-router-dom';
+import { zodResolver } from '@hookform/resolvers/zod';
+import { useEffect, useState } from 'react';
+import { useForm } from 'react-hook-form';
+import { Link } from 'react-router';
+import { FieldMessage } from '../components/FieldMessage';
 import { useAuth } from '../context/AuthContext';
 import { useCitas } from '../context/CitasContext';
-import { useFormulario, type Errores } from '../hooks/useFormulario';
-import { capitalizarNombre, PATRON_DNI, PATRON_NOMBRE } from '../utils/validacion';
-
-interface FamiliarValores {
-  readonly nombre: string;
-  readonly parentesco: string;
-  readonly dni: string;
-  readonly seguro: string;
-}
-const INICIAL: FamiliarValores = { nombre: '', parentesco: 'Hijo/a', dni: '', seguro: 'SIS' };
-
-/** El DNI es opcional (p. ej. menores sin documento), pero si se escribe debe tener 8 dígitos. */
-const dniOpcionalInvalido = (dni: string): boolean => dni.trim() !== '' && !PATRON_DNI.test(dni.trim());
-
-const validar = (v: FamiliarValores): Errores<FamiliarValores> => ({
-  nombre: v.nombre.length < 3 || v.nombre.length > 80 || !PATRON_NOMBRE.test(v.nombre),
-  dni: dniOpcionalInvalido(v.dni),
-});
+import { familiarInicial, familiarSchema, PARENTESCOS, SEGUROS_FAMILIAR, type FamiliarData, type FamiliarInput } from '../model/familiar';
 
 export function Familiares() {
   const { usuario } = useAuth();
   const { familiares, cargando, guardando, error, cargarFamiliares, agregarFamiliar, quitarFamiliar } = useCitas();
-  const form = useFormulario<FamiliarValores>(INICIAL);
   const [aviso, setAviso] = useState('');
-  const [errDup, setErrDup] = useState('');
   const [borrando, setBorrando] = useState('');
-  const errores = validar(form.valores);
-  const invalido = errores.nombre === true || errores.dni === true;
   const dniTitular = usuario?.dni;
+
+  const { register, handleSubmit, reset, setError, formState: { errors, isSubmitting } } = useForm<FamiliarInput, unknown, FamiliarData>({
+    resolver: zodResolver(familiarSchema),
+    defaultValues: familiarInicial(),
+    mode: 'onBlur',
+  });
 
   useEffect(() => {
     if (dniTitular) cargarFamiliares(dniTitular);
   }, [dniTitular, cargarFamiliares]);
 
-  async function agregar(evento: FormEvent): Promise<void> {
-    evento.preventDefault();
-    form.setIntento(true);
+  async function agregar(data: FamiliarData): Promise<void> {
     setAviso('');
-    setErrDup('');
-    if (!usuario || invalido || guardando) return;
-    const v = form.valores;
-    const dni = v.dni.trim();
-    if (dni && (dni === usuario.dni || familiares.some((f) => f.dni === dni))) {
-      setErrDup('Ese DNI ya está registrado en tu cuenta.');
+    if (!usuario) return;
+    // Esta regla depende de datos de la API (familiares ya registrados), por eso no está en el esquema.
+    if (data.dni && (data.dni === usuario.dni || familiares.some((f) => f.dni === data.dni))) {
+      setError('dni', { message: 'Ese DNI ya está registrado en tu cuenta.' });
       return;
     }
-    const r = await agregarFamiliar({ dniTitular: usuario.dni, nombre: capitalizarNombre(v.nombre), parentesco: v.parentesco, dni, seguro: v.seguro });
+    const r = await agregarFamiliar({ dniTitular: usuario.dni, ...data });
     if (!r.ok) return;
-    form.reiniciar(INICIAL);
+    reset(familiarInicial());
     setAviso('Familiar agregado.');
   }
 
@@ -84,28 +68,23 @@ export function Familiares() {
           </article>
         ))
       )}
-      <form className="tabla" onSubmit={(e) => void agregar(e)} noValidate style={{ display: 'grid', gap: 10, maxWidth: 560 }}>
+      <form className="tabla" onSubmit={handleSubmit(agregar)} noValidate style={{ display: 'grid', gap: 10, maxWidth: 560 }}>
         <h2 style={{ fontSize: 20 }}>Agregar familiar</h2>
         <label>Nombre completo
-          <input value={form.valores.nombre} aria-invalid={form.malo(errores, 'nombre')} onChange={(e) => form.cambiar('nombre', e.target.value)} onBlur={() => form.tocar('nombre')} />
+          <input aria-invalid={Boolean(errors.nombre)} {...register('nombre')} />
         </label>
+        <FieldMessage id="nombre-error" message={errors.nombre?.message} />
         <label>Parentesco
-          <select value={form.valores.parentesco} onChange={(e) => form.cambiar('parentesco', e.target.value)}>
-            <option>Hijo/a</option><option>Cónyuge</option><option>Padre</option><option>Madre</option><option>Hermano/a</option><option>Otro</option>
-          </select>
+          <select {...register('parentesco')}>{PARENTESCOS.map((p) => <option key={p}>{p}</option>)}</select>
         </label>
         <label>DNI (opcional)
-          <input value={form.valores.dni} inputMode="numeric" maxLength={8} aria-invalid={form.malo(errores, 'dni')} onChange={(e) => form.cambiar('dni', e.target.value)} onBlur={() => form.tocar('dni')} />
+          <input inputMode="numeric" maxLength={8} aria-invalid={Boolean(errors.dni)} {...register('dni')} />
         </label>
+        <FieldMessage id="dni-error" message={errors.dni?.message} />
         <label>Seguro
-          <select value={form.valores.seguro} onChange={(e) => form.cambiar('seguro', e.target.value)}>
-            <option>SIS</option><option>EsSalud</option><option>Particular</option>
-          </select>
+          <select {...register('seguro')}>{SEGUROS_FAMILIAR.map((s) => <option key={s}>{s}</option>)}</select>
         </label>
-        <p className="err" role="alert">
-          {form.intento && invalido && 'Escribe un nombre válido (3+ letras) y, si pones DNI, que tenga 8 dígitos. '}{errDup}
-        </p>
-        <button className="btn brand" type="submit" disabled={guardando}>Guardar familiar</button>
+        <button className="btn brand" type="submit" disabled={isSubmitting || guardando}>Guardar familiar</button>
         <p role="status" aria-live="polite">{aviso}</p>
       </form>
     </section>

@@ -1,5 +1,5 @@
 import { useEffect } from 'react';
-import { Link, useParams } from 'react-router-dom';
+import { Link, useParams } from 'react-router';
 import { useAuth } from '../context/AuthContext';
 import { useCitas } from '../context/CitasContext';
 import { decimal1 } from '../utils/formato';

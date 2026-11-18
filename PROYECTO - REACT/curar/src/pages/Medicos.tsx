@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router';
 import { useCitas } from '../context/CitasContext';
 import { useFlujo } from '../context/FlujoContext';
 import { decimal1 } from '../utils/formato';

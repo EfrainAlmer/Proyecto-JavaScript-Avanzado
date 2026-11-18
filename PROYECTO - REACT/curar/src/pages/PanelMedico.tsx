@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { Link } from 'react-router-dom';
+import { Link } from 'react-router';
 import { useAuth } from '../context/AuthContext';
 import { useCitas } from '../context/CitasContext';
 import type { EstadoCita } from '../types/cita';

@@ -1,72 +1,56 @@
-import { useState, type FormEvent } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import { zodResolver } from '@hookform/resolvers/zod';
+import { useForm } from 'react-hook-form';
+import { Link, useNavigate } from 'react-router';
 import { AuthShell } from '../components/AuthShell';
 import { useAuth } from '../context/AuthContext';
-import { useFormulario, type Errores } from '../hooks/useFormulario';
+import { loginSchema, type LoginData, type LoginInput } from '../model/auth';
 import { mensajeHttp } from '../services/mensajeHttp';
-import { PATRON_DNI } from '../utils/validacion';
-
-interface LoginValores {
-  readonly dni: string;
-  readonly password: string;
-}
-
-const validar = (v: LoginValores): Errores<LoginValores> => ({
-  dni: !PATRON_DNI.test(v.dni),
-  password: v.password === '',
-});
 
 export function Login() {
   const auth = useAuth();
   const navigate = useNavigate();
-  const form = useFormulario<LoginValores>({ dni: '', password: '' });
-  const [enviando, setEnviando] = useState(false);
-  const [error, setError] = useState('');
-  const errores = validar(form.valores);
-  const invalido = errores.dni === true || errores.password === true;
 
-  async function entrar(evento: FormEvent): Promise<void> {
-    evento.preventDefault();
-    form.setIntento(true);
-    setError('');
-    if (invalido || enviando) return;
-    setEnviando(true);
+  // react-hook-form es la única fuente de verdad: valores, errores y estado de envío.
+  const {
+    register,
+    handleSubmit,
+    setError,
+    formState: { errors, isSubmitting },
+  } = useForm<LoginInput, unknown, LoginData>({
+    resolver: zodResolver(loginSchema),
+    defaultValues: { dni: '', password: '' },
+    mode: 'onBlur',
+    reValidateMode: 'onChange',
+  });
+
+  // Solo se ejecuta si el esquema aprobó los datos; `data` ya viene limpio (DNI sin espacios).
+  async function entrar(data: LoginData): Promise<void> {
     try {
-      const resultado = await auth.ingresar(form.valores.dni, form.valores.password);
+      const resultado = await auth.ingresar(data.dni, data.password);
       if (resultado === 'ok') void navigate(auth.inicio());
       else if (resultado === 'pendiente') void navigate('/verificar');
-      else setError('DNI o contraseña incorrectos.');
+      else setError('root.server', { message: 'DNI o contraseña incorrectos.' });
     } catch (e) {
-      setError(mensajeHttp(e));
-    } finally {
-      setEnviando(false);
+      setError('root.server', { message: mensajeHttp(e) });
     }
   }
 
   return (
     <AuthShell>
-      <form onSubmit={(e) => void entrar(e)} noValidate>
+      <form onSubmit={handleSubmit(entrar)} noValidate>
         <h1 style={{ fontSize: 24 }}>Iniciar sesión</h1>
         <label>DNI
-          <input
-            value={form.valores.dni} inputMode="numeric" maxLength={8} autoComplete="username"
-            aria-invalid={form.malo(errores, 'dni')}
-            onChange={(e) => form.cambiar('dni', e.target.value)} onBlur={() => form.tocar('dni')}
-          />
+          <input inputMode="numeric" maxLength={8} autoComplete="username" aria-invalid={Boolean(errors.dni)} {...register('dni')} />
         </label>
-        <p className="err" role="alert">{form.malo(errores, 'dni') && 'El DNI debe tener exactamente 8 dígitos.'}</p>
+        <p className="err" role="alert">{errors.dni?.message}</p>
         <label>Contraseña
-          <input
-            value={form.valores.password} type="password" autoComplete="current-password"
-            aria-invalid={form.malo(errores, 'password')}
-            onChange={(e) => form.cambiar('password', e.target.value)} onBlur={() => form.tocar('password')}
-          />
+          <input type="password" autoComplete="current-password" aria-invalid={Boolean(errors.password)} {...register('password')} />
         </label>
-        <p className="err" role="alert">{form.malo(errores, 'password') && 'Escribe tu contraseña.'}</p>
-        <button className="btn brand" type="submit" disabled={enviando} style={{ width: '100%', justifyContent: 'center' }}>
-          {enviando ? 'Ingresando…' : 'Ingresar'}
+        <p className="err" role="alert">{errors.password?.message}</p>
+        <button className="btn brand" type="submit" disabled={isSubmitting} style={{ width: '100%', justifyContent: 'center' }}>
+          {isSubmitting ? 'Ingresando…' : 'Ingresar'}
         </button>
-        <p className="err" role="alert">{error}</p>
+        <p className="err" role="alert">{errors.root?.['server']?.message}</p>
         <p style={{ marginTop: 14, fontSize: 14 }}>¿No tienes cuenta? <Link to="/registro" className="link">Regístrate</Link></p>
       </form>
     </AuthShell>

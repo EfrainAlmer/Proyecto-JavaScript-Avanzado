@@ -1,9 +1,14 @@
+import { zodResolver } from '@hookform/resolvers/zod';
 import { useEffect, useMemo, useRef, useState } from 'react';
-import { Link, useSearchParams } from 'react-router-dom';
+import { useForm, useWatch } from 'react-hook-form';
+import { Link, useSearchParams } from 'react-router';
+import { FieldMessage } from '../components/FieldMessage';
 import { useAuth } from '../context/AuthContext';
 import { useCitas } from '../context/CitasContext';
 import { useFlujo } from '../context/FlujoContext';
 import { useCarga } from '../hooks/useCarga';
+import { ESPECIALIDADES } from '../model/medico';
+import { CAMPOS_POR_PASO, esEspecialidad, reservaSchema, type ReservaData, type ReservaInput } from '../model/reserva';
 import { curarApi } from '../services/curarApi';
 import type { Seguro } from '../types/cita';
 import { decimal1, diaMesLargo, isoLocal } from '../utils/formato';
@@ -12,7 +17,6 @@ import './Reservar.css';
 
 type Paso = 1 | 2 | 3 | 4 | 5;
 
-const ESPECIALIDADES = ['Medicina General', 'Pediatría', 'Cardiología', 'Ginecología', 'Geriatría'] as const;
 const DIAS = ['Dom', 'Lun', 'Mar', 'Mié', 'Jue', 'Vie', 'Sáb'] as const;
 const ANTICIPACION = 3; // regla Curar: máximo 3 días de anticipación
 const SEGUROS: readonly { readonly id: Seguro; readonly icono: string; readonly clase: string }[] = [
@@ -25,7 +29,7 @@ const esSeguro = (s: string | null | undefined): s is Seguro => s === 'EsSalud' 
 export function Reservar() {
   const { usuario } = useAuth();
   const { flujo } = useFlujo();
-  const { medicos, sedes, activos, familiares, favoritos, cargando, guardando, error, setError, cargarMedicos, cargarSedes, cargarFavoritos, cargarFamiliares, alternarFavorito, reservar } = useCitas();
+  const { medicos, sedes, activos, familiares, favoritos, cargando, guardando, error, setError: setErrorStore, cargarMedicos, cargarSedes, cargarFavoritos, cargarFamiliares, alternarFavorito, reservar } = useCitas();
   const [params] = useSearchParams();
   const medicoParam = params.get('medicoId');
   const paraParam = params.get('para');
@@ -43,28 +47,41 @@ export function Reservar() {
     [],
   );
 
+  // Estado de PANTALLA (no son datos de la reserva): qué paso se ve, qué perfil está abierto y las horas ocupadas que vienen de la API.
   const [paso, setPaso] = useState<Paso>(1);
   const [perfilId, setPerfilId] = useState('');
-  const [seguro, setSeguro] = useState<Seguro>(flujo.seguro ?? 'EsSalud');
-  const [especialidad, setEspecialidad] = useState<string>((ESPECIALIDADES as readonly string[]).includes(flujo.especialidad) ? flujo.especialidad : 'Medicina General');
-  const [para, setPara] = useState('');
-  const [sedeId, setSedeId] = useState('');
-  const [medicoId, setMedicoId] = useState('');
-  const [dia, setDia] = useState(dias.find((d) => !d.bloqueado)?.iso ?? '');
-  const [hora, setHora] = useState('');
-  const [motivo, setMotivo] = useState('');
-  const [intento, setIntento] = useState(false);
   const [ocupadas, setOcupadas] = useState<readonly string[]>([]);
   const horas = useCarga();
   const { ejecutar: ejecutarHoras } = horas;
   const precargado = useRef(false);
   const paraAplicado = useRef(false);
 
+  // Única fuente de verdad de los datos de la reserva (antes eran 8 useState).
+  const { register, control, handleSubmit, setValue, getValues, trigger, setError, reset, formState: { errors } } = useForm<ReservaInput, unknown, ReservaData>({
+    resolver: zodResolver(reservaSchema),
+    defaultValues: {
+      para: '',
+      seguro: flujo.seguro ?? 'EsSalud',
+      especialidad: esEspecialidad(flujo.especialidad) ? flujo.especialidad : 'Medicina General',
+      sedeId: '', medicoId: '',
+      dia: dias.find((d) => !d.bloqueado)?.iso ?? '',
+      hora: '', motivo: '',
+    },
+    mode: 'onSubmit',
+    reValidateMode: 'onChange',
+  });
+
+  // Los valores que la pantalla necesita para pintarse (equivale a valueChanges).
+  const [seguro, especialidad, para, sedeId, medicoId, dia, hora] = useWatch({
+    control,
+    name: ['seguro', 'especialidad', 'para', 'sedeId', 'medicoId', 'dia', 'hora'],
+  });
+
   useEffect(() => {
-    setError('');
+    setErrorStore('');
     cargarMedicos();
     cargarSedes();
-  }, [setError, cargarMedicos, cargarSedes]);
+  }, [setErrorStore, cargarMedicos, cargarSedes]);
 
   const dni = usuario?.dni;
   useEffect(() => {
@@ -73,33 +90,38 @@ export function Reservar() {
     cargarFamiliares(dni);
   }, [dni, cargarFavoritos, cargarFamiliares]);
 
-  // ?medicoId=… (perfil, favoritos o buscador público) salta directo al paso 4, cuando ya hay datos cargados.
+  // ?medicoId=… salta directo al paso 4 cuando ya hay datos cargados (sincroniza la URL con el formulario una sola vez).
   useEffect(() => {
     if (precargado.current || !medicoParam || medicos.length === 0 || sedes.length === 0) return;
     precargado.current = true;
     const m = medicos.find((x) => x.id === medicoParam);
     if (!m) return;
     const s = sedes.find((x) => x.id === m.sedeId);
-    setSeguro((actual) => (esSeguro(seguroParam) ? seguroParam : s && !s.seguros.includes(actual) ? (s.seguros[0] ?? actual) : actual));
-    setEspecialidad(m.especialidad);
-    setSedeId(m.sedeId ?? '');
-    setMedicoId(m.id);
+    const actual = getValues('seguro');
+    const seguroNuevo = esSeguro(seguroParam) ? seguroParam : s && !s.seguros.includes(actual) ? (s.seguros[0] ?? actual) : actual;
     const f = fechaParam ?? flujo.fecha;
     const d = dias.find((x) => x.iso === f && !x.bloqueado);
-    if (d) setDia(d.iso);
+    reset({
+      ...getValues(),
+      seguro: seguroNuevo,
+      especialidad: esEspecialidad(m.especialidad) ? m.especialidad : getValues('especialidad'),
+      sedeId: m.sedeId ?? '',
+      medicoId: m.id,
+      ...(d ? { dia: d.iso } : {}),
+    });
     setPaso(4);
-  }, [medicoParam, medicos, sedes, seguroParam, fechaParam, flujo.fecha, dias]);
+  }, [medicoParam, medicos, sedes, seguroParam, fechaParam, flujo.fecha, dias, getValues, reset]);
 
   // ?para=<id de familiar>
   useEffect(() => {
     const f = familiares.find((x) => x.id === paraParam);
     if (paraAplicado.current || !f) return;
     paraAplicado.current = true;
-    setPara(f.id ?? '');
-    if (!medicoParam && esSeguro(f.seguro)) setSeguro(f.seguro);
-  }, [familiares, paraParam, medicoParam]);
+    setValue('para', f.id ?? '');
+    if (!medicoParam && esSeguro(f.seguro)) setValue('seguro', f.seguro);
+  }, [familiares, paraParam, medicoParam, setValue]);
 
-  // Horas libres reales = horario del médico − citas activas de ese día.
+  // Horas libres reales = horario del médico − citas activas de ese día (dato externo, no del formulario).
   useEffect(() => {
     setOcupadas([]);
     if (!medicoId || !dia) return;
@@ -122,7 +144,7 @@ export function Reservar() {
     return () => document.removeEventListener('keydown', alTecla);
   }, [perfilId]);
 
-  // Estado derivado: nada de esto se guarda en useState.
+  // Estado derivado de los valores observados.
   const perfil = medicos.find((m) => m.id === perfilId);
   const sedesDisponibles = sedes.filter((s) => s.seguros.includes(seguro) && activos.some((m) => m.sedeId === s.id && m.especialidad === especialidad));
   const medicosDisponibles = activos.filter((m) => m.sedeId === sedeId && m.especialidad === especialidad);
@@ -132,65 +154,55 @@ export function Reservar() {
   const libres = (medico?.horario ?? []).toSorted().filter((h) => !ocupadas.includes(h) && !(dia === hoy && h <= ahora));
   const esFav = (id: string): boolean => favoritos.some((f) => f.medicoId === id);
   const nombreSede = (id?: string): string => sedes.find((s) => s.id === id)?.nombre ?? 'Sede por asignar';
-  const motivoCorto = motivo.trim().length < 3;
 
-  function reiniciar(): void {
-    setSedeId('');
-    setMedicoId('');
-    setHora('');
+  /** Cambiar algo de un paso invalida lo elegido en los pasos siguientes. */
+  function limpiarDesde(campo: 'sedeId' | 'medicoId' | 'hora'): void {
+    const orden = ['sedeId', 'medicoId', 'hora'] as const;
+    orden.slice(orden.indexOf(campo)).forEach((c) => setValue(c, ''));
   }
   function elegirSeguro(s: Seguro): void {
-    if (s !== seguro) {
-      setSeguro(s);
-      reiniciar();
-    }
-  }
-  function elegirEspecialidad(e: string): void {
-    if (e !== especialidad) {
-      setEspecialidad(e);
-      reiniciar();
-    }
-  }
-  function elegirPara(id: string): void {
-    setPara(id);
-    const f = familiares.find((x) => x.id === id);
-    if (f && esSeguro(f.seguro)) elegirSeguro(f.seguro);
+    if (s === getValues('seguro')) return;
+    setValue('seguro', s);
+    limpiarDesde('sedeId');
   }
   function elegirSede(id: string): void {
-    if (id !== sedeId) {
-      setSedeId(id);
-      setMedicoId('');
-      setHora('');
-    }
+    if (id === getValues('sedeId')) return;
+    setValue('sedeId', id, { shouldValidate: true });
+    limpiarDesde('medicoId');
   }
   function elegirMedico(id: string): void {
-    setMedicoId(id);
-    setHora('');
+    setValue('medicoId', id, { shouldValidate: true });
+    limpiarDesde('hora');
   }
   function elegirDia(d: string): void {
-    setDia(d);
-    setHora('');
+    setValue('dia', d);
+    limpiarDesde('hora');
   }
-  function ir(p: Paso): void {
-    if (p === 2 && !sedeId && sedesDisponibles.length === 1) setSedeId(sedesDisponibles[0]?.id ?? ''); // una sola opción: ya queda elegida
-    if (p === 3 && !medicoId && medicosDisponibles.length === 1) setMedicoId(medicosDisponibles[0]?.id ?? '');
-    setError('');
+
+  async function ir(p: Paso): Promise<void> {
+    // Avanzar exige que el paso actual sea válido; retroceder, no.
+    if (p > paso && paso <= 4) {
+      const ok = await trigger([...CAMPOS_POR_PASO[paso as 1 | 2 | 3 | 4]]);
+      if (!ok) return;
+    }
+    if (p === 2 && !getValues('sedeId') && sedesDisponibles.length === 1) setValue('sedeId', sedesDisponibles[0]?.id ?? ''); // una sola opción: ya queda elegida
+    if (p === 3 && !getValues('medicoId') && medicosDisponibles.length === 1) setValue('medicoId', medicosDisponibles[0]?.id ?? '');
+    setErrorStore('');
     setPaso(p);
     window.scrollTo(0, 0);
   }
-  function confirmar(): void {
-    setIntento(true);
-    const motivoLimpio = motivo.trim();
-    if (!usuario || !medico || !dia || !hora || motivoLimpio.length < 3) return;
-    if (!libres.includes(hora)) {
-      setError('Esa hora ya no está disponible. Elige otra.');
-      setHora('');
+
+  function confirmar(data: ReservaData): void {
+    if (!usuario || !medico) return;
+    if (!libres.includes(data.hora)) {
+      setError('hora', { message: 'Esa hora ya no está disponible. Elige otra.' });
+      setValue('hora', '');
       return;
     }
     reservar(
       {
-        dniPaciente: usuario.dni, paciente: familiar?.nombre ?? usuario.nombre, medicoId: medico.id, seguro, fecha: dia, hora,
-        motivo: motivoLimpio, ...(familiar?.id ? { familiarId: familiar.id } : {}),
+        dniPaciente: usuario.dni, paciente: familiar?.nombre ?? usuario.nombre, medicoId: data.medicoId, seguro: data.seguro,
+        fecha: data.dia, hora: data.hora, motivo: data.motivo, ...(familiar?.id ? { familiarId: familiar.id } : {}),
       },
       () => {
         setPaso(5);
@@ -198,10 +210,9 @@ export function Reservar() {
       },
     );
   }
+
   function nueva(): void {
-    reiniciar();
-    setMotivo('');
-    setIntento(false);
+    reset({ ...getValues(), sedeId: '', medicoId: '', hora: '', motivo: '' });
     setPaso(1);
     window.scrollTo(0, 0);
   }
@@ -212,7 +223,7 @@ export function Reservar() {
         <Link className="btn ghost sm pillbtn" to="/panel"><i className="bi bi-arrow-left" /> Volver a mis citas</Link>
         <span className="chip">Reserva de Cita</span>
       </div>
-      <div className="panel-card card">
+      <form className="panel-card card" onSubmit={handleSubmit(confirmar)} noValidate>
         <h1>Reserva de cita médica</h1>
         {paso < 5 && <p className="visually-hidden" role="status">Paso {paso} de 4</p>}
 
@@ -221,7 +232,15 @@ export function Reservar() {
             <h2 className="step">Paso 1: Seleccione su seguro y especialidad</h2>
             {familiares.length > 0 && (
               <label className="campo">¿Para quién es la cita?
-                <select value={para} onChange={(e) => elegirPara(e.target.value)}>
+                <select
+                  {...register('para', {
+                    // Al elegir un familiar se usa su seguro.
+                    onChange: (e: { target: { value: string } }) => {
+                      const f = familiares.find((x) => x.id === e.target.value);
+                      if (f && esSeguro(f.seguro)) elegirSeguro(f.seguro);
+                    },
+                  })}
+                >
                   <option value="">Para mí ({usuario?.nombre})</option>
                   {familiares.map((f) => <option key={f.id} value={f.id}>{f.nombre} ({f.parentesco})</option>)}
                 </select>
@@ -235,11 +254,11 @@ export function Reservar() {
               ))}
             </div>
             <label className="campo">Especialidad médica
-              <select className="big" value={especialidad} onChange={(e) => elegirEspecialidad(e.target.value)}>
+              <select className="big" {...register('especialidad', { onChange: () => limpiarDesde('sedeId') })}>
                 {ESPECIALIDADES.map((e) => <option key={e}>{e}</option>)}
               </select>
             </label>
-            <div className="nav"><button className="btn pillbtn der" type="button" onClick={() => ir(2)}>Siguiente →</button></div>
+            <div className="nav"><button className="btn pillbtn der" type="button" onClick={() => void ir(2)}>Siguiente →</button></div>
           </>
         )}
 
@@ -258,9 +277,10 @@ export function Reservar() {
                 <p className="tabla" role="status">{cargando ? 'Cargando sedes…' : `No hay sedes con ${seguro} que atiendan ${especialidad}. Vuelve atrás y prueba otra combinación.`}</p>
               )}
             </div>
+            <FieldMessage id="sede-error" message={errors.sedeId?.message} />
             <div className="nav">
-              <button className="btn ghost pillbtn" type="button" onClick={() => ir(1)}>← Anterior</button>
-              <button className="btn pillbtn der" type="button" disabled={!sedeId} onClick={() => ir(3)}>Siguiente →</button>
+              <button className="btn ghost pillbtn" type="button" onClick={() => void ir(1)}>← Anterior</button>
+              <button className="btn pillbtn der" type="button" disabled={!sedeId} onClick={() => void ir(3)}>Siguiente →</button>
             </div>
           </>
         )}
@@ -286,9 +306,10 @@ export function Reservar() {
                 <p className="tabla" role="status">{cargando ? 'Cargando médicos…' : `No hay médicos de ${especialidad} en esta sede.`}</p>
               )}
             </div>
+            <FieldMessage id="medico-error" message={errors.medicoId?.message} />
             <div className="nav">
-              <button className="btn ghost pillbtn" type="button" onClick={() => ir(2)}>← Anterior</button>
-              <button className="btn pillbtn der" type="button" disabled={!medicoId} onClick={() => ir(4)}>Siguiente →</button>
+              <button className="btn ghost pillbtn" type="button" onClick={() => void ir(2)}>← Anterior</button>
+              <button className="btn pillbtn der" type="button" disabled={!medicoId} onClick={() => void ir(4)}>Siguiente →</button>
             </div>
           </>
         )}
@@ -314,25 +335,24 @@ export function Reservar() {
             <div className="horas" role="group" aria-label="Horarios libres">
               {libres.length > 0 ? (
                 libres.map((h) => (
-                  <button key={h} type="button" className={`hora${hora === h ? ' on' : ''}`} aria-pressed={hora === h} onClick={() => setHora(h)}>{h}</button>
+                  <button key={h} type="button" className={`hora${hora === h ? ' on' : ''}`} aria-pressed={hora === h} onClick={() => setValue('hora', h, { shouldValidate: true })}>{h}</button>
                 ))
               ) : (
                 <p className="tabla" role="status" style={{ gridColumn: '1/-1', margin: 0 }}>{horas.cargando ? 'Buscando horarios…' : 'No hay horarios libres este día. Elige otro día.'}</p>
               )}
             </div>
+            <FieldMessage id="hora-error" message={errors.hora?.message} />
             <p className="err" role="alert">{horas.error}</p>
 
             <label className="campo">Motivo de consulta
-              <input value={motivo} onChange={(e) => setMotivo(e.target.value)} maxLength={120} placeholder="Ej. Dolor de cabeza" aria-invalid={intento && motivoCorto} />
+              <input maxLength={120} placeholder="Ej. Dolor de cabeza" aria-invalid={Boolean(errors.motivo)} {...register('motivo')} />
             </label>
-            <p className="err" role="alert">
-              {intento && !hora ? 'Elige un horario.' : intento && motivoCorto ? 'Escribe el motivo de tu consulta (mínimo 3 letras).' : ''}
-            </p>
+            <FieldMessage id="motivo-error" message={errors.motivo?.message} />
             <p className="err" role="alert">{error}</p>
 
             <div className="nav">
-              <button className="btn ghost pillbtn" type="button" onClick={() => ir(3)}>← Anterior</button>
-              <button className="btn pillbtn confirmar der" type="button" disabled={guardando || horas.cargando} onClick={confirmar}>{guardando ? 'Reservando…' : 'Confirmar Reserva'}</button>
+              <button className="btn ghost pillbtn" type="button" onClick={() => void ir(3)}>← Anterior</button>
+              <button className="btn pillbtn confirmar der" type="submit" disabled={guardando || horas.cargando}>{guardando ? 'Reservando…' : 'Confirmar Reserva'}</button>
             </div>
           </>
         )}
@@ -357,7 +377,7 @@ export function Reservar() {
             </div>
           </div>
         )}
-      </div>
+      </form>
 
       {perfil && (
         <div className="overlay" onClick={() => setPerfilId('')}>

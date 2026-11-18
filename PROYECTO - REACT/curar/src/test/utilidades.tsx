@@ -1,3 +1,6 @@
+import { render } from '@testing-library/react';
+import { MemoryRouter, useLocation } from 'react-router';
+import App from '../App';
 import type { ReactNode } from 'react';
 import { vi } from 'vitest';
 import { AuthProvider } from '../context/AuthContext';
@@ -32,4 +35,20 @@ export function simularFetch(respuestas: (p: PeticionFalsa) => unknown) {
   });
   vi.stubGlobal('fetch', falso);
   return peticiones;
+}
+
+/** Monta la app completa en una ruta y expone la ruta actual (sustituye a createMemoryRouter). */
+export function montarApp(ruta: string) {
+  const actual = { pathname: ruta };
+  function Sonda() {
+    actual.pathname = useLocation().pathname;
+    return null;
+  }
+  render(
+    <MemoryRouter initialEntries={[ruta]}>
+      <App />
+      <Sonda />
+    </MemoryRouter>,
+  );
+  return actual;
 }

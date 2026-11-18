@@ -1,32 +1,31 @@
-import { useEffect, useState, type FormEvent } from 'react';
-import { Link } from 'react-router-dom';
+import { zodResolver } from '@hookform/resolvers/zod';
+import { useEffect, useState } from 'react';
+import { useForm } from 'react-hook-form';
+import { Link } from 'react-router';
+import { FieldMessage } from '../components/FieldMessage';
 import { useAuth } from '../context/AuthContext';
 import { useCitas } from '../context/CitasContext';
 import { useCarga } from '../hooks/useCarga';
-import { useFormulario, type Errores } from '../hooks/useFormulario';
+import { comentarioInicial, comentarioSchema, type ComentarioData, type ComentarioInput } from '../model/comentario';
 import { curarApi } from '../services/curarApi';
 import type { Comentario, Sede } from '../types/cita';
 
 const TIPOS = ['Todos', 'Hospitales', 'Policlínicos', 'Clínicas'] as const;
-
-interface ComentarioValores {
-  readonly puntaje: string;
-  readonly texto: string;
-}
-const INICIAL: ComentarioValores = { puntaje: '5', texto: '' };
-const validar = (v: ComentarioValores): Errores<ComentarioValores> => ({ texto: v.texto.length < 3 || v.texto.length > 300 });
 
 const urlMapa = (s: Sede): string => `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(`${s.nombre} ${s.direccion}`)}`;
 
 export function Centros() {
   const { usuario } = useAuth();
   const { sedes, activos, cargando: cargandoStore, error: errorStore, cargarSedes, cargarMedicos } = useCitas();
-  const { cargando, error, ejecutar } = useCarga();
+  const { error, ejecutar } = useCarga();
   const [tipo, setTipo] = useState<string>('Todos');
   const [sel, setSel] = useState('');
   const [comentarios, setComentarios] = useState<readonly Comentario[]>([]);
-  const form = useFormulario<ComentarioValores>(INICIAL);
-  const errores = validar(form.valores);
+  const { register, handleSubmit, reset, formState: { errors, isSubmitting } } = useForm<ComentarioInput, unknown, ComentarioData>({
+    resolver: zodResolver(comentarioSchema),
+    defaultValues: comentarioInicial(),
+    mode: 'onBlur',
+  });
 
   useEffect(() => {
     cargarSedes();
@@ -46,17 +45,14 @@ export function Centros() {
     return l.length > 0 ? `★ ${(l.reduce((suma, c) => suma + c.puntaje, 0) / l.length).toFixed(1)} (${l.length} opiniones)` : 'Sin calificaciones';
   };
 
-  async function comentar(evento: FormEvent, sedeId: string): Promise<void> {
-    evento.preventDefault();
-    form.setIntento(true);
-    if (errores.texto || !usuario || cargando) return;
+  async function comentar(data: ComentarioData): Promise<void> {
+    if (!usuario || !sel) return;
     const r = await ejecutar(curarApi.crearComentario({
-      sedeId, autor: usuario.nombre.split(' ')[0] ?? 'Paciente', texto: form.valores.texto.trim(),
-      puntaje: Number(form.valores.puntaje), fecha: new Date().toISOString().slice(0, 10),
+      sedeId: sel, autor: usuario.nombre.split(' ')[0] ?? 'Paciente', ...data, fecha: new Date().toISOString().slice(0, 10),
     }));
     if (!r.ok) return;
     setComentarios((l) => [r.valor, ...l]);
-    form.reiniciar(INICIAL);
+    reset(comentarioInicial());
   }
 
   return (
@@ -103,17 +99,17 @@ export function Centros() {
             <p>Aún no hay comentarios.</p>
           )}
           {usuario ? (
-            <form onSubmit={(e) => void comentar(e, sel)} noValidate style={{ display: 'grid', gap: 10, maxWidth: 520, marginTop: 12 }}>
+            <form onSubmit={handleSubmit(comentar)} noValidate style={{ display: 'grid', gap: 10, maxWidth: 520, marginTop: 12 }}>
               <label>Calificación
-                <select value={form.valores.puntaje} onChange={(e) => form.cambiar('puntaje', e.target.value)}>
+                <select {...register('puntaje')}>
                   <option value="5">5 · Excelente</option><option value="4">4 · Muy buena</option><option value="3">3 · Regular</option><option value="2">2 · Mala</option><option value="1">1 · Muy mala</option>
                 </select>
               </label>
               <label>Tu comentario
-                <input value={form.valores.texto} maxLength={300} aria-invalid={form.intento && errores.texto === true} onChange={(e) => form.cambiar('texto', e.target.value)} />
+                <input maxLength={300} aria-invalid={Boolean(errors.texto)} {...register('texto')} />
               </label>
-              <p className="err" role="alert">{form.intento && errores.texto && 'Escribe entre 3 y 300 caracteres.'}</p>
-              <button className="btn brand" type="submit" disabled={cargando}>Publicar comentario</button>
+              <FieldMessage id="comentario-error" message={errors.texto?.message} />
+              <button className="btn brand" type="submit" disabled={isSubmitting}>Publicar comentario</button>
             </form>
           ) : (
             <p><Link to="/login" className="link">Inicia sesión</Link> para comentar.</p>

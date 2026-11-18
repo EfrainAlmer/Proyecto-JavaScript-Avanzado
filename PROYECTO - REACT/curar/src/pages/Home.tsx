@@ -1,20 +1,15 @@
-import { useEffect, useState, type FormEvent } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import { zodResolver } from '@hookform/resolvers/zod';
+import { useEffect, useState } from 'react';
+import { useForm } from 'react-hook-form';
+import { Link, useNavigate } from 'react-router';
 import { TarjetaMedico } from '../components/TarjetaMedico';
 import { useAuth } from '../context/AuthContext';
 import { useCitas } from '../context/CitasContext';
 import { useFlujo } from '../context/FlujoContext';
-import type { Seguro } from '../types/cita';
+import { busquedaInicial, busquedaSchema, type BusquedaData, type BusquedaInput } from '../model/busqueda';
 import { isoLocal } from '../utils/formato';
 
 const TOTAL_SLIDES = 2;
-
-interface BuscadorValores {
-  readonly seguro: string;
-  readonly centro: string;
-  readonly especialidad: string;
-  readonly fecha: string;
-}
 
 export function Home() {
   const { usuario } = useAuth();
@@ -22,8 +17,10 @@ export function Home() {
   const { actualizarFlujo } = useFlujo();
   const navigate = useNavigate();
   const [indice, setIndice] = useState(0);
-  const [aviso, setAviso] = useState('');
-  const [buscador, setBuscador] = useState<BuscadorValores>({ seguro: 'EsSalud', centro: 'Hospitales', especialidad: 'Medicina General', fecha: '' });
+  const { register, handleSubmit, formState: { errors } } = useForm<BusquedaInput, unknown, BusquedaData>({
+    resolver: zodResolver(busquedaSchema),
+    defaultValues: busquedaInicial(),
+  });
   const hoy = isoLocal(new Date());
 
   useEffect(() => {
@@ -37,17 +34,8 @@ export function Home() {
     return () => clearInterval(temporizador);
   }, []);
 
-  function cambiar(campo: keyof BuscadorValores, valor: string): void {
-    setBuscador((actual) => ({ ...actual, [campo]: valor }));
-  }
-
-  function buscar(evento: FormEvent): void {
-    evento.preventDefault();
-    if (!buscador.fecha) {
-      setAviso('Elige una fecha para ver la disponibilidad.');
-      return;
-    }
-    actualizarFlujo({ seguro: buscador.seguro as Seguro, tipo: buscador.centro, especialidad: buscador.especialidad, fecha: buscador.fecha, sede: null });
+  function buscar(data: BusquedaData): void {
+    actualizarFlujo({ seguro: data.seguro, tipo: data.centro, especialidad: data.especialidad, fecha: data.fecha, sede: null });
     void navigate('/sede');
   }
 
@@ -96,22 +84,22 @@ export function Home() {
         </div>
 
         <div className="finder">
-          <form onSubmit={buscar} noValidate>
+          <form onSubmit={handleSubmit(buscar)} noValidate>
             <label>Seguro
-              <select value={buscador.seguro} onChange={(e) => cambiar('seguro', e.target.value)}><option>EsSalud</option><option>SIS</option></select>
+              <select {...register('seguro')}><option>EsSalud</option><option>SIS</option></select>
             </label>
             <label>Tipo de centro
-              <select value={buscador.centro} onChange={(e) => cambiar('centro', e.target.value)}><option>Hospitales</option><option>Policlínicos</option><option>Clínicas</option></select>
+              <select {...register('centro')}><option>Hospitales</option><option>Policlínicos</option><option>Clínicas</option></select>
             </label>
             <label>Especialidad
-              <select value={buscador.especialidad} onChange={(e) => cambiar('especialidad', e.target.value)}><option>Medicina General</option><option>Pediatría</option><option>Cardiología</option></select>
+              <select {...register('especialidad')}><option>Medicina General</option><option>Pediatría</option><option>Cardiología</option></select>
             </label>
             <label>Fecha
-              <input type="date" value={buscador.fecha} min={hoy} onChange={(e) => cambiar('fecha', e.target.value)} />
+              <input type="date" min={hoy} aria-invalid={Boolean(errors.fecha)} {...register('fecha')} />
             </label>
             <button className="btn" type="submit">Ver disponibilidad</button>
           </form>
-          <p id="result" role="status" aria-live="polite">{aviso}</p>
+          <p id="result" role="status" aria-live="polite">{errors.fecha?.message}</p>
         </div>
       </div>
 
