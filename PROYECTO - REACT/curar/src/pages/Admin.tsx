@@ -1,17 +1,19 @@
-import { useCallback, useDeferredValue, useEffect, useMemo, useState, useTransition } from 'react';
+import { useCallback, useDeferredValue, useMemo, useReducer, useState, useTransition } from 'react';
+import { ADMIN_INICIAL, adminReducer, type PestanaAdmin } from '../components/admin/adminReducer';
 import { MedicoForm } from '../components/admin/MedicoForm';
 import { SupervisionCitas } from '../components/admin/SupervisionCitas';
-import { useCarga } from '../hooks/useCarga';
 import { medicoInicial, type MedicoData, type MedicoInput } from '../model/medico';
 import { useCatalogo, useEliminarMedico, useGuardarMedico } from '../queries/catalogo';
 import { useTodasCitas, useCambiarEstadoCita } from '../queries/citas';
-import { curarApi } from '../services/curarApi';
 import { textoError } from '../services/mensajeHttp';
-import { HORARIO_BASE, type Cita, type Medico, type Reclamo, type UsuarioApi } from '../types/cita';
+import { HORARIO_BASE, type Cita, type Medico, type Reclamo } from '../types/cita';
 import { isoLocal } from '../utils/formato';
 import { coincide } from '../utils/texto';
+import { useUsuarios, useReclamos, useActualizarReclamo } from '../queries/cuentas';
+import { useQueryClient } from '@tanstack/react-query';
+import { claves } from '../queries/claves';
 
-type Tab = 'medicos' | 'citas' | 'reclamos';
+type Tab = PestanaAdmin;
 const TABS: readonly { readonly id: Tab; readonly n: string }[] = [
   { id: 'medicos', n: 'Directorio de Médicos' },
   { id: 'citas', n: 'Supervisión de Citas' },
@@ -29,31 +31,23 @@ export function Admin() {
   const guardarMedico = useGuardarMedico();
   const eliminarMedico = useEliminarMedico();
   const errorEscrituraMedico = guardarMedico.error ?? eliminarMedico.error;
-  const { cargando, error, ejecutar } = useCarga();
+  const lecturaUsuarios = useUsuarios();
+  const lecturaReclamos = useReclamos();
+  const actualizarReclamo = useActualizarReclamo();
+  const cache = useQueryClient();
   // Todas las citas (clave ['citas']): si el admin anula una, también se actualizan el panel del médico y el del paciente.
   const lecturaCitas = useTodasCitas();
   const citas = lecturaCitas.data ?? SIN_CITAS;
   const { mutateAsync: cambiarEstadoCita, error: errorAnular } = useCambiarEstadoCita();
-  const [tab, setTab] = useState<Tab>('medicos');
-  const [usuarios, setUsuarios] = useState<readonly UsuarioApi[]>([]);
-  const [reclamos, setReclamos] = useState<readonly Reclamo[]>([]);
-  const [aviso, setAviso] = useState('');
+  const usuarios = lecturaUsuarios.data ?? [];
+  const reclamos = lecturaReclamos.data ?? [];
+  // Estado de interfaz en un reducer (Lab 13): antes eran 5 useState que había que coordinar a mano.
+  const [ui, dispatch] = useReducer(adminReducer, ADMIN_INICIAL);
+  const { pestana: tab, edicion: editando, baja: borrando, anulando, aviso } = ui;
   const [qMed, setQMed] = useState('');
-  const [editando, setEditando] = useState<Medico | 'nuevo' | null>(null);
-  const [borrando, setBorrando] = useState('');
-  const [anulando, setAnulando] = useState('');
   // Cambiar de pestaña puede pintar miles de filas: como transición, la pestaña actual sigue respondiendo.
   const [cambiandoTab, startTransition] = useTransition();
   const hoyIso = isoLocal(new Date());
-
-  useEffect(() => {
-    void ejecutar(Promise.all([curarApi.todosUsuarios(), curarApi.reclamos()])).then((r) => {
-      if (!r.ok) return;
-      const [u, rec] = r.valor;
-      setUsuarios(u);
-      setReclamos(rec);
-    });
-  }, [ejecutar]);
 
   // Estadísticas y listas: derivadas en cada render.
   const medicosActivos = medicos.filter((m) => m.estado !== 'Inactivo').length;
@@ -68,12 +62,8 @@ export function Admin() {
 
   const sedeDe = (id?: string): string => sedes.find((s) => s.id === id)?.nombre ?? 'Sin asignar';
 
-  function nuevo(): void {
-    setEditando('nuevo');
-  }
-  function editar(m: Medico): void {
-    setEditando(m);
-  }
+  const nuevo = (): void => dispatch({ type: 'altaAbierta' });
+  const editar = (m: Medico): void => dispatch({ type: 'edicionAbierta', medico: m });
   const valoresIniciales = (): MedicoInput =>
     editando === null || editando === 'nuevo'
       ? medicoInicial()
@@ -82,7 +72,6 @@ export function Admin() {
     editando === 'nuevo' && medicos.some((m) => m.id === `m${cmp}`) ? 'Ya existe un médico con ese CMP.' : null;
 
   async function guardar(data: MedicoData): Promise<void> {
-    setAviso('');
     if (!editando) return;
     const centro = sedes.find((s) => s.id === data.sedeId)?.tipo ?? 'Por asignar';
     if (guardarMedico.isPending) return;
@@ -92,8 +81,7 @@ export function Admin() {
       : { ...editando, ...data, centro };
     try {
       await guardarMedico.mutateAsync({ medico, nuevo });
-      setEditando(null);
-      setAviso('Médico guardado.');
+      dispatch({ type: 'medicoGuardado' });
     } catch {
       // guardarMedico.error lo muestra arriba; el formulario sigue abierto para reintentar.
     }
@@ -102,8 +90,7 @@ export function Admin() {
   async function eliminar(id: string): Promise<void> {
     try {
       await eliminarMedico.mutateAsync(id);
-      setBorrando('');
-      setAviso('Médico dado de baja.');
+      dispatch({ type: 'bajaHecha' });
     } catch {
       // eliminarMedico.error lo muestra arriba.
     }
@@ -111,24 +98,27 @@ export function Admin() {
 
   // Estable entre renders (useCallback): así las filas memorizadas de SupervisionCitas no se re-renderizan todas.
   const anularCita = useCallback((id: string): void => {
-    setAnulando(id);
-    void cambiarEstadoCita({ id, estado: 'Cancelada' }).catch(() => undefined).finally(() => setAnulando(''));
-  }, [cambiarEstadoCita]); // mutateAsync es estable: la referencia no cambia entre renders
+    dispatch({ type: 'anulacionIniciada', id });
+    void cambiarEstadoCita({ id, estado: 'Cancelada' }).catch(() => undefined).finally(() => dispatch({ type: 'anulacionTerminada' }));
+  }, [cambiarEstadoCita]); // mutateAsync y dispatch son estables: la referencia no cambia entre renders
+
+  // Actualizar / Cancelar consulta (como el Panel del md): la cancelación llega al fetch vía la señal de TanStack.
+  const actualizarCitas = useCallback((): void => void lecturaCitas.refetch(), [lecturaCitas]);
+  const cancelarConsultaCitas = useCallback((): void => void cache.cancelQueries({ queryKey: claves.citas.todas, exact: true }), [cache]);
 
   async function avanzarReclamo(rec: Reclamo): Promise<void> {
     if (!rec.id || rec.estado === 'Respondido') return;
     const estado = rec.estado === 'Recibido' ? 'En revisión' : 'Respondido';
-    const r = await ejecutar(curarApi.actualizarReclamo(rec.id, { estado }));
-    if (r.ok) setReclamos((l) => l.map((x) => (x.id === r.valor.id ? r.valor : x)));
+    await actualizarReclamo.mutateAsync({ id: rec.id, cambios: { estado } }).catch(() => undefined);
   }
 
   return (
     <section className="wrap" style={{ padding: '48px 20px' }}>
       <div className="panel-head">
         <div><h1>Panel de Administración General</h1><p>Control central de personal, citas y gobernanza pública.</p></div>
-        <button className="btn" type="button" onClick={() => { setTab('medicos'); nuevo(); }}>+ Registrar Médico</button>
+        <button className="btn" type="button" onClick={nuevo}>+ Registrar Médico</button>
       </div>
-      <p className="err" role="alert">{error} {textoError(lecturaCitas.error ?? errorEscrituraMedico ?? errorAnular)}</p>
+      <p className="err" role="alert">{textoError(lecturaUsuarios.error ?? lecturaReclamos.error ?? errorEscrituraMedico ?? errorAnular ?? actualizarReclamo.error)}</p>
       <p role="status" aria-live="polite">{aviso}</p>
       <div className="row g-3 mb-4">
         <div className="col-6 col-md-3"><div className="stat"><small>Médicos activos</small><strong>{medicosActivos}</strong></div></div>
@@ -138,7 +128,7 @@ export function Admin() {
       </div>
       <div role="tablist" aria-label="Secciones" style={{ display: 'flex', gap: 8, flexWrap: 'wrap', margin: '16px 0' }}>
         {TABS.map((t) => (
-          <button key={t.id} type="button" role="tab" className={`btn${tab === t.id ? '' : ' ghost'}`} aria-selected={tab === t.id} onClick={() => startTransition(() => setTab(t.id))}>{t.n}</button>
+          <button key={t.id} type="button" role="tab" className={`btn${tab === t.id ? '' : ' ghost'}`} aria-selected={tab === t.id} onClick={() => startTransition(() => dispatch({ type: 'pestanaElegida', pestana: t.id }))}>{t.n}</button>
         ))}
       </div>
       {cambiandoTab && <p role="status">Cargando sección…</p>}
@@ -157,7 +147,7 @@ export function Admin() {
               sedes={sedes}
               cmpRepetido={cmpRepetido}
               onGuardar={guardar}
-              onCancelar={() => setEditando(null)}
+              onCancelar={() => dispatch({ type: 'edicionCerrada' })}
             />
           )}
           <div className="tabla" style={{ overflowX: 'auto' }}>
@@ -175,11 +165,11 @@ export function Admin() {
                         <button className="btn sm ghost" type="button" onClick={() => editar(m)}>Editar</button>{' '}
                         {borrando === m.id ? (
                           <>
-                            <button className="btn sm" type="button" disabled={cargando} onClick={() => void eliminar(m.id)}>Confirmar baja</button>{' '}
-                            <button className="btn sm ghost" type="button" onClick={() => setBorrando('')}>No</button>
+                            <button className="btn sm" type="button" disabled={eliminarMedico.isPending} onClick={() => void eliminar(m.id)}>Confirmar baja</button>{' '}
+                            <button className="btn sm ghost" type="button" onClick={() => dispatch({ type: 'bajaCancelada' })}>No</button>
                           </>
                         ) : (
-                          <button className="btn sm ghost" type="button" onClick={() => setBorrando(m.id)}>Dar de baja</button>
+                          <button className="btn sm ghost" type="button" onClick={() => dispatch({ type: 'bajaPedida', id: m.id })}>Dar de baja</button>
                         )}
                       </td>
                     </tr>
@@ -193,7 +183,11 @@ export function Admin() {
         </>
       )}
 
-      {tab === 'citas' && <SupervisionCitas citas={citas} medicos={medicos} sedes={sedes} anulando={anulando} onAnular={anularCita} />}
+      {tab === 'citas' && <SupervisionCitas
+          citas={citas} medicos={medicos} sedes={sedes} anulando={anulando} onAnular={anularCita}
+          lectura={{ cargando: lecturaCitas.isLoading, actualizando: lecturaCitas.isFetching, hayDatos: lecturaCitas.data !== undefined, error: textoError(lecturaCitas.error), actualizadoA: lecturaCitas.dataUpdatedAt ? new Date(lecturaCitas.dataUpdatedAt).toLocaleTimeString('es-PE') : '' }}
+          onActualizar={actualizarCitas} onCancelarConsulta={cancelarConsultaCitas}
+        />}
 
       {tab === 'reclamos' && (
         <div className="tabla" style={{ overflowX: 'auto' }}>
@@ -210,14 +204,14 @@ export function Admin() {
                     <td><span className="pill">{r.tipo}</span> {r.servicio}<br /><small>{r.detalle}</small></td>
                     <td><span className="pill" data-estado={colorReclamo(r.estado)}>{r.estado}</span></td>
                     <td>
-                      {r.estado === 'Recibido' && <button className="btn sm" type="button" disabled={cargando} onClick={() => void avanzarReclamo(r)}>Iniciar revisión</button>}
-                      {r.estado === 'En revisión' && <button className="btn sm" type="button" disabled={cargando} onClick={() => void avanzarReclamo(r)}>Marcar respondido</button>}
+                      {r.estado === 'Recibido' && <button className="btn sm" type="button" disabled={actualizarReclamo.isPending} onClick={() => void avanzarReclamo(r)}>Iniciar revisión</button>}
+                      {r.estado === 'En revisión' && <button className="btn sm" type="button" disabled={actualizarReclamo.isPending} onClick={() => void avanzarReclamo(r)}>Marcar respondido</button>}
                       {r.estado === 'Respondido' && '—'}
                     </td>
                   </tr>
                 ))
               ) : (
-                <tr><td colSpan={5}>{cargando ? 'Cargando…' : 'Aún no hay reclamos registrados.'}</td></tr>
+                <tr><td colSpan={5}>{lecturaReclamos.isLoading ? 'Cargando…' : 'Aún no hay reclamos registrados.'}</td></tr>
               )}
             </tbody>
           </table>

@@ -10,11 +10,13 @@ const citas: Cita[] = Array.from({ length: 3000 }, (_, i) => ({
   fecha: `2026-${String((i % 12) + 1).padStart(2, '0')}-10`, hora: '09:00', estado: 'Pendiente',
 }));
 
+const LISTA = { cargando: false, actualizando: false, hayDatos: true, error: '', actualizadoA: '' };
+
 describe('SupervisionCitas (useDeferredValue + useMemo + memo + useTransition)', () => {
   it('filtra 3000 citas, ordena, pagina y conserva lo escrito', async () => {
     const u = userEvent.setup();
     const onAnular = vi.fn();
-    render(<SupervisionCitas citas={citas} medicos={medicos} sedes={[]} anulando="" onAnular={onAnular} />);
+    render(<SupervisionCitas lectura={LISTA} onActualizar={vi.fn()} onCancelarConsulta={vi.fn()} citas={citas} medicos={medicos} sedes={[]} anulando="" onAnular={onAnular} />);
     const buscar = screen.getByRole('searchbox', { name: 'Buscar paciente, DNI o médico' });
     const filas = (): HTMLElement[] => within(screen.getAllByRole('rowgroup')[1] as HTMLElement).getAllByRole('row');
 
@@ -36,7 +38,7 @@ describe('SupervisionCitas (useDeferredValue + useMemo + memo + useTransition)',
 
   it('el filtro de estado se aplica como transición y muestra "Sin coincidencias"', async () => {
     const u = userEvent.setup();
-    render(<SupervisionCitas citas={citas} medicos={medicos} sedes={[]} anulando="" onAnular={vi.fn()} />);
+    render(<SupervisionCitas lectura={LISTA} onActualizar={vi.fn()} onCancelarConsulta={vi.fn()} citas={citas} medicos={medicos} sedes={[]} anulando="" onAnular={vi.fn()} />);
     await u.selectOptions(screen.getByRole('combobox', { name: 'Estado' }), 'Atendida');
     expect(await screen.findByText('Sin coincidencias.')).toBeInTheDocument();
     await waitFor(() => expect(screen.getByRole('status')).toHaveTextContent('0 citas encontradas'));

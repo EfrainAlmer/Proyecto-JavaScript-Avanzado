@@ -239,6 +239,43 @@ describe('Prueba de humo: cada página se monta con datos reales de db.json', ()
     expect(JSON.parse(String((post?.[1] as RequestInit).body))).toMatchObject({ id: 'm54321', nombre: 'Rosa Quispe', sedeId: primeraSede?.id });
   });
 
+  it('/admin: avanzar un reclamo lo escribe con useMutation y la lista se relee (invalidación)', async () => {
+    const reclamo = { codigo: 'LR-1', tipo: 'Reclamo', nombre: 'Ana', dni: '12345678', correo: 'ana@ejemplo.pe', telefono: '999999999', domicilio: 'Lima', sede: 's1', servicio: 'Citas', detalle: 'Demora', pedido: 'Atención', fecha: '2026-11-18', estado: 'Recibido' };
+    await fetch('/api/reclamos', { method: 'POST', body: JSON.stringify(reclamo) }); // la API falsa lo guarda
+    await montar('/admin', ADMIN);
+    await userEvent.click(await screen.findByRole('tab', { name: 'Libro de Reclamaciones' }));
+    await userEvent.click(await screen.findByRole('button', { name: 'Iniciar revisión' }));
+    expect(await screen.findByRole('button', { name: 'Marcar respondido' })).toBeInTheDocument();
+    const patch = vi.mocked(fetch).mock.calls.filter(([, init]) => init?.method === 'PATCH');
+    expect(patch).toHaveLength(1);
+  });
+
+  it('/admin: Actualizar vuelve a pedir las citas a la API', async () => {
+    await montar('/admin', ADMIN);
+    await userEvent.click(await screen.findByRole('tab', { name: 'Supervisión de Citas' }));
+    await screen.findByText(/Actualizado a las/u);
+    const pedidas = (): number => vi.mocked(fetch).mock.calls.filter(([url]) => String(url).endsWith('/citas')).length;
+    const antes = pedidas();
+    await userEvent.click(screen.getByRole('button', { name: 'Actualizar' }));
+    await waitFor(() => expect(pedidas()).toBe(antes + 1));
+  });
+
+  it('/admin: Cancelar consulta aborta la lectura de citas y lo explica', async () => {
+    const real = vi.mocked(fetch).getMockImplementation()!;
+    vi.mocked(fetch).mockImplementation((url, init) => {
+      // La lectura global de citas queda colgada hasta que alguien la aborte.
+      if (String(url).endsWith('/citas')) {
+        return new Promise((_ok, falla) => init?.signal?.addEventListener('abort', () => falla(init.signal?.reason)));
+      }
+      return real(url, init);
+    });
+    await montar('/admin', ADMIN);
+    await userEvent.click(await screen.findByRole('tab', { name: 'Supervisión de Citas' }));
+    await userEvent.click(await screen.findByRole('button', { name: 'Cancelar consulta' }));
+    expect(await screen.findByText('Sin consulta activa. Pulsa Actualizar.')).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: 'Actualizar' })).toBeEnabled();
+  });
+
   it('/admin: un CMP repetido se marca en su campo', async () => {
     await montar('/admin', ADMIN);
     const u = userEvent.setup();

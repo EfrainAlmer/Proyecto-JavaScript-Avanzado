@@ -1,21 +1,20 @@
 import { zodResolver } from '@hookform/resolvers/zod';
-import { useState } from 'react';
 import { useForm, useWatch } from 'react-hook-form';
 import { Link } from 'react-router';
 import { Campo } from '../components/Campo';
 import { FieldMessage } from '../components/FieldMessage';
 import { useAuth } from '../context/AuthContext';
-import { useCarga } from '../hooks/useCarga';
 import { reclamoInicial, reclamoSchema, SERVICIOS, TIPOS_RECLAMO, type ReclamoData, type ReclamoInput } from '../model/reclamo';
 import { useCatalogo } from '../queries/catalogo';
-import { curarApi } from '../services/curarApi';
-import type { Reclamo } from '../types/cita';
+import { useCrearReclamo } from '../queries/cuentas';
+import { textoError } from '../services/mensajeHttp';
 
 export function Reclamaciones() {
   const { usuario } = useAuth();
   const { sedes } = useCatalogo();
-  const { error, ejecutar } = useCarga();
-  const [enviado, setEnviado] = useState<Reclamo | null>(null);
+  // La hoja registrada ES la respuesta de la mutación: no hace falta guardarla en un useState aparte.
+  const crearReclamo = useCrearReclamo();
+  const enviado = crearReclamo.data;
 
   const { register, control, handleSubmit, reset, setValue, formState: { errors, isSubmitting } } = useForm<ReclamoInput, unknown, ReclamoData>({
     resolver: zodResolver(reclamoSchema),
@@ -27,21 +26,21 @@ export function Reclamaciones() {
   const tipo = useWatch({ control, name: 'tipo' });
 
   function otro(): void {
-    setEnviado(null);
+    crearReclamo.reset(); // vuelve a mostrar el formulario
     reset(reclamoInicial(usuario?.nombre, usuario?.dni));
   }
 
   async function enviar(data: ReclamoData): Promise<void> {
     const { sedeId, acepto: _acepto, ...resto } = data;
     const hoy = new Date();
-    const r = await ejecutar(curarApi.crearReclamo({
+    if (crearReclamo.isPending) return;
+    await crearReclamo.mutateAsync({
       ...resto,
       codigo: `LR-${hoy.getFullYear()}-${String(Date.now()).slice(-6)}`,
       sede: sedes.find((s) => s.id === sedeId)?.nombre ?? 'No especificada',
       fecha: hoy.toLocaleDateString('sv-SE'),
       estado: 'Recibido',
-    }));
-    if (r.ok) setEnviado(r.valor);
+    }).catch(() => undefined); // el error queda en crearReclamo.error
   }
 
 
@@ -107,7 +106,7 @@ export function Reclamaciones() {
           <FieldMessage id="acepto-error" message={errors.acepto?.message} />
           <p className="note" style={{ margin: 0 }}>La formulación de un reclamo no impide acudir a otras vías de solución de controversias ni es requisito previo para presentar una denuncia ante el INDECOPI.</p>
 
-          <p className="err" role="alert">{error}</p>
+          {crearReclamo.error && <p className="err" role="alert">No se registró la hoja. {textoError(crearReclamo.error)}</p>}
           <button className="btn brand" type="submit" disabled={isSubmitting} style={{ justifySelf: 'start' }}>{isSubmitting ? 'Enviando…' : 'Enviar hoja de reclamación'}</button>
         </form>
       )}

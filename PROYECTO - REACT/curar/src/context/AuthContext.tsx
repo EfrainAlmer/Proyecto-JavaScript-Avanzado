@@ -1,4 +1,6 @@
+import { useQueryClient } from '@tanstack/react-query';
 import { createContext, useCallback, useContext, useMemo, useRef, useState, type ReactNode } from 'react';
+import { claves } from '../queries/claves';
 import { curarApi } from '../services/curarApi';
 import { HORARIO_BASE, ROLE_ADMIN, ROLE_MEDICO, type Sesion, type UsuarioApi } from '../types/cita';
 
@@ -53,6 +55,8 @@ export function rutaInicio(sesion: Sesion | null): string {
 }
 
 export function AuthProvider({ children }: { readonly children: ReactNode }) {
+  // Login y registro son ACCIONES (no vistas de datos): llaman a la API directamente, pero avisan a la caché de lo que cambió.
+  const cache = useQueryClient();
   const [usuario, setUsuario] = useState<Sesion | null>(leerSesion);
   // La referencia se actualiza al instante: `inicio()` debe ver la sesión recién abierta aunque React aún no haya re-renderizado.
   const sesionRef = useRef<Sesion | null>(usuario);
@@ -102,6 +106,8 @@ export function AuthProvider({ children }: { readonly children: ReactNode }) {
           });
         }
         const creado = await curarApi.registrar(nuevo);
+        // Un médico nuevo aparece en el directorio y el conteo de pacientes del admin cambia: se invalidan ambos recursos.
+        await Promise.all([cache.invalidateQueries({ queryKey: claves.usuarios.todos }), cache.invalidateQueries({ queryKey: claves.medicos.todos })]);
         sessionStorage.setItem(PENDIENTE, String(creado.dni));
         return true;
       },
@@ -111,15 +117,17 @@ export function AuthProvider({ children }: { readonly children: ReactNode }) {
         const [u] = await curarApi.usuarios(dni);
         if (!u?.id) return false;
         const actualizado = await curarApi.actualizarUsuario(u.id, { verificado: true });
+        void cache.invalidateQueries({ queryKey: claves.usuarios.todos });
         sessionStorage.removeItem(PENDIENTE);
         abrir(actualizado);
         return true;
       },
       salir() {
         guardarSesion(null);
+        cache.clear(); // los datos de la sesión anterior (citas, recetas…) no deben verse al entrar con otra cuenta
       },
     }),
-    [usuario, abrir, guardarSesion],
+    [usuario, abrir, guardarSesion, cache],
   );
 
   return <AuthContext value={valor}>{children}</AuthContext>;

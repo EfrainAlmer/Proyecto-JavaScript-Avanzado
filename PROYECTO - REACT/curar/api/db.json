@@ -1,5 +1,22 @@
 {
-  "reclamos": [],
+  "reclamos": [
+    {
+      "tipo": "Reclamo",
+      "nombre": "Juan Guerra Ramos",
+      "dni": "14256378",
+      "correo": "jguerrar@gmail.com",
+      "telefono": "987159753",
+      "domicilio": "Av. Nicolas Ayllon - 102",
+      "servicio": "Admisión y atención administrativa",
+      "detalle": "Mala atención en el área de admisión para citas médicas",
+      "pedido": "Mejora de atención",
+      "codigo": "LR-2026-199983",
+      "sede": "Policlínico Santa Cruz",
+      "fecha": "2026-11-19",
+      "estado": "Respondido",
+      "id": "mqf3FQNGp0Q"
+    }
+  ],
   "informes": [],
   "sedes": [
     {

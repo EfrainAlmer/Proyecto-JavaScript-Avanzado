@@ -19,5 +19,11 @@ export const claves = {
   },
   favoritos: (dni: string) => ['favoritos', dni] as const,
   recetas: (dni: string) => ['recetas', dni] as const,
+  mensajes: (dni: string) => ['mensajes', dni] as const,
+  usuarios: {
+    todos: ['usuarios'] as const,
+    porDni: (dni: string) => ['usuarios', dni] as const,
+  },
+  reclamos: ['reclamos'] as const,
   familiares: (dni: string) => ['familiares', dni] as const,
 };

@@ -1,17 +1,18 @@
 import { zodResolver } from '@hookform/resolvers/zod';
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { Link } from 'react-router';
 import { Campo } from '../components/Campo';
 import { useAuth } from '../context/AuthContext';
-import { useCarga } from '../hooks/useCarga';
 import { claveInicial, claveSchema, perfilInicial, perfilSchema, SEGUROS_CUENTA,
   type ClaveData, type ClaveInput, type PerfilData, type PerfilInput,
 } from '../model/cuenta';
 import { useCitasPaciente } from '../queries/citas';
 import { curarApi } from '../services/curarApi';
-import { PERM_RECETAR, PERM_RESERVAR, tienePermiso, type UsuarioApi } from '../types/cita';
+import { PERM_RECETAR, PERM_RESERVAR, tienePermiso } from '../types/cita';
 import { mesAnio } from '../utils/formato';
+import { useUsuario, useActualizarUsuario } from '../queries/cuentas';
+import { mensajeHttp, textoError } from '../services/mensajeHttp';
 
 type Tab = 'resumen' | 'perfil';
 const TABS: readonly { readonly id: Tab; readonly n: string }[] = [{ id: 'resumen', n: 'Resumen' }, { id: 'perfil', n: 'Mi perfil' }];
@@ -19,9 +20,7 @@ const TABS: readonly { readonly id: Tab; readonly n: string }[] = [{ id: 'resume
 export function CuentaPaciente() {
   const auth = useAuth();
   const citas = useCitasPaciente(auth.usuario?.dni).data ?? [];
-  const { error, ejecutar } = useCarga();
   const [tab, setTab] = useState<Tab>('resumen');
-  const [u, setU] = useState<UsuarioApi | null>(null);
   const [okPerfil, setOkPerfil] = useState('');
   const [okClave, setOkClave] = useState('');
   // Dos formularios independientes en la misma página: cada uno con su propio useForm.
@@ -31,17 +30,18 @@ export function CuentaPaciente() {
   const ep = perfil.formState.errors;
   const ec = clave.formState.errors;
   const dni = auth.usuario?.dni;
+  const lectura = useUsuario(dni);
+  const actualizar = useActualizarUsuario();
+  const u = lectura.data ?? null; // antes era un useState que copiaba la respuesta
+  const precargado = useRef(false);
 
+  // Precarga el formulario UNA vez: si se recargara con cada refetch, borraría lo que la persona está escribiendo.
   useEffect(() => {
-    if (!dni) return;
-    void ejecutar(curarApi.usuarios(dni)).then((r) => {
-      const x = r.ok ? r.valor[0] : undefined;
-      if (!x) return;
-      setU(x);
-      const seguro = SEGUROS_CUENTA.find((s) => s === x.seguro) ?? 'SIS';
-      reiniciarPerfil({ nombre: x.nombre, correo: x.correo ?? '', telefono: x.telefono ?? '', seguro });
-    });
-  }, [dni, ejecutar, reiniciarPerfil]);
+    if (!u || precargado.current) return;
+    precargado.current = true;
+    const seguro = SEGUROS_CUENTA.find((s) => s === u.seguro) ?? 'SIS';
+    reiniciarPerfil({ nombre: u.nombre, correo: u.correo ?? '', telefono: u.telefono ?? '', seguro });
+  }, [u, reiniciarPerfil]);
 
   // Derivados
   const rol = auth.usuario?.rol ?? 0;
@@ -57,17 +57,18 @@ export function CuentaPaciente() {
   async function guardarPerfil(data: PerfilData): Promise<void> {
     setOkPerfil('');
     if (!u?.id) return;
-    const usado = await ejecutar(curarApi.correoUsado(data.correo, String(u.dni)));
-    if (!usado.ok) return;
-    if (usado.valor) {
-      perfil.setError('correo', { message: 'Ese correo ya está registrado por otra cuenta.' });
-      return;
+    try {
+      // Regla que depende de otras cuentas: se consulta al enviar (no es un dato que esta pantalla muestre).
+      if (await curarApi.correoUsado(data.correo, u.dni)) {
+        perfil.setError('correo', { message: 'Ese correo ya está registrado por otra cuenta.' });
+        return;
+      }
+      const guardado = await actualizar.mutateAsync({ id: u.id, cambios: data });
+      auth.renombrar(guardado.nombre);
+      setOkPerfil('Tus datos se actualizaron correctamente.');
+    } catch (e) {
+      perfil.setError('root.server', { message: mensajeHttp(e) });
     }
-    const r = await ejecutar(curarApi.actualizarUsuario(u.id, data));
-    if (!r.ok) return;
-    setU(r.valor);
-    auth.renombrar(r.valor.nombre);
-    setOkPerfil('Tus datos se actualizaron correctamente.');
   }
 
   async function guardarClave(data: ClaveData): Promise<void> {
@@ -77,11 +78,13 @@ export function CuentaPaciente() {
       clave.setError('actual', { message: 'La contraseña actual no es correcta.' });
       return;
     }
-    const r = await ejecutar(curarApi.actualizarUsuario(u.id, { password: data.nueva }));
-    if (!r.ok) return;
-    setU(r.valor);
-    clave.reset(claveInicial());
-    setOkClave('Contraseña actualizada.');
+    try {
+      await actualizar.mutateAsync({ id: u.id, cambios: { password: data.nueva } });
+      clave.reset(claveInicial());
+      setOkClave('Contraseña actualizada.');
+    } catch (e) {
+      clave.setError('root.server', { message: mensajeHttp(e) });
+    }
   }
 
   return (
@@ -92,7 +95,7 @@ export function CuentaPaciente() {
           <button key={t.id} type="button" role="tab" className={`btn${tab === t.id ? '' : ' ghost'}`} aria-selected={tab === t.id} onClick={() => setTab(t.id)}>{t.n}</button>
         ))}
       </div>
-      <p className="err" role="alert">{error}</p>
+      <p className="err" role="alert">{textoError(lectura.error)}</p>
       {tab === 'resumen' ? (
         u ? (
           <div className="docs">
@@ -133,6 +136,7 @@ export function CuentaPaciente() {
               <select {...perfil.register('seguro')}>{SEGUROS_CUENTA.map((s) => <option key={s}>{s}</option>)}</select>
             </label>
             <button className="btn brand" type="submit" disabled={perfil.formState.isSubmitting}>Guardar cambios</button>
+            {ep.root?.['server'] && <p className="err" role="alert">No se guardaron tus datos. {ep.root['server'].message}</p>}
             <p role="status" aria-live="polite">{okPerfil}</p>
           </form>
           <form className="tabla" onSubmit={clave.handleSubmit(guardarClave)} noValidate style={{ display: 'grid', gap: 10 }}>
@@ -141,6 +145,7 @@ export function CuentaPaciente() {
             <Campo label="Nueva contraseña" error={ec.nueva?.message}>{(a11y) => <input type="password" autoComplete="new-password" {...a11y} {...clave.register('nueva')} />}</Campo>
             <Campo label="Repite la nueva contraseña" error={ec.confirmar?.message}>{(a11y) => <input type="password" autoComplete="new-password" {...a11y} {...clave.register('confirmar')} />}</Campo>
             <button className="btn brand" type="submit" disabled={clave.formState.isSubmitting}>Actualizar contraseña</button>
+            {ec.root?.['server'] && <p className="err" role="alert">No se cambió la contraseña. {ec.root['server'].message}</p>}
             <p role="status" aria-live="polite">{okClave}</p>
           </form>
         </div>

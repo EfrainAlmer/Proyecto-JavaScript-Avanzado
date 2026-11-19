@@ -1,22 +1,19 @@
 import { zodResolver } from '@hookform/resolvers/zod';
-import { useEffect, useState } from 'react';
+import {  useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { Campo } from '../components/Campo';
 import { FiltroBotones } from '../components/FiltroBotones';
 import { useAuth } from '../context/AuthContext';
-import { useCarga } from '../hooks/useCarga';
 import { CENTROS_MENSAJE, mensajeInicial, mensajeSchema, type MensajeData, type MensajeInput } from '../model/mensaje';
-import { curarApi } from '../services/curarApi';
-import type { Mensaje } from '../types/cita';
 import { coincide } from '../utils/texto';
+import { useMensajes, useCrearMensaje } from '../queries/cuentas';
+import { textoError } from '../services/mensajeHttp';
 
 type Filtro = 'Todos' | 'Enviado' | 'Recibido';
 const FILTROS: readonly Filtro[] = ['Todos', 'Enviado', 'Recibido'];
 
 export function Mensajes() {
   const { usuario } = useAuth();
-  const { cargando, error, ejecutar } = useCarga();
-  const [lista, setLista] = useState<readonly Mensaje[]>([]);
   const [filtro, setFiltro] = useState<Filtro>('Todos');
   const [busqueda, setBusqueda] = useState('');
   const { register, handleSubmit, reset, formState: { errors, isSubmitting } } = useForm<MensajeInput, unknown, MensajeData>({
@@ -25,10 +22,11 @@ export function Mensajes() {
     mode: 'onBlur',
   });
   const dni = usuario?.dni;
-
-  useEffect(() => {
-    if (dni) void ejecutar(curarApi.mensajes(dni)).then((r) => r.ok && setLista(r.valor));
-  }, [dni, ejecutar]);
+  const lectura = useMensajes(dni);
+  const crearMensaje = useCrearMensaje();
+  // Los más recientes primero (la API los devuelve en orden de creación).
+  const lista = (lectura.data ?? []).toReversed();
+  const cargando = lectura.isLoading;
 
   const visibles = lista.filter(
     (m) => (filtro === 'Todos' || m.tipo === filtro) && coincide(`${m.centro} ${m.texto}`, busqueda),
@@ -36,10 +34,12 @@ export function Mensajes() {
 
   async function enviar(data: MensajeData): Promise<void> {
     if (!usuario) return;
-    const r = await ejecutar(curarApi.crearMensaje({ dni: usuario.dni, ...data, tipo: 'Enviado', fecha: new Date().toISOString().slice(0, 10) }));
-    if (!r.ok) return;
-    setLista((l) => [r.valor, ...l]);
-    reset(mensajeInicial());
+    try {
+      await crearMensaje.mutateAsync({ dni: usuario.dni, ...data, tipo: 'Enviado', fecha: new Date().toISOString().slice(0, 10) });
+      reset(mensajeInicial()); // la lista se recarga sola (invalidación de ['mensajes', dni])
+    } catch {
+      // crearMensaje.error se muestra junto al formulario; lo escrito no se pierde.
+    }
   }
 
   return (
@@ -52,7 +52,7 @@ export function Mensajes() {
         etiqueta="Filtrar mensajes" opciones={FILTROS} seleccionado={filtro} onChange={setFiltro}
         texto={(f) => (f === 'Todos' ? 'Todos' : `${f}s`)} estilo={{ display: 'flex', gap: 8, margin: '14px 0' }}
       />
-      <p className="err" role="alert">{error}</p>
+      <p className="err" role="alert">{textoError(lectura.error)}</p>
       {visibles.map((m) => (
         <article className="tabla" key={m.id ?? m.fecha + m.texto}>
           <b>{m.centro}</b> <span className="pill">{m.tipo}</span> <small>{m.fecha}</small><br />{m.texto}
@@ -67,7 +67,8 @@ export function Mensajes() {
           </select>
         </label>
         <Campo label="Mensaje" error={errors.texto?.message}>{(a11y) => <input maxLength={300} {...a11y} {...register('texto')} />}</Campo>
-        <button className="btn brand" type="submit" disabled={isSubmitting}>Enviar</button>
+        <button className="btn brand" type="submit" disabled={isSubmitting || crearMensaje.isPending}>Enviar</button>
+        {crearMensaje.error && <p className="err" role="alert">No se envió el mensaje. {textoError(crearMensaje.error)}</p>}
       </form>
     </section>
   );
