@@ -1,4 +1,5 @@
 import { zodResolver } from '@hookform/resolvers/zod';
+import { Campo } from '../components/Campo';
 import { useEffect, useState } from 'react';
 import { useForm, useWatch } from 'react-hook-form';
 import { Link } from 'react-router';
@@ -47,10 +48,6 @@ export function Reclamaciones() {
     if (r.ok) setEnviado(r.valor);
   }
 
-  const campo = (nombre: 'nombre' | 'dni' | 'correo' | 'telefono' | 'domicilio') => ({
-    'aria-invalid': Boolean(errors[nombre]),
-    ...register(nombre),
-  });
 
   return (
     <section className="wrap" style={{ padding: '48px 20px' }}>
@@ -83,11 +80,11 @@ export function Reclamaciones() {
 
           <h2 style={{ fontSize: 20, marginTop: 8 }}>2. Datos de quien reclama</h2>
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit,minmax(240px,1fr))', gap: 12 }}>
-            <div><label>Nombres y apellidos<input autoComplete="name" {...campo('nombre')} /></label><FieldMessage id="nombre-error" message={errors.nombre?.message} /></div>
-            <div><label>DNI<input inputMode="numeric" maxLength={8} {...campo('dni')} /></label><FieldMessage id="dni-error" message={errors.dni?.message} /></div>
-            <div><label>Correo electrónico<input type="email" autoComplete="email" {...campo('correo')} /></label><FieldMessage id="correo-error" message={errors.correo?.message} /></div>
-            <div><label>Celular<input inputMode="numeric" maxLength={9} placeholder="9XXXXXXXX" {...campo('telefono')} /></label><FieldMessage id="telefono-error" message={errors.telefono?.message} /></div>
-            <div style={{ gridColumn: '1/-1' }}><label>Domicilio<input autoComplete="street-address" {...campo('domicilio')} /></label><FieldMessage id="domicilio-error" message={errors.domicilio?.message} /></div>
+            <Campo label="Nombres y apellidos" error={errors.nombre?.message}>{(a11y) => <input autoComplete="name" {...a11y} {...register('nombre')} />}</Campo>
+            <Campo label="DNI" error={errors.dni?.message}>{(a11y) => <input inputMode="numeric" maxLength={8} {...a11y} {...register('dni')} />}</Campo>
+            <Campo label="Correo electrónico" error={errors.correo?.message}>{(a11y) => <input type="email" autoComplete="email" {...a11y} {...register('correo')} />}</Campo>
+            <Campo label="Celular" error={errors.telefono?.message}>{(a11y) => <input inputMode="numeric" maxLength={9} placeholder="9XXXXXXXX" {...a11y} {...register('telefono')} />}</Campo>
+            <div style={{ gridColumn: '1/-1' }}><Campo label="Domicilio" error={errors.domicilio?.message}>{(a11y) => <input autoComplete="street-address" {...a11y} {...register('domicilio')} />}</Campo></div>
           </div>
 
           <h2 style={{ fontSize: 20, marginTop: 8 }}>3. Servicio relacionado</h2>
@@ -104,14 +101,8 @@ export function Reclamaciones() {
           </div>
 
           <h2 style={{ fontSize: 20, marginTop: 8 }}>4. Detalle</h2>
-          <label>Describe lo ocurrido (mínimo 20 caracteres)
-            <textarea rows={5} maxLength={1000} aria-invalid={Boolean(errors.detalle)} {...register('detalle')} />
-          </label>
-          <FieldMessage id="detalle-error" message={errors.detalle?.message} />
-          <label>¿Qué solución esperas? (mínimo 10 caracteres)
-            <textarea rows={3} maxLength={500} aria-invalid={Boolean(errors.pedido)} {...register('pedido')} />
-          </label>
-          <FieldMessage id="pedido-error" message={errors.pedido?.message} />
+          <Campo label="Describe lo ocurrido (mínimo 20 caracteres)" error={errors.detalle?.message}>{(a11y) => <textarea rows={5} maxLength={1000} {...a11y} {...register('detalle')} />}</Campo>
+          <Campo label="¿Qué solución esperas? (mínimo 10 caracteres)" error={errors.pedido?.message}>{(a11y) => <textarea rows={3} maxLength={500} {...a11y} {...register('pedido')} />}</Campo>
 
           <label className="chk">
             <input type="checkbox" aria-invalid={Boolean(errors.acepto)} {...register('acepto')} />

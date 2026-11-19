@@ -57,3 +57,6 @@
   .ventana h3 { font-size: 18px; margin: 16px 0 4px; }
 
 }
+
+/* Los títulos reciben el foco por código al cambiar de paso; no son controles, así que no se dibuja el anillo. */
+.pg-reservar [tabindex="-1"]:focus-visible { outline: none; }

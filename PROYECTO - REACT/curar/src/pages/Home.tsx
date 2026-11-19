@@ -1,5 +1,5 @@
 import { zodResolver } from '@hookform/resolvers/zod';
-import { useEffect, useState } from 'react';
+import { useEffect, useEffectEvent, useMemo, useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { Link, useNavigate } from 'react-router';
 import { TarjetaMedico } from '../components/TarjetaMedico';
@@ -14,9 +14,13 @@ const TOTAL_SLIDES = 2;
 export function Home() {
   const { usuario } = useAuth();
   const { activos, cargando, error, cargarMedicos } = useCitas();
+  // Con más de 100 médicos, el inicio muestra solo los 8 mejor calificados; se recalcula solo si cambia la lista.
+  const destacados = useMemo(() => activos.toSorted((a, b) => b.calificacion - a.calificacion).slice(0, 8), [activos]);
   const { actualizarFlujo } = useFlujo();
   const navigate = useNavigate();
   const [indice, setIndice] = useState(0);
+  // Pausa mientras el puntero o el foco están sobre el carrusel (WCAG 2.2.2: el movimiento automático debe poder detenerse).
+  const [pausado, setPausado] = useState(false);
   const { register, handleSubmit, formState: { errors } } = useForm<BusquedaInput, unknown, BusquedaData>({
     resolver: zodResolver(busquedaSchema),
     defaultValues: busquedaInicial(),
@@ -27,10 +31,16 @@ export function Home() {
     cargarMedicos();
   }, [cargarMedicos]);
 
-  // Carrusel automático, salvo que la persona prefiera menos movimiento.
+  // Lee `pausado` reciente en cada tic sin que el temporizador dependa de él.
+  const avanzar = useEffectEvent(() => {
+    if (!pausado) setIndice((actual) => (actual + 1) % TOTAL_SLIDES);
+  });
+
+  // Carrusel automático (sistema externo: un temporizador), salvo que la persona prefiera menos movimiento.
+  // Se instala UNA vez: pausar o reanudar no lo reinicia gracias a useEffectEvent.
   useEffect(() => {
     if (window.matchMedia?.('(prefers-reduced-motion: reduce)').matches) return;
-    const temporizador = setInterval(() => setIndice((actual) => (actual + 1) % TOTAL_SLIDES), 6500);
+    const temporizador = setInterval(() => avanzar(), 6500);
     return () => clearInterval(temporizador);
   }, []);
 
@@ -48,7 +58,14 @@ export function Home() {
 
   return (
     <>
-      <div className="hero" id="inicio" aria-roledescription="carrusel" aria-label="Presentación de Curar">
+      <div
+        className="hero" id="inicio" aria-roledescription="carrusel" aria-label="Presentación de Curar"
+        onMouseEnter={() => setPausado(true)} onMouseLeave={() => setPausado(false)}
+        onFocus={() => setPausado(true)}
+        onBlur={(e) => {
+          if (!e.currentTarget.contains(e.relatedTarget)) setPausado(false); // el foco salió del carrusel
+        }}
+      >
         <div className={`slide s1${indice === 0 ? ' on' : ''}`} aria-hidden={indice !== 0} inert={indice !== 0}>
           <svg className="art" viewBox="0 0 400 400" aria-hidden="true">
             <g fill="none" stroke="#fff" strokeOpacity=".7" strokeWidth="2">
@@ -149,10 +166,10 @@ export function Home() {
         <div className="wrap">
           <h2 className="sec">Conoce a los médicos</h2>
           <div className="docs">
-            {activos.length === 0 ? (
+            {destacados.length === 0 ? (
               <p role="status">{cargando ? 'Cargando médicos…' : 'Aún no hay médicos disponibles.'}</p>
             ) : (
-              activos.map((m) => (
+              destacados.map((m) => (
                 <TarjetaMedico
                   key={m.id}
                   medico={m}
@@ -162,6 +179,7 @@ export function Home() {
               ))
             )}
           </div>
+          {activos.length > destacados.length && <p style={{ marginTop: 16 }}><Link className="btn ghost" to="/seguro">Ver los {activos.length} médicos</Link></p>}
           <p className="note" role="alert">{error}</p>
         </div>
       </section>

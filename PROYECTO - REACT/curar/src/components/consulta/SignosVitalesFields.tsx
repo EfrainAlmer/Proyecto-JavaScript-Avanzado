@@ -1,6 +1,6 @@
 import { useFormContext } from 'react-hook-form';
 import type { ConsultaData, ConsultaInput } from '../../model/consulta';
-import { FieldMessage } from '../FieldMessage';
+import { Campo } from '../Campo';
 
 /** Sub-formulario: recibe los métodos del formulario por contexto, sin props. */
 export function SignosVitalesFields() {
@@ -9,18 +9,12 @@ export function SignosVitalesFields() {
     <section className="co-sec" aria-labelledby="t-vitales">
       <h2 id="t-vitales"><i className="bi bi-heart-pulse" aria-hidden="true" /> Signos vitales <small>(opcional)</small></h2>
       <div className="co-grid">
-        <div>
-          <label>Presión arterial (mmHg)
-            <input placeholder="120/80" inputMode="numeric" aria-invalid={Boolean(errors.presion)} aria-describedby="presion-error" {...register('presion')} />
-          </label>
-          <FieldMessage id="presion-error" message={errors.presion?.message} />
-        </div>
-        <div>
-          <label>Frecuencia cardíaca (lpm)
-            <input placeholder="72" inputMode="numeric" aria-invalid={Boolean(errors.frecuencia)} aria-describedby="frecuencia-error" {...register('frecuencia')} />
-          </label>
-          <FieldMessage id="frecuencia-error" message={errors.frecuencia?.message} />
-        </div>
+        <Campo label="Presión arterial (mmHg)" error={errors.presion?.message}>
+          {(a11y) => <input placeholder="120/80" inputMode="numeric" {...a11y} {...register('presion')} />}
+        </Campo>
+        <Campo label="Frecuencia cardíaca (lpm)" error={errors.frecuencia?.message}>
+          {(a11y) => <input placeholder="72" inputMode="numeric" {...a11y} {...register('frecuencia')} />}
+        </Campo>
       </div>
     </section>
   );

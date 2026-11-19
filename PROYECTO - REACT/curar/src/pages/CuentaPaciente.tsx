@@ -1,8 +1,8 @@
 import { zodResolver } from '@hookform/resolvers/zod';
+import { Campo } from '../components/Campo';
 import { useEffect, useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { Link } from 'react-router';
-import { FieldMessage } from '../components/FieldMessage';
 import { useAuth } from '../context/AuthContext';
 import { useCitas } from '../context/CitasContext';
 import { useCarga } from '../hooks/useCarga';
@@ -128,12 +128,9 @@ export function CuentaPaciente() {
         <div className="docs">
           <form className="tabla" onSubmit={perfil.handleSubmit(guardarPerfil)} noValidate style={{ display: 'grid', gap: 10 }}>
             <h2 style={{ fontSize: 20 }}>Editar datos personales</h2>
-            <label>Nombre completo<input aria-invalid={Boolean(ep.nombre)} {...perfil.register('nombre')} /></label>
-            <FieldMessage id="nombre-error" message={ep.nombre?.message} />
-            <label>Correo electrónico<input type="email" aria-invalid={Boolean(ep.correo)} {...perfil.register('correo')} /></label>
-            <FieldMessage id="correo-error" message={ep.correo?.message} />
-            <label>Celular<input inputMode="numeric" maxLength={9} aria-invalid={Boolean(ep.telefono)} {...perfil.register('telefono')} /></label>
-            <FieldMessage id="telefono-error" message={ep.telefono?.message} />
+            <Campo label="Nombre completo" error={ep.nombre?.message}>{(a11y) => <input {...a11y} {...perfil.register('nombre')} />}</Campo>
+            <Campo label="Correo electrónico" error={ep.correo?.message}>{(a11y) => <input type="email" {...a11y} {...perfil.register('correo')} />}</Campo>
+            <Campo label="Celular" error={ep.telefono?.message}>{(a11y) => <input inputMode="numeric" maxLength={9} {...a11y} {...perfil.register('telefono')} />}</Campo>
             <label>Seguro
               <select {...perfil.register('seguro')}>{SEGUROS_CUENTA.map((s) => <option key={s}>{s}</option>)}</select>
             </label>
@@ -142,12 +139,9 @@ export function CuentaPaciente() {
           </form>
           <form className="tabla" onSubmit={clave.handleSubmit(guardarClave)} noValidate style={{ display: 'grid', gap: 10 }}>
             <h2 style={{ fontSize: 20 }}>Cambiar contraseña</h2>
-            <label>Contraseña actual<input type="password" autoComplete="current-password" aria-invalid={Boolean(ec.actual)} {...clave.register('actual')} /></label>
-            <FieldMessage id="actual-error" message={ec.actual?.message} />
-            <label>Nueva contraseña<input type="password" autoComplete="new-password" aria-invalid={Boolean(ec.nueva)} {...clave.register('nueva')} /></label>
-            <FieldMessage id="nueva-error" message={ec.nueva?.message} />
-            <label>Repite la nueva contraseña<input type="password" autoComplete="new-password" aria-invalid={Boolean(ec.confirmar)} {...clave.register('confirmar')} /></label>
-            <FieldMessage id="confirmar-error" message={ec.confirmar?.message} />
+            <Campo label="Contraseña actual" error={ec.actual?.message}>{(a11y) => <input type="password" autoComplete="current-password" {...a11y} {...clave.register('actual')} />}</Campo>
+            <Campo label="Nueva contraseña" error={ec.nueva?.message}>{(a11y) => <input type="password" autoComplete="new-password" {...a11y} {...clave.register('nueva')} />}</Campo>
+            <Campo label="Repite la nueva contraseña" error={ec.confirmar?.message}>{(a11y) => <input type="password" autoComplete="new-password" {...a11y} {...clave.register('confirmar')} />}</Campo>
             <button className="btn brand" type="submit" disabled={clave.formState.isSubmitting}>Actualizar contraseña</button>
             <p role="status" aria-live="polite">{okClave}</p>
           </form>

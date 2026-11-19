@@ -1,12 +1,13 @@
 import { zodResolver } from '@hookform/resolvers/zod';
+import { Campo } from '../components/Campo';
 import { useEffect, useState } from 'react';
 import { useForm } from 'react-hook-form';
-import { FieldMessage } from '../components/FieldMessage';
 import { FiltroBotones } from '../components/FiltroBotones';
 import { useAuth } from '../context/AuthContext';
 import { useCarga } from '../hooks/useCarga';
 import { CENTROS_MENSAJE, mensajeInicial, mensajeSchema, type MensajeData, type MensajeInput } from '../model/mensaje';
 import { curarApi } from '../services/curarApi';
+import { coincide } from '../utils/texto';
 import type { Mensaje } from '../types/cita';
 
 type Filtro = 'Todos' | 'Enviado' | 'Recibido';
@@ -29,9 +30,8 @@ export function Mensajes() {
     if (dni) void ejecutar(curarApi.mensajes(dni)).then((r) => r.ok && setLista(r.valor));
   }, [dni, ejecutar]);
 
-  const q = busqueda.trim().toLocaleLowerCase('es-PE');
   const visibles = lista.filter(
-    (m) => (filtro === 'Todos' || m.tipo === filtro) && (!q || `${m.centro} ${m.texto}`.toLocaleLowerCase('es-PE').includes(q)),
+    (m) => (filtro === 'Todos' || m.tipo === filtro) && coincide(`${m.centro} ${m.texto}`, busqueda),
   );
 
   async function enviar(data: MensajeData): Promise<void> {
@@ -66,10 +66,7 @@ export function Mensajes() {
             {CENTROS_MENSAJE.map((c) => <option key={c}>{c}</option>)}
           </select>
         </label>
-        <label>Mensaje
-          <input maxLength={300} aria-invalid={Boolean(errors.texto)} {...register('texto')} />
-        </label>
-        <FieldMessage id="texto-error" message={errors.texto?.message} />
+        <Campo label="Mensaje" error={errors.texto?.message}>{(a11y) => <input maxLength={300} {...a11y} {...register('texto')} />}</Campo>
         <button className="btn brand" type="submit" disabled={isSubmitting}>Enviar</button>
       </form>
     </section>

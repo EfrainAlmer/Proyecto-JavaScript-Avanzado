@@ -1,4 +1,5 @@
 import { zodResolver } from '@hookform/resolvers/zod';
+import { Campo } from '../components/Campo';
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { useForm, useWatch } from 'react-hook-form';
 import { Link, useSearchParams } from 'react-router';
@@ -13,6 +14,7 @@ import { curarApi } from '../services/curarApi';
 import type { Seguro } from '../types/cita';
 import { decimal1, diaMesLargo, isoLocal } from '../utils/formato';
 import { valoracion } from '../utils/valoracion';
+import { BotonFavorito } from '../components/BotonFavorito';
 import './Reservar.css';
 
 type Paso = 1 | 2 | 3 | 4 | 5;
@@ -29,7 +31,7 @@ const esSeguro = (s: string | null | undefined): s is Seguro => s === 'EsSalud' 
 export function Reservar() {
   const { usuario } = useAuth();
   const { flujo } = useFlujo();
-  const { medicos, sedes, activos, familiares, favoritos, cargando, guardando, error, setError: setErrorStore, cargarMedicos, cargarSedes, cargarFavoritos, cargarFamiliares, alternarFavorito, reservar } = useCitas();
+  const { medicos, sedes, activos, familiares, cargando, guardando, error, setError: setErrorStore, cargarMedicos, cargarSedes, cargarFavoritos, cargarFamiliares, reservar } = useCitas();
   const [params] = useSearchParams();
   const medicoParam = params.get('medicoId');
   const paraParam = params.get('para');
@@ -54,6 +56,11 @@ export function Reservar() {
   const horas = useCarga();
   const { ejecutar: ejecutarHoras } = horas;
   const precargado = useRef(false);
+  // Referencias al DOM para mover el foco sin provocar re-renderizados (equivalen a @ViewChild).
+  const tituloPaso = useRef<HTMLHeadingElement>(null);
+  const botonCerrar = useRef<HTMLButtonElement>(null);
+  const disparadorPerfil = useRef<HTMLElement | null>(null);
+  const pasoAnterior = useRef<Paso>(1);
   const paraAplicado = useRef(false);
 
   // Única fuente de verdad de los datos de la reserva (antes eran 8 useState).
@@ -134,15 +141,26 @@ export function Reservar() {
     };
   }, [medicoId, dia, ejecutarHoras]);
 
-  // Escape cierra el perfil.
+  // Modal accesible: al abrir, el foco va al botón Cerrar; Escape cierra; al cerrar, el foco vuelve a quien lo abrió.
   useEffect(() => {
     if (!perfilId) return;
+    botonCerrar.current?.focus();
     const alTecla = (e: KeyboardEvent): void => {
       if (e.key === 'Escape') setPerfilId('');
     };
     document.addEventListener('keydown', alTecla);
-    return () => document.removeEventListener('keydown', alTecla);
+    return () => {
+      document.removeEventListener('keydown', alTecla);
+      disparadorPerfil.current?.focus();
+    };
   }, [perfilId]);
+
+  // Al cambiar de paso, el foco va al título del paso nuevo: un lector de pantalla anuncia dónde está la persona.
+  useEffect(() => {
+    if (pasoAnterior.current === paso) return; // en el montaje (y en el doble montaje de StrictMode) no se mueve el foco
+    pasoAnterior.current = paso;
+    tituloPaso.current?.focus();
+  }, [paso]);
 
   // Estado derivado de los valores observados.
   const perfil = medicos.find((m) => m.id === perfilId);
@@ -152,8 +170,12 @@ export function Reservar() {
   const sede = sedes.find((s) => s.id === sedeId);
   const familiar = familiares.find((f) => f.id === para);
   const libres = (medico?.horario ?? []).toSorted().filter((h) => !ocupadas.includes(h) && !(dia === hoy && h <= ahora));
-  const esFav = (id: string): boolean => favoritos.some((f) => f.medicoId === id);
   const nombreSede = (id?: string): string => sedes.find((s) => s.id === id)?.nombre ?? 'Sede por asignar';
+
+  function abrirPerfil(id: string, disparador: HTMLElement): void {
+    disparadorPerfil.current = disparador;
+    setPerfilId(id);
+  }
 
   /** Cambiar algo de un paso invalida lo elegido en los pasos siguientes. */
   function limpiarDesde(campo: 'sedeId' | 'medicoId' | 'hora'): void {
@@ -229,7 +251,7 @@ export function Reservar() {
 
         {paso === 1 && (
           <>
-            <h2 className="step">Paso 1: Seleccione su seguro y especialidad</h2>
+            <h2 className="step" ref={tituloPaso} tabIndex={-1}>Paso 1: Seleccione su seguro y especialidad</h2>
             {familiares.length > 0 && (
               <label className="campo">¿Para quién es la cita?
                 <select
@@ -264,7 +286,7 @@ export function Reservar() {
 
         {paso === 2 && (
           <>
-            <h2 className="step">Paso 2: Seleccione la sede o centro de salud</h2>
+            <h2 className="step" ref={tituloPaso} tabIndex={-1}>Paso 2: Seleccione la sede o centro de salud</h2>
             <div className="lista" role="group" aria-label="Sede o centro de salud">
               {sedesDisponibles.length > 0 ? (
                 sedesDisponibles.map((s) => (
@@ -287,7 +309,7 @@ export function Reservar() {
 
         {paso === 3 && (
           <>
-            <h2 className="step">Paso 3: Seleccione al profesional de la salud</h2>
+            <h2 className="step" ref={tituloPaso} tabIndex={-1}>Paso 3: Seleccione al profesional de la salud</h2>
             <div className="lista">
               {medicosDisponibles.length > 0 ? (
                 medicosDisponibles.map((m) => (
@@ -296,10 +318,10 @@ export function Reservar() {
                       <span><b>Dr(a). {m.nombre}</b><small>CMP: {m.cmp ?? 's/n'} | {m.especialidad} (★ {decimal1(m.calificacion)})</small></span>
                       {medicoId === m.id && <span className="sel">Seleccionado</span>}
                     </button>
-                    <button type="button" className="accion" onClick={() => setPerfilId(m.id)}><i className="bi bi-person-circle" aria-hidden="true" /> Ver perfil</button>
-                    <button type="button" className={`accion${esFav(m.id) ? ' fav' : ''}`} aria-pressed={esFav(m.id)} disabled={guardando} onClick={() => dni && alternarFavorito(dni, m.id)}>
-                      <i className={esFav(m.id) ? 'bi bi-star-fill' : 'bi bi-star'} aria-hidden="true" /> Favorito
-                    </button>
+                    <button type="button" className="accion" onClick={(e) => abrirPerfil(m.id, e.currentTarget)}><i className="bi bi-person-circle" aria-hidden="true" /> Ver perfil</button>
+                    <BotonFavorito medicoId={m.id} className={(fav) => `accion${fav ? ' fav' : ''}`}>
+                      {(fav) => <><i className={fav ? 'bi bi-star-fill' : 'bi bi-star'} aria-hidden="true" /> Favorito</>}
+                    </BotonFavorito>
                   </div>
                 ))
               ) : (
@@ -316,7 +338,7 @@ export function Reservar() {
 
         {paso === 4 && (
           <>
-            <h2 className="step">Paso 4: Escoge fecha y hora</h2>
+            <h2 className="step" ref={tituloPaso} tabIndex={-1}>Paso 4: Escoge fecha y hora</h2>
             <div className="alert alert-warning py-2 px-3 small mb-3" role="note">
               <i className="bi bi-info-circle-fill me-1" /><strong>Regla Curar:</strong> Solo se permite agendar citas con un máximo de <strong>3 días de anticipación</strong>.
             </div>
@@ -344,10 +366,7 @@ export function Reservar() {
             <FieldMessage id="hora-error" message={errors.hora?.message} />
             <p className="err" role="alert">{horas.error}</p>
 
-            <label className="campo">Motivo de consulta
-              <input maxLength={120} placeholder="Ej. Dolor de cabeza" aria-invalid={Boolean(errors.motivo)} {...register('motivo')} />
-            </label>
-            <FieldMessage id="motivo-error" message={errors.motivo?.message} />
+            <Campo className="campo" label="Motivo de consulta" error={errors.motivo?.message}>{(a11y) => <input maxLength={120} placeholder="Ej. Dolor de cabeza" {...a11y} {...register('motivo')} />}</Campo>
             <p className="err" role="alert">{error}</p>
 
             <div className="nav">
@@ -360,7 +379,7 @@ export function Reservar() {
         {paso === 5 && (
           <div className="ok" role="status">
             <i className="bi bi-check-circle-fill" aria-hidden="true" />
-            <h2>¡Cita confirmada exitosamente!</h2>
+            <h2 ref={tituloPaso} tabIndex={-1}>¡Cita confirmada exitosamente!</h2>
             <p>Se ha agregado a tus citas pendientes.</p>
             {medico && (
               <div className="tabla ficha">
@@ -382,7 +401,7 @@ export function Reservar() {
       {perfil && (
         <div className="overlay" onClick={() => setPerfilId('')}>
           <div className="ventana" role="dialog" aria-modal="true" aria-labelledby="perfil-tit" onClick={(e) => e.stopPropagation()}>
-            <button type="button" className="cerrar" aria-label="Cerrar perfil" onClick={() => setPerfilId('')}>✕</button>
+            <button ref={botonCerrar} type="button" className="cerrar" aria-label="Cerrar perfil" onClick={() => setPerfilId('')}>✕</button>
             <div className="cab">
               {perfil.foto ? <img className="foto" src={perfil.foto} alt={`Foto de ${perfil.nombre}`} width={96} height={96} /> : <div className="avatar" style={{ width: 96, height: 96 }} />}
               <div>

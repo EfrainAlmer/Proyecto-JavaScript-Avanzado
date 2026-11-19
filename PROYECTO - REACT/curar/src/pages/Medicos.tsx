@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import { Link, useNavigate } from 'react-router';
 import { useCitas } from '../context/CitasContext';
 import { useFlujo } from '../context/FlujoContext';
+import { coincide } from '../utils/texto';
 import { decimal1 } from '../utils/formato';
 
 const ESPECIALIDADES = ['Medicina General', 'Pediatría', 'Cardiología', 'Ginecología', 'Geriatría'] as const;
@@ -22,9 +23,8 @@ export function Medicos() {
 
   // Estado derivado: nada de useState/useEffect para la lista filtrada.
   const nombreSede = sedes.find((s) => s.id === flujo.sede)?.nombre ?? '';
-  const q = nombre.trim().toLocaleLowerCase('es-PE');
   const visibles = activos.filter(
-    (m) => m.sedeId === flujo.sede && (!esp || m.especialidad === esp) && (!q || m.nombre.toLocaleLowerCase('es-PE').includes(q)),
+    (m) => m.sedeId === flujo.sede && (!esp || m.especialidad === esp) && coincide(m.nombre, nombre),
   );
 
   return (

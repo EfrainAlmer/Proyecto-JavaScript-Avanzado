@@ -3,12 +3,13 @@ import { Link, useParams } from 'react-router';
 import { useAuth } from '../context/AuthContext';
 import { useCitas } from '../context/CitasContext';
 import { decimal1 } from '../utils/formato';
+import { BotonFavorito } from '../components/BotonFavorito';
 import { valoracion } from '../utils/valoracion';
 
 export function PerfilMedico() {
   const { id = '' } = useParams();
   const { usuario } = useAuth();
-  const { medicos, sedes, favoritos, cargando, guardando, error, cargarMedicos, cargarSedes, cargarFavoritos, alternarFavorito } = useCitas();
+  const { medicos, sedes, cargando, error, cargarMedicos, cargarSedes, cargarFavoritos } = useCitas();
   const dni = usuario?.dni;
 
   useEffect(() => {
@@ -19,7 +20,6 @@ export function PerfilMedico() {
 
   const m = medicos.find((x) => x.id === id);
   const sede = sedes.find((s) => s.id === m?.sedeId)?.nombre ?? 'Sede por asignar';
-  const esFav = favoritos.some((f) => f.medicoId === id);
 
   return (
     <section className="wrap" style={{ padding: '48px 20px' }}>
@@ -55,9 +55,9 @@ export function PerfilMedico() {
           <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
             <Link className="btn brand" to={`/reservar?medicoId=${encodeURIComponent(m.id)}`}>Reservar con {m.nombre}</Link>
             {usuario && (
-              <button className="btn ghost" type="button" aria-pressed={esFav} disabled={guardando} onClick={() => dni && alternarFavorito(dni, id)}>
-                {esFav ? '★ Quitar de favoritos' : '☆ Agregar a favoritos'}
-              </button>
+              <BotonFavorito medicoId={id} className={() => 'btn ghost'}>
+                {(fav) => (fav ? '★ Quitar de favoritos' : '☆ Agregar a favoritos')}
+              </BotonFavorito>
             )}
           </div>
         </>

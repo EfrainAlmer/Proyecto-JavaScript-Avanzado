@@ -9,7 +9,9 @@
     "preview": "vite preview",
     "test": "vitest run",
     "verify": "npm run build && npm run test",
-    "api": "json-server --port 3000 api/db.json"
+    "api": "json-server --port 3000 api/db.json",
+    "datos": "node scripts/generar-datos.mjs",
+    "reset": "node -e \"require('fs').copyFileSync('api/seed.json','api/db.json')\""
   },
   "dependencies": {
     "@hookform/resolvers": "^7.0.7",

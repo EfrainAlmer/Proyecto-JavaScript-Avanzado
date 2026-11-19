@@ -1,9 +1,10 @@
-import { useEffect, useState } from 'react';
+import { useDeferredValue, useEffect, useEffectEvent, useMemo, useState } from 'react';
 import { Link } from 'react-router';
 import { useAuth } from '../context/AuthContext';
 import { useCitas } from '../context/CitasContext';
 import type { EstadoCita } from '../types/cita';
 import { fechaCompleta, fechaCorta, hora12, isoLocal } from '../utils/formato';
+import { coincide } from '../utils/texto';
 import './PanelMedico.css';
 
 type Filtro = 'Todas' | 'Pendiente' | 'Confirmada' | 'Atendida';
@@ -35,18 +36,37 @@ export function PanelMedico() {
     if (medicoId) cargarCitasMedico(medicoId);
   }, [medicoId, cargarMedicos, cargarSedes, cargarCitasMedico]);
 
+  // Lee el médico actual sin que el listener dependa de él.
+  const refrescarAgenda = useEffectEvent(() => {
+    if (medicoId) cargarCitasMedico(medicoId);
+  });
+
+  // Al volver a esta pestaña, la agenda se recarga: otra persona pudo reservar o cancelar mientras tanto.
+  useEffect(() => {
+    const alCambiarVisibilidad = (): void => {
+      if (document.visibilityState === 'visible') refrescarAgenda();
+    };
+    document.addEventListener('visibilitychange', alCambiarVisibilidad);
+    return () => document.removeEventListener('visibilitychange', alCambiarVisibilidad);
+  }, []);
+
   // Estado derivado: todo se calcula a partir de citasMedico + filtros.
   const miMedico = medicos.find((m) => m.id === medicoId);
   const miSede = sedes.find((s) => s.id === miMedico?.sedeId)?.nombre ?? 'Sede por asignar';
   const paraHoy = citasMedico.filter((c) => c.fecha === hoyIso && c.estado !== 'Cancelada').length;
   const cuenta = (e: EstadoCita): number => citasMedico.filter((c) => c.estado === e).length;
-  const texto = q.trim().toLocaleLowerCase('es-PE');
-  const visibles = citasMedico
-    .filter((c) => (filtro === 'Todas' || c.estado === filtro) && (!texto || `${c.paciente ?? ''} ${c.dniPaciente}`.toLocaleLowerCase('es-PE').includes(texto)))
-    .toSorted((a, b) => (a.fecha + a.hora).localeCompare(b.fecha + b.hora));
-  const porAtender = citasMedico
-    .filter((c) => c.estado === 'Pendiente' || c.estado === 'Confirmada')
-    .toSorted((a, b) => (a.fecha + a.hora).localeCompare(b.fecha + b.hora));
+  // Con cientos de citas por médico, la búsqueda usa el texto diferido y el resultado se memoriza.
+  const qDiferida = useDeferredValue(q);
+  const visibles = useMemo(() => {
+    return citasMedico
+      .filter((c) => (filtro === 'Todas' || c.estado === filtro) && coincide(`${c.paciente ?? ''} ${c.dniPaciente}`, qDiferida))
+      .toSorted((a, b) => (a.fecha + a.hora).localeCompare(b.fecha + b.hora));
+  }, [citasMedico, filtro, qDiferida]);
+  // No depende de la búsqueda: escribir en el buscador no lo recalcula.
+  const porAtender = useMemo(
+    () => citasMedico.filter((c) => c.estado === 'Pendiente' || c.estado === 'Confirmada').toSorted((a, b) => (a.fecha + a.hora).localeCompare(b.fecha + b.hora)),
+    [citasMedico],
+  );
   const siguiente = porAtender[0];
   const restantes = Math.max(0, porAtender.length - 1);
   const diaDe = (fecha: string): string => (fecha === hoyIso ? 'Hoy' : fechaCorta(fecha));

@@ -1,32 +1,70 @@
-import { useEffect, useState } from 'react';
+import { Suspense, use, useEffect, useRef, useState } from 'react';
+import { LimiteError } from '../components/LimiteError';
 import { useAuth } from '../context/AuthContext';
-import { useCarga } from '../hooks/useCarga';
 import { curarApi } from '../services/curarApi';
+import { mensajeHttp } from '../services/mensajeHttp';
 import type { Receta } from '../types/cita';
 
-export function Recetas() {
-  const { usuario } = useAuth();
-  const { cargando, error, ejecutar } = useCarga();
-  const [recetas, setRecetas] = useState<readonly Receta[]>([]);
-  const dni = usuario?.dni;
+interface Peticion {
+  readonly id: number;
+  readonly promesa: Promise<Receta[]>;
+}
 
-  useEffect(() => {
-    if (!dni) return;
-    // Las más recientes primero, sin mutar el arreglo recibido.
-    void ejecutar(curarApi.recetas(dni)).then((r) => r.ok && setRecetas([...r.valor].reverse()));
-  }, [dni, ejecutar]);
-
+/** Lee la promesa con `use`: mientras no se resuelve, React muestra el fallback del <Suspense> más cercano. */
+function ListaRecetas({ promesa }: { readonly promesa: Promise<Receta[]> }) {
+  const recetas = use(promesa).toReversed(); // las más recientes primero, sin mutar el arreglo recibido
+  if (recetas.length === 0) return <p className="tabla" role="status">Aún no tienes recetas registradas.</p>;
   return (
-    <section className="wrap" style={{ padding: '48px 20px' }}>
-      <h1>Mis recetas médicas</h1>
-      <p className="err" role="alert">{error}</p>
-      {cargando && <p role="status">Cargando…</p>}
+    <div aria-label="Recetas" role="list">
       {recetas.map((r) => (
-        <article className="tabla" key={r.id ?? r.fecha + r.medicamento}>
+        <article className="tabla" role="listitem" key={r.id ?? r.fecha + r.medicamento}>
           <b>{r.fecha}</b> · Dr(a). {r.medicoNombre}<br />{r.medicamento} — {r.cantidad} envase(s)<br /><small>{r.indicaciones}</small>
         </article>
       ))}
-      {recetas.length === 0 && !cargando && <p className="tabla" role="status">Aún no tienes recetas registradas.</p>}
+    </div>
+  );
+}
+
+export function Recetas() {
+  const { usuario } = useAuth();
+  const [peticion, setPeticion] = useState<Peticion | null>(null);
+  const secuencia = useRef(0);
+  const dni = usuario?.dni;
+
+  /** La promesa se crea aquí (en un efecto o en un clic), NUNCA en el cuerpo del render. */
+  function pedir(documento: string): void {
+    const promesa = curarApi.recetas(documento);
+    void promesa.catch(() => undefined); // también observa el rechazo de peticiones que ya no se muestran
+    secuencia.current += 1;
+    setPeticion({ id: secuencia.current, promesa });
+  }
+
+  useEffect(() => {
+    if (dni) pedir(dni);
+  }, [dni]);
+
+  return (
+    <section className="wrap" style={{ padding: '48px 20px' }}>
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 12, flexWrap: 'wrap' }}>
+        <h1>Mis recetas médicas</h1>
+        <button className="btn ghost" type="button" disabled={!dni} onClick={() => dni && pedir(dni)}>Actualizar</button>
+      </div>
+      {peticion && (
+        // key: cada petición nueva monta un límite nuevo, así un error anterior no se queda pegado.
+        <LimiteError
+          key={peticion.id}
+          fallback={(error) => (
+            <div className="tabla" role="alert">
+              <p>No se pudieron cargar tus recetas. {mensajeHttp(error)}</p>
+              <button className="btn" type="button" onClick={() => dni && pedir(dni)}>Reintentar</button>
+            </div>
+          )}
+        >
+          <Suspense fallback={<p role="status">Cargando recetas…</p>}>
+            <ListaRecetas promesa={peticion.promesa} />
+          </Suspense>
+        </LimiteError>
+      )}
     </section>
   );
 }

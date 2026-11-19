@@ -1,10 +1,12 @@
-import { useEffect, useState } from 'react';
+import { useCallback, useDeferredValue, useEffect, useMemo, useState, useTransition } from 'react';
 import { MedicoForm } from '../components/admin/MedicoForm';
+import { SupervisionCitas } from '../components/admin/SupervisionCitas';
 import { useCitas } from '../context/CitasContext';
 import { useCarga } from '../hooks/useCarga';
 import { medicoInicial, type MedicoData, type MedicoInput } from '../model/medico';
 import { curarApi } from '../services/curarApi';
 import { HORARIO_BASE, type Cita, type Medico, type Reclamo, type UsuarioApi } from '../types/cita';
+import { coincide } from '../utils/texto';
 import { isoLocal } from '../utils/formato';
 
 type Tab = 'medicos' | 'citas' | 'reclamos';
@@ -17,7 +19,7 @@ const TABS: readonly { readonly id: Tab; readonly n: string }[] = [
 const colorReclamo = (e: Reclamo['estado']): string => (e === 'Recibido' ? 'Pendiente' : e === 'En revisión' ? 'Confirmada' : 'Atendida');
 
 export function Admin() {
-  const { medicos, sedes, setMedicos, cargarMedicos, cargarSedes } = useCitas();
+  const { medicos, sedes, medicoGuardado, medicoEliminado, cargarMedicos, cargarSedes } = useCitas();
   const { cargando, error, ejecutar } = useCarga();
   const [tab, setTab] = useState<Tab>('medicos');
   const [usuarios, setUsuarios] = useState<readonly UsuarioApi[]>([]);
@@ -27,6 +29,9 @@ export function Admin() {
   const [qMed, setQMed] = useState('');
   const [editando, setEditando] = useState<Medico | 'nuevo' | null>(null);
   const [borrando, setBorrando] = useState('');
+  const [anulando, setAnulando] = useState('');
+  // Cambiar de pestaña puede pintar miles de filas: como transición, la pestaña actual sigue respondiendo.
+  const [cambiandoTab, startTransition] = useTransition();
   const hoyIso = isoLocal(new Date());
 
   useEffect(() => {
@@ -46,12 +51,13 @@ export function Admin() {
   const totalPacientes = usuarios.filter((u) => u.rol === 1).length;
   const citasHoy = citas.filter((c) => c.fecha === hoyIso && c.estado !== 'Cancelada').length;
   const reclamosPendientes = reclamos.filter((r) => r.estado !== 'Respondido').length;
-  const q = qMed.trim().toLocaleLowerCase('es-PE');
-  const medicosFiltrados = medicos.filter((m) => !q || m.nombre.toLocaleLowerCase('es-PE').includes(q));
+  // Directorio (125 médicos): la búsqueda usa el texto diferido y se recalcula solo si cambia.
+  const qMedDiferido = useDeferredValue(qMed);
+  const medicosFiltrados = useMemo(() => {
+    return medicos.filter((m) => coincide(`${m.nombre} ${m.cmp ?? ''} ${m.especialidad}`, qMedDiferido));
+  }, [medicos, qMedDiferido]);
 
   const sedeDe = (id?: string): string => sedes.find((s) => s.id === id)?.nombre ?? 'Sin asignar';
-  const nombreMedico = (id: string): string => medicos.find((m) => m.id === id)?.nombre ?? id;
-  const sedeDeMedico = (id: string): string => sedeDe(medicos.find((m) => m.id === id)?.sedeId);
 
   function nuevo(): void {
     setEditando('nuevo');
@@ -73,11 +79,11 @@ export function Admin() {
     if (editando === 'nuevo') {
       const r = await ejecutar(curarApi.altaMedico({ id: `m${data.cmp}`, ...data, calificacion: 0, centro, horario: [...HORARIO_BASE] }));
       if (!r.ok) return;
-      setMedicos((l) => [...l, r.valor]);
+      medicoGuardado(r.valor);
     } else {
       const r = await ejecutar(curarApi.guardarMedico({ ...editando, ...data, centro }));
       if (!r.ok) return;
-      setMedicos((l) => l.map((x) => (x.id === r.valor.id ? r.valor : x)));
+      medicoGuardado(r.valor);
     }
     setEditando(null);
     setAviso('Médico guardado.');
@@ -86,15 +92,19 @@ export function Admin() {
   async function eliminar(id: string): Promise<void> {
     const r = await ejecutar(curarApi.eliminarMedico(id));
     if (!r.ok) return;
-    setMedicos((l) => l.filter((m) => m.id !== id));
+    medicoEliminado(id);
     setBorrando('');
     setAviso('Médico dado de baja.');
   }
 
-  async function cancelarCita(id: string): Promise<void> {
-    const r = await ejecutar(curarApi.cancelar(id));
-    if (r.ok) setCitas((l) => l.map((c) => (c.id === id ? r.valor : c)));
-  }
+  // Estable entre renders (useCallback): así las filas memorizadas de SupervisionCitas no se re-renderizan todas.
+  const anularCita = useCallback((id: string): void => {
+    setAnulando(id);
+    void ejecutar(curarApi.cancelar(id)).then((r) => {
+      if (r.ok) setCitas((l) => l.map((c) => (c.id === id ? r.valor : c)));
+      setAnulando('');
+    });
+  }, [ejecutar]);
 
   async function avanzarReclamo(rec: Reclamo): Promise<void> {
     if (!rec.id || rec.estado === 'Respondido') return;
@@ -119,9 +129,10 @@ export function Admin() {
       </div>
       <div role="tablist" aria-label="Secciones" style={{ display: 'flex', gap: 8, flexWrap: 'wrap', margin: '16px 0' }}>
         {TABS.map((t) => (
-          <button key={t.id} type="button" role="tab" className={`btn${tab === t.id ? '' : ' ghost'}`} aria-selected={tab === t.id} onClick={() => setTab(t.id)}>{t.n}</button>
+          <button key={t.id} type="button" role="tab" className={`btn${tab === t.id ? '' : ' ghost'}`} aria-selected={tab === t.id} onClick={() => startTransition(() => setTab(t.id))}>{t.n}</button>
         ))}
       </div>
+      {cambiandoTab && <p role="status">Cargando sección…</p>}
 
       {tab === 'medicos' && (
         <>
@@ -173,34 +184,7 @@ export function Admin() {
         </>
       )}
 
-      {tab === 'citas' && (
-        <div className="tabla" style={{ overflowX: 'auto' }}>
-          <h2 style={{ fontSize: 20, marginBottom: 12 }}>Monitoreo global de citas</h2>
-          <table className="table align-middle" style={{ margin: 0 }}>
-            <caption className="visually-hidden">Citas</caption>
-            <thead><tr><th scope="col">Fecha / Hora</th><th scope="col">Paciente</th><th scope="col">Médico / Sede</th><th scope="col">Estado</th><th scope="col">Acción admin</th></tr></thead>
-            <tbody>
-              {citas.length > 0 ? (
-                citas.map((c) => (
-                  <tr key={c.id}>
-                    <td>{c.fecha} · {c.hora}</td>
-                    <td>{c.paciente ?? 'Paciente'}<br /><small>DNI {c.dniPaciente}</small></td>
-                    <td>{nombreMedico(c.medicoId)}<br /><small>{sedeDeMedico(c.medicoId)}</small></td>
-                    <td><span className="pill" data-estado={c.estado}>{c.estado}</span></td>
-                    <td>
-                      {c.estado === 'Pendiente' || c.estado === 'Confirmada'
-                        ? <button className="btn sm ghost" type="button" disabled={cargando} onClick={() => void cancelarCita(c.id)}>Anular cita</button>
-                        : '—'}
-                    </td>
-                  </tr>
-                ))
-              ) : (
-                <tr><td colSpan={5}>No hay citas.</td></tr>
-              )}
-            </tbody>
-          </table>
-        </div>
-      )}
+      {tab === 'citas' && <SupervisionCitas citas={citas} medicos={medicos} sedes={sedes} anulando={anulando} onAnular={anularCita} />}
 
       {tab === 'reclamos' && (
         <div className="tabla" style={{ overflowX: 'auto' }}>

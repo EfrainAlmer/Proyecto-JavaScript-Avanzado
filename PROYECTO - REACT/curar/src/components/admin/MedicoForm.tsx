@@ -1,9 +1,9 @@
 import { zodResolver } from '@hookform/resolvers/zod';
+import { Campo } from '../Campo';
 import { Controller, useForm } from 'react-hook-form';
 import Select from 'react-select';
 import { ESPECIALIDADES, ESTADOS_MEDICO, medicoSchema, type MedicoData, type MedicoInput } from '../../model/medico';
 import type { Sede } from '../../types/cita';
-import { FieldMessage } from '../FieldMessage';
 
 interface Opcion {
   readonly value: string;
@@ -42,13 +42,11 @@ export function MedicoForm({ titulo, valoresIniciales, sedes, cmpRepetido, onGua
   return (
     <form className="tabla" onSubmit={handleSubmit(enviar)} noValidate style={{ display: 'grid', gap: 10, maxWidth: 560 }}>
       <h2 style={{ fontSize: 20 }}>{titulo}</h2>
-      <label>Nombre completo<input aria-invalid={Boolean(errors.nombre)} {...register('nombre')} /></label>
-      <FieldMessage id="medico-nombre-error" message={errors.nombre?.message} />
+      <Campo label="Nombre completo" error={errors.nombre?.message}>{(a11y) => <input {...a11y} {...register('nombre')} />}</Campo>
       <label>Especialidad
         <select {...register('especialidad')}>{ESPECIALIDADES.map((e) => <option key={e}>{e}</option>)}</select>
       </label>
-      <label>Código CMP (solo se valida el formato)<input inputMode="numeric" maxLength={6} aria-invalid={Boolean(errors.cmp)} {...register('cmp')} /></label>
-      <FieldMessage id="medico-cmp-error" message={errors.cmp?.message} />
+      <Campo label="Código CMP (solo se valida el formato)" error={errors.cmp?.message}>{(a11y) => <input inputMode="numeric" maxLength={6} {...a11y} {...register('cmp')} />}</Campo>
 
       {/* Componente externo: no acepta {...register()}, así que se conecta con Controller. */}
       <label htmlFor="medico-sede">Sede</label>

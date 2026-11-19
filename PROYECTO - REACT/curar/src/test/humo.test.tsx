@@ -1,12 +1,12 @@
-import { screen, waitFor } from '@testing-library/react';
+import { act, fireEvent, screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
-import baseDatos from '../../api/db.json';
+import baseDatos from '../../api/base.json';
 import { montarApp } from './utilidades';
 
 type Registro = Record<string, unknown>;
 
-/** API falsa respaldada por api/db.json: GET devuelve la colección; POST/PATCH/PUT/DELETE responden con eco. */
+/** API falsa respaldada por api/base.json (datos fijos, no los que cambia json-server): GET devuelve la colección; POST/PATCH/PUT/DELETE responden con eco. */
 const CITA_PENDIENTE = { id: 'c-humo', dniPaciente: '12345678', paciente: 'Ana Paciente', medicoId: 'm1', seguro: 'SIS', fecha: '2026-11-18', hora: '09:30', estado: 'Pendiente', motivo: 'Dolor de cabeza' };
 
 function apiFalsa() {
@@ -26,9 +26,14 @@ function apiFalsa() {
   }));
 }
 
-function montar(ruta: string, sesion?: object) {
+/** Monta dentro de un `act` asíncrono: necesario cuando una página suspende con `use()` (como en el md). */
+async function montar(ruta: string, sesion?: object): Promise<{ pathname: string }> {
   if (sesion) localStorage.setItem('curar_sesion_activa', JSON.stringify(sesion));
-  return montarApp(ruta);
+  let ubicacion: { pathname: string } = { pathname: ruta };
+  await act(async () => {
+    ubicacion = montarApp(ruta);
+  });
+  return ubicacion;
 }
 
 const PACIENTE = { dni: '12345678', nombre: 'Ana Paciente', rol: 1 };
@@ -76,25 +81,25 @@ const casos: readonly { ruta: string; sesion?: object; texto: string | RegExp }[
 
 describe('Prueba de humo: cada página se monta con datos reales de db.json', () => {
   it.each(casos)('$ruta', async ({ ruta, sesion, texto }) => {
-    montar(ruta, sesion);
+    await montar(ruta, sesion);
     expect((await screen.findAllByText(texto)).length).toBeGreaterThan(0);
     sinErroresDeReact();
   });
 
   it('/medicos y /sede exigen elegir seguro antes (redirige a /seguro)', async () => {
-    const router = montar('/medicos');
+    const router = await montar('/medicos');
     await waitFor(() => expect(router.pathname).toBe('/seguro'));
   });
 
   it('/consulta/:id carga la cita del médico y muestra el formulario de atención', async () => {
-    montar(`/consulta/${CITA_PENDIENTE.id}`, MEDICO);
+    await montar(`/consulta/${CITA_PENDIENTE.id}`, MEDICO);
     expect(await screen.findByText('PACIENTE EN ATENCIÓN')).toBeInTheDocument();
     expect(screen.getByRole('button', { name: 'Finalizar atención' })).toBeInTheDocument();
     sinErroresDeReact();
   });
 
   it('/consulta/:id rechaza una cita de otro médico', async () => {
-    montar(`/consulta/${CITA_PENDIENTE.id}`, { ...MEDICO, medicoId: 'm2' });
+    await montar(`/consulta/${CITA_PENDIENTE.id}`, { ...MEDICO, medicoId: 'm2' });
     expect(await screen.findByText('Esta cita no pertenece a tu agenda.')).toBeInTheDocument();
   });
 
@@ -102,7 +107,7 @@ describe('Prueba de humo: cada página se monta con datos reales de db.json', ()
     vi.useFakeTimers({ toFake: ['Date'], now: new Date(2026, 10, 16, 8, 0) }); // lunes 16-nov-2026, 08:00
     try {
       const peticiones = (fetch as unknown as ReturnType<typeof vi.fn>).mock.calls;
-      montar('/reservar?medicoId=m1', PACIENTE);
+      await montar('/reservar?medicoId=m1', PACIENTE);
       const usuario = userEvent.setup();
       expect(await screen.findByText('Paso 4: Escoge fecha y hora')).toBeInTheDocument();
 
@@ -122,7 +127,7 @@ describe('Prueba de humo: cada página se monta con datos reales de db.json', ()
   it('exige hora y motivo antes de confirmar la reserva', async () => {
     vi.useFakeTimers({ toFake: ['Date'], now: new Date(2026, 10, 16, 8, 0) });
     try {
-      montar('/reservar?medicoId=m1', PACIENTE);
+      await montar('/reservar?medicoId=m1', PACIENTE);
       const usuario = userEvent.setup();
       await usuario.click(await screen.findByRole('button', { name: 'Confirmar Reserva' }));
       expect(await screen.findByText('Elige un horario.')).toBeInTheDocument();
@@ -133,7 +138,7 @@ describe('Prueba de humo: cada página se monta con datos reales de db.json', ()
 
   it('/consulta/:id: añade y quita medicamentos (useFieldArray) y guarda solo los que quedan', async () => {
     const peticiones = (fetch as unknown as ReturnType<typeof vi.fn>).mock.calls;
-    montar(`/consulta/${CITA_PENDIENTE.id}`, MEDICO);
+    await montar(`/consulta/${CITA_PENDIENTE.id}`, MEDICO);
     const u = userEvent.setup();
     await screen.findByText('PACIENTE EN ATENCIÓN');
 
@@ -160,7 +165,7 @@ describe('Prueba de humo: cada página se monta con datos reales de db.json', ()
   });
 
   it('/consulta/:id muestra el error de cada campo de la receta', async () => {
-    montar(`/consulta/${CITA_PENDIENTE.id}`, MEDICO);
+    await montar(`/consulta/${CITA_PENDIENTE.id}`, MEDICO);
     const u = userEvent.setup();
     await screen.findByText('PACIENTE EN ATENCIÓN');
     await u.click(screen.getByRole('button', { name: /Agregar medicamento/u }));
@@ -170,7 +175,7 @@ describe('Prueba de humo: cada página se monta con datos reales de db.json', ()
   });
 
   it('/familiares: un DNI repetido se marca en su campo (setError desde la página)', async () => {
-    montar('/familiares', PACIENTE);
+    await montar('/familiares', PACIENTE);
     const u = userEvent.setup();
     await u.type(await screen.findByLabelText('Nombre completo'), 'luis pérez');
     await u.type(screen.getByLabelText('DNI (opcional)'), PACIENTE.dni);
@@ -179,7 +184,7 @@ describe('Prueba de humo: cada página se monta con datos reales de db.json', ()
   });
 
   it('/reclamaciones: no envía sin aceptar la declaración y luego registra la hoja', async () => {
-    montar('/reclamaciones', PACIENTE);
+    await montar('/reclamaciones', PACIENTE);
     const u = userEvent.setup();
     await u.click(await screen.findByRole('button', { name: 'Queja' }));
     expect(screen.getByText(/Queja: malestar/u)).toBeInTheDocument();
@@ -196,7 +201,7 @@ describe('Prueba de humo: cada página se monta con datos reales de db.json', ()
   });
 
   it('/ (inicio): el buscador exige fecha y luego lleva a /sede', async () => {
-    const router = montar('/');
+    const router = await montar('/');
     const u = userEvent.setup();
     await u.click(await screen.findByRole('button', { name: 'Ver disponibilidad' }));
     expect(await screen.findByText('Elige una fecha para ver la disponibilidad.')).toBeInTheDocument();
@@ -208,7 +213,7 @@ describe('Prueba de humo: cada página se monta con datos reales de db.json', ()
   it('/admin: registra un médico eligiendo la sede con react-select (Controller)', async () => {
     const peticiones = (fetch as unknown as ReturnType<typeof vi.fn>).mock.calls;
     const primeraSede = (baseDatos as unknown as { sedes: { id: string; nombre: string }[] }).sedes[0];
-    montar('/admin', ADMIN);
+    await montar('/admin', ADMIN);
     const u = userEvent.setup();
     await u.click(await screen.findByRole('button', { name: '+ Registrar Médico' }));
 
@@ -225,7 +230,7 @@ describe('Prueba de humo: cada página se monta con datos reales de db.json', ()
   });
 
   it('/admin: un CMP repetido se marca en su campo', async () => {
-    montar('/admin', ADMIN);
+    await montar('/admin', ADMIN);
     const u = userEvent.setup();
     const registrar = async (): Promise<void> => {
       await u.click(await screen.findByRole('button', { name: '+ Registrar Médico' }));
@@ -243,7 +248,7 @@ describe('Prueba de humo: cada página se monta con datos reales de db.json', ()
     vi.useFakeTimers({ toFake: ['Date'], now: new Date(2026, 10, 16, 8, 0) }); // lunes 08:00
     try {
       const peticiones = (fetch as unknown as ReturnType<typeof vi.fn>).mock.calls;
-      montar('/reservar', PACIENTE);
+      await montar('/reservar', PACIENTE);
       const u = userEvent.setup();
       await screen.findByText('Paso 1: Seleccione su seguro y especialidad');
       await u.click(screen.getByRole('button', { name: 'Siguiente →' }));
@@ -263,7 +268,7 @@ describe('Prueba de humo: cada página se monta con datos reales de db.json', ()
   });
 
   it('/reservar: cambiar el seguro borra la sede ya elegida', async () => {
-    montar('/reservar', PACIENTE);
+    await montar('/reservar', PACIENTE);
     const u = userEvent.setup();
     await u.selectOptions(await screen.findByLabelText('Especialidad médica'), 'Cardiología');
     await u.click(screen.getByRole('button', { name: 'Siguiente →' }));
@@ -274,6 +279,145 @@ describe('Prueba de humo: cada página se monta con datos reales de db.json', ()
     await u.click(screen.getByRole('button', { name: 'Siguiente →' }));
     expect(await screen.findByText(/No hay sedes con SIS que atiendan Cardiología/u)).toBeInTheDocument();
     expect(screen.getByRole('button', { name: 'Siguiente →' })).toBeDisabled();
+  });
+
+  it('/ (inicio): el carrusel se pausa con el puntero sin reinstalar el temporizador (useEffectEvent)', async () => {
+    vi.useFakeTimers({ toFake: ['setInterval', 'clearInterval'] });
+    try {
+      const instalar = vi.spyOn(window, 'setInterval');
+      await montar('/');
+      await screen.findAllByText(/Tu cita médica, sin colas/u);
+      const hero = document.getElementById('inicio') as HTMLElement;
+      const activa = (): string => (document.querySelector('.slide.on')?.classList.contains('s1') ? 's1' : 's2');
+      expect(activa()).toBe('s1');
+      act(() => vi.advanceTimersByTime(6500));
+      expect(activa()).toBe('s2');
+
+      fireEvent.mouseEnter(hero);
+      act(() => vi.advanceTimersByTime(6500 * 3));
+      expect(activa()).toBe('s2'); // pausado: no avanza
+
+      fireEvent.mouseLeave(hero);
+      act(() => vi.advanceTimersByTime(6500));
+      expect(activa()).toBe('s1');
+      expect(instalar.mock.calls.filter(([, ms]) => ms === 6500)).toHaveLength(1); // pausar no lo reinició
+    } finally {
+      vi.useRealTimers();
+    }
+  });
+
+  it('/panel-medico: recarga la agenda al volver a la pestaña con un único listener', async () => {
+    const llamadas = (fetch as unknown as ReturnType<typeof vi.fn>).mock.calls;
+    const citasPedidas = (): number => llamadas.filter(([url]) => String(url).endsWith('/citas')).length;
+    const escuchar = vi.spyOn(document, 'addEventListener');
+    await montar('/panel-medico', MEDICO);
+    await screen.findByText(/Dr\(a\)\. Franco Espinola/u);
+    await waitFor(() => expect(citasPedidas()).toBe(1));
+
+    vi.spyOn(document, 'visibilityState', 'get').mockReturnValue('visible');
+    act(() => {
+      document.dispatchEvent(new Event('visibilitychange'));
+    });
+    await waitFor(() => expect(citasPedidas()).toBe(2));
+    expect(escuchar.mock.calls.filter(([tipo]) => tipo === 'visibilitychange')).toHaveLength(1);
+  });
+
+  it('/reservar: el foco va al título de cada paso y vuelve al botón que abrió el perfil (useRef)', async () => {
+    await montar('/reservar', PACIENTE);
+    const u = userEvent.setup();
+    await screen.findByText('Paso 1: Seleccione su seguro y especialidad');
+    await u.click(screen.getByRole('button', { name: 'Siguiente →' }));
+    expect(await screen.findByRole('heading', { name: 'Paso 2: Seleccione la sede o centro de salud' })).toHaveFocus();
+    await u.click(screen.getByRole('button', { name: 'Siguiente →' }));
+    expect(await screen.findByRole('heading', { name: 'Paso 3: Seleccione al profesional de la salud' })).toHaveFocus();
+
+    const verPerfil = screen.getByRole('button', { name: /Ver perfil/u });
+    await u.click(verPerfil);
+    expect(screen.getByRole('button', { name: 'Cerrar perfil' })).toHaveFocus();
+    await u.keyboard('{Escape}');
+    expect(screen.queryByRole('dialog')).toBeNull();
+    expect(verPerfil).toHaveFocus();
+  });
+
+  it('/cuenta: los dos formularios de la página no repiten ids (useId)', async () => {
+    await montar('/cuenta', PACIENTE);
+    const u = userEvent.setup();
+    await u.click(await screen.findByRole('tab', { name: 'Mi perfil' }));
+    const ids = [...document.querySelectorAll('input[id]')].map((e) => e.id);
+    expect(ids.length).toBeGreaterThan(5);
+    expect(new Set(ids).size).toBe(ids.length);
+  });
+
+  it('/recetas: use() + Suspense muestra la carga, el ErrorBoundary el fallo, y Reintentar vuelve a leer', async () => {
+    const real = fetch;
+    const fallarRecetas = { activo: true };
+    vi.stubGlobal('fetch', vi.fn((url: string, init?: RequestInit) =>
+      String(url).endsWith('/recetas') && fallarRecetas.activo ? Promise.resolve(new Response('', { status: 500 })) : real(url, init),
+    ));
+    vi.spyOn(console, 'error').mockImplementation(() => undefined); // React informa el error capturado por el límite
+    await montar('/recetas', PACIENTE);
+    const u = userEvent.setup();
+
+    expect(await screen.findByRole('alert')).toHaveTextContent('No se pudieron cargar tus recetas. La API falló.');
+    fallarRecetas.activo = false;
+    // Como en el md: el clic que crea la promesa nueva va dentro de act para que React procese la suspensión.
+    await act(async () => {
+      await u.click(screen.getByRole('button', { name: 'Reintentar' }));
+    });
+    expect(await screen.findByRole('list', { name: 'Recetas' })).toBeInTheDocument();
+    expect(screen.queryByRole('alert')).toBeNull();
+  });
+
+  it('/recetas: muestra "Cargando recetas…" mientras la promesa está pendiente', async () => {
+    const real = fetch;
+    const pendiente = Promise.withResolvers<Response>();
+    vi.stubGlobal('fetch', vi.fn((url: string, init?: RequestInit) => (String(url).endsWith('/recetas') ? pendiente.promise : real(url, init))));
+    await montar('/recetas', PACIENTE);
+    expect(await screen.findByText('Cargando recetas…')).toBeInTheDocument();
+    await act(async () => {
+      pendiente.resolve(new Response(JSON.stringify([]), { status: 200 }));
+    });
+    expect(await screen.findByText('Aún no tienes recetas registradas.')).toBeInTheDocument();
+  });
+
+  it('/medicos/:id: el favorito cambia al instante y se confirma al responder la API (useOptimistic)', async () => {
+    const real = fetch;
+    const respuesta = Promise.withResolvers<Response>();
+    vi.stubGlobal('fetch', vi.fn((url: string, init?: RequestInit) =>
+      String(url).endsWith('/favoritos') && init?.method === 'POST' ? respuesta.promise : real(url, init),
+    ));
+    await montar('/medicos/m1', PACIENTE);
+    const u = userEvent.setup();
+    const boton = await screen.findByRole('button', { name: '☆ Agregar a favoritos' });
+
+    await u.click(boton);
+    expect(boton).toHaveAttribute('aria-pressed', 'true'); // optimista: aún no hay respuesta
+    expect(boton).toHaveTextContent('★ Quitar de favoritos');
+
+    await act(async () => {
+      respuesta.resolve(new Response(JSON.stringify({ id: 'f1', dni: PACIENTE.dni, medicoId: 'm1' }), { status: 201 }));
+    });
+    expect(boton).toHaveAttribute('aria-pressed', 'true'); // confirmado
+    expect(boton).toHaveAttribute('aria-busy', 'false');
+  });
+
+  it('/medicos/:id: si la API falla, el favorito vuelve solo a su estado real y avisa', async () => {
+    const real = fetch;
+    const respuesta = Promise.withResolvers<Response>();
+    vi.stubGlobal('fetch', vi.fn((url: string, init?: RequestInit) =>
+      String(url).endsWith('/favoritos') && init?.method === 'POST' ? respuesta.promise : real(url, init),
+    ));
+    await montar('/medicos/m1', PACIENTE);
+    const u = userEvent.setup();
+    const boton = await screen.findByRole('button', { name: '☆ Agregar a favoritos' });
+
+    await u.click(boton);
+    expect(boton).toHaveAttribute('aria-pressed', 'true');
+    await act(async () => {
+      respuesta.resolve(new Response('', { status: 500 }));
+    });
+    expect(boton).toHaveAttribute('aria-pressed', 'false'); // revertido sin código de "deshacer"
+    expect(screen.getByText('No se pudo actualizar el favorito. Intenta de nuevo.')).toBeInTheDocument();
   });
 });
 

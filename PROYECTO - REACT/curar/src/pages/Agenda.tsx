@@ -1,8 +1,8 @@
 import { zodResolver } from '@hookform/resolvers/zod';
+import { Campo } from '../components/Campo';
 import { useEffect, useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { ArticuloEstado } from '../components/ArticuloEstado';
-import { FieldMessage } from '../components/FieldMessage';
 import { useAuth } from '../context/AuthContext';
 import { useCarga } from '../hooks/useCarga';
 import { MEDICAMENTO_VACIO, medicamentoSchema, type MedicamentoData, type MedicamentoInput } from '../model/consulta';
@@ -71,12 +71,9 @@ export function Agenda() {
       {receta && (
         <form className="tabla" onSubmit={handleSubmit((data) => emitir(receta, data))} noValidate style={{ display: 'grid', gap: 10, maxWidth: 560 }}>
           <h2 style={{ fontSize: 20 }}>Receta para el DNI {receta.dniPaciente}</h2>
-          <label>Medicamento<input aria-invalid={Boolean(errors.medicamento)} {...register('medicamento')} /></label>
-          <FieldMessage id="medicamento-error" message={errors.medicamento?.message} />
-          <label>Cantidad (envases)<input inputMode="numeric" aria-invalid={Boolean(errors.cantidad)} {...register('cantidad')} /></label>
-          <FieldMessage id="cantidad-error" message={errors.cantidad?.message} />
-          <label>Indicaciones<input aria-invalid={Boolean(errors.indicaciones)} {...register('indicaciones')} /></label>
-          <FieldMessage id="indicaciones-error" message={errors.indicaciones?.message} />
+          <Campo label="Medicamento" error={errors.medicamento?.message}>{(a11y) => <input {...a11y} {...register('medicamento')} />}</Campo>
+          <Campo label="Cantidad (envases)" error={errors.cantidad?.message}>{(a11y) => <input inputMode="numeric" {...a11y} {...register('cantidad')} />}</Campo>
+          <Campo label="Indicaciones" error={errors.indicaciones?.message}>{(a11y) => <input {...a11y} {...register('indicaciones')} />}</Campo>
           <div style={{ display: 'flex', gap: 8 }}>
             <button className="btn brand" type="submit" disabled={isSubmitting}>Guardar receta</button>
             <button className="btn ghost" type="button" onClick={() => setReceta(null)}>Cancelar</button>

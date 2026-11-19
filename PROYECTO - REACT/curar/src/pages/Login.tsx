@@ -1,4 +1,5 @@
 import { zodResolver } from '@hookform/resolvers/zod';
+import { Campo } from '../components/Campo';
 import { useForm } from 'react-hook-form';
 import { Link, useNavigate } from 'react-router';
 import { AuthShell } from '../components/AuthShell';
@@ -39,14 +40,8 @@ export function Login() {
     <AuthShell>
       <form onSubmit={handleSubmit(entrar)} noValidate>
         <h1 style={{ fontSize: 24 }}>Iniciar sesión</h1>
-        <label>DNI
-          <input inputMode="numeric" maxLength={8} autoComplete="username" aria-invalid={Boolean(errors.dni)} {...register('dni')} />
-        </label>
-        <p className="err" role="alert">{errors.dni?.message}</p>
-        <label>Contraseña
-          <input type="password" autoComplete="current-password" aria-invalid={Boolean(errors.password)} {...register('password')} />
-        </label>
-        <p className="err" role="alert">{errors.password?.message}</p>
+        <Campo label="DNI" error={errors.dni?.message}>{(a11y) => <input inputMode="numeric" maxLength={8} autoComplete="username" {...a11y} {...register('dni')} />}</Campo>
+        <Campo label="Contraseña" error={errors.password?.message}>{(a11y) => <input type="password" autoComplete="current-password" {...a11y} {...register('password')} />}</Campo>
         <button className="btn brand" type="submit" disabled={isSubmitting} style={{ width: '100%', justifyContent: 'center' }}>
           {isSubmitting ? 'Ingresando…' : 'Ingresar'}
         </button>

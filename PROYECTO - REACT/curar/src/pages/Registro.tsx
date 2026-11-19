@@ -1,4 +1,5 @@
 import { zodResolver } from '@hookform/resolvers/zod';
+import { Campo } from '../components/Campo';
 import { useState } from 'react';
 import { useForm, useWatch } from 'react-hook-form';
 import { Link, useNavigate } from 'react-router';
@@ -60,27 +61,18 @@ export function Registro() {
               <button type="button" className={`btn${rol === ROLE_PACIENTE ? '' : ' ghost'}`} aria-pressed={rol === ROLE_PACIENTE} onClick={() => setValue('rol', ROLE_PACIENTE)}>Soy paciente</button>
               <button type="button" className={`btn${rol === ROLE_MEDICO ? '' : ' ghost'}`} aria-pressed={rol === ROLE_MEDICO} onClick={() => setValue('rol', ROLE_MEDICO)}>Soy médico</button>
             </div>
-            <label>Correo electrónico
-              <input type="email" placeholder="nombre@gmail.com" autoComplete="email" aria-invalid={Boolean(errors.correo)} {...register('correo')} />
-            </label>
-            <p className="err" role="alert">{errors.correo?.message}</p>
+            <Campo label="Correo electrónico" error={errors.correo?.message}>{(a11y) => <input type="email" placeholder="nombre@gmail.com" autoComplete="email" {...a11y} {...register('correo')} />}</Campo>
             <button className="btn" type="button" onClick={() => void siguiente()} style={{ width: '100%', justifyContent: 'center' }}>Siguiente</button>
           </>
         ) : (
           <>
             <h1 style={{ fontSize: 24, fontWeight: 400 }}>Completa tus datos</h1>
-            <label>DNI<input inputMode="numeric" maxLength={8} aria-invalid={Boolean(errors.dni)} {...register('dni')} /></label>
-            <p className="err" role="alert">{errors.dni?.message}</p>
-            <label>Nombres y apellidos<input autoComplete="name" aria-invalid={Boolean(errors.nombre)} {...register('nombre')} /></label>
-            <p className="err" role="alert">{errors.nombre?.message}</p>
-            <label>Celular<input inputMode="numeric" maxLength={9} placeholder="9XXXXXXXX" aria-invalid={Boolean(errors.telefono)} {...register('telefono')} /></label>
-            <p className="err" role="alert">{errors.telefono?.message}</p>
+            <Campo label="DNI" error={errors.dni?.message}>{(a11y) => <input inputMode="numeric" maxLength={8} {...a11y} {...register('dni')} />}</Campo>
+            <Campo label="Nombres y apellidos" error={errors.nombre?.message}>{(a11y) => <input autoComplete="name" {...a11y} {...register('nombre')} />}</Campo>
+            <Campo label="Celular" error={errors.telefono?.message}>{(a11y) => <input inputMode="numeric" maxLength={9} placeholder="9XXXXXXXX" {...a11y} {...register('telefono')} />}</Campo>
             {rol === ROLE_MEDICO && (
               <>
-                <label>Código CMP (colegiatura)
-                  <input inputMode="numeric" maxLength={6} aria-invalid={Boolean(errors.cmp)} {...register('cmp')} />
-                </label>
-                <p className="err" role="alert">{errors.cmp?.message}</p>
+                <Campo label="Código CMP (colegiatura)" error={errors.cmp?.message}>{(a11y) => <input inputMode="numeric" maxLength={6} {...a11y} {...register('cmp')} />}</Campo>
                 <label>Especialidad
                   <select {...register('especialidad')}>
                     {ESPECIALIDADES_REGISTRO.map((e) => <option key={e}>{e}</option>)}
@@ -88,10 +80,8 @@ export function Registro() {
                 </label>
               </>
             )}
-            <label>Contraseña<input type="password" autoComplete="new-password" aria-invalid={Boolean(errors.password)} {...register('password')} /></label>
-            <p className="err" role="alert">{errors.password?.message}</p>
-            <label>Repite la contraseña<input type="password" autoComplete="new-password" aria-invalid={Boolean(errors.confirmar)} {...register('confirmar')} /></label>
-            <p className="err" role="alert">{errors.confirmar?.message}</p>
+            <Campo label="Contraseña" error={errors.password?.message}>{(a11y) => <input type="password" autoComplete="new-password" {...a11y} {...register('password')} />}</Campo>
+            <Campo label="Repite la contraseña" error={errors.confirmar?.message}>{(a11y) => <input type="password" autoComplete="new-password" {...a11y} {...register('confirmar')} />}</Campo>
             <button className="btn brand" type="submit" disabled={isSubmitting} style={{ width: '100%', justifyContent: 'center' }}>{isSubmitting ? 'Creando…' : 'Crear cuenta'}</button>
             <button className="link" type="button" onClick={() => setPaso(1)}>← Cambiar correo</button>
             <p className="err" role="alert">{errors.root?.['server']?.message}</p>

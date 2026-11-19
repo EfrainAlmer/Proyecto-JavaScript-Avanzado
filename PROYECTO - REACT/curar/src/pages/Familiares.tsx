@@ -1,8 +1,8 @@
 import { zodResolver } from '@hookform/resolvers/zod';
+import { Campo } from '../components/Campo';
 import { useEffect, useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { Link } from 'react-router';
-import { FieldMessage } from '../components/FieldMessage';
 import { useAuth } from '../context/AuthContext';
 import { useCitas } from '../context/CitasContext';
 import { familiarInicial, familiarSchema, PARENTESCOS, SEGUROS_FAMILIAR, type FamiliarData, type FamiliarInput } from '../model/familiar';
@@ -70,17 +70,11 @@ export function Familiares() {
       )}
       <form className="tabla" onSubmit={handleSubmit(agregar)} noValidate style={{ display: 'grid', gap: 10, maxWidth: 560 }}>
         <h2 style={{ fontSize: 20 }}>Agregar familiar</h2>
-        <label>Nombre completo
-          <input aria-invalid={Boolean(errors.nombre)} {...register('nombre')} />
-        </label>
-        <FieldMessage id="nombre-error" message={errors.nombre?.message} />
+        <Campo label="Nombre completo" error={errors.nombre?.message}>{(a11y) => <input {...a11y} {...register('nombre')} />}</Campo>
         <label>Parentesco
           <select {...register('parentesco')}>{PARENTESCOS.map((p) => <option key={p}>{p}</option>)}</select>
         </label>
-        <label>DNI (opcional)
-          <input inputMode="numeric" maxLength={8} aria-invalid={Boolean(errors.dni)} {...register('dni')} />
-        </label>
-        <FieldMessage id="dni-error" message={errors.dni?.message} />
+        <Campo label="DNI (opcional)" error={errors.dni?.message}>{(a11y) => <input inputMode="numeric" maxLength={8} {...a11y} {...register('dni')} />}</Campo>
         <label>Seguro
           <select {...register('seguro')}>{SEGUROS_FAMILIAR.map((s) => <option key={s}>{s}</option>)}</select>
         </label>

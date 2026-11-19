@@ -1,8 +1,8 @@
 import { zodResolver } from '@hookform/resolvers/zod';
+import { Campo } from '../components/Campo';
 import { useEffect, useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { Link } from 'react-router';
-import { FieldMessage } from '../components/FieldMessage';
 import { useAuth } from '../context/AuthContext';
 import { useCitas } from '../context/CitasContext';
 import { useCarga } from '../hooks/useCarga';
@@ -105,10 +105,7 @@ export function Centros() {
                   <option value="5">5 · Excelente</option><option value="4">4 · Muy buena</option><option value="3">3 · Regular</option><option value="2">2 · Mala</option><option value="1">1 · Muy mala</option>
                 </select>
               </label>
-              <label>Tu comentario
-                <input maxLength={300} aria-invalid={Boolean(errors.texto)} {...register('texto')} />
-              </label>
-              <FieldMessage id="comentario-error" message={errors.texto?.message} />
+              <Campo label="Tu comentario" error={errors.texto?.message}>{(a11y) => <input maxLength={300} {...a11y} {...register('texto')} />}</Campo>
               <button className="btn brand" type="submit" disabled={isSubmitting}>Publicar comentario</button>
             </form>
           ) : (
