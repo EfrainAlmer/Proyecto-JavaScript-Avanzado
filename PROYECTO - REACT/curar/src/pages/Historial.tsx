@@ -54,7 +54,7 @@ export function Historial() {
       <div style={{ display: 'flex', gap: 12, flexWrap: 'wrap', alignItems: 'end', marginBottom: 16 }}>
         <FiltroBotones etiqueta="Tipo de registro" opciones={TIPOS} seleccionado={tipo} onChange={setTipo} estilo={{ display: 'flex', gap: 8 }} />
         <label style={{ minWidth: 220 }}>Paciente
-          <select value={quien} onChange={(e) => setQuien(e.target.value)}>
+          <select name="paciente" value={quien} onChange={(e) => setQuien(e.target.value)}>
             <option value="">Todos</option>
             {nombres.map((n) => <option key={n} value={n}>{n}</option>)}
           </select>

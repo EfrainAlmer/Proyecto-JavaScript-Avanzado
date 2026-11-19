@@ -27,7 +27,9 @@ export function FiltroFechas({ onAplicar }: FiltroFechasProps) {
     <form noValidate onSubmit={handleSubmit(onAplicar)} aria-label="Filtrar por fechas" style={{ display: 'flex', gap: 12, flexWrap: 'wrap', alignItems: 'start' }}>
       <Campo label="Desde" error={errors.fechaInicio?.message}>{(a11y) => <input type="date" {...a11y} {...register('fechaInicio')} />}</Campo>
       <Campo label="Hasta" error={errors.fechaFin?.message}>{(a11y) => <input type="date" {...a11y} {...register('fechaFin')} />}</Campo>
-      <div style={{ display: 'flex', gap: 8, alignSelf: 'center' }}>
+      {/* .acciones-campo reserva arriba el alto de una etiqueta: los botones quedan a la altura de los inputs,
+          aunque debajo aparezca un mensaje de error (por eso no sirve alinear al centro ni al final). */}
+      <div className="acciones-campo">
         <button className="btn" type="submit">Aplicar fechas</button>
         <button className="btn ghost" type="button" onClick={limpiar}>Limpiar fechas</button>
       </div>

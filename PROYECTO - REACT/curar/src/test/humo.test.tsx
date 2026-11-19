@@ -94,6 +94,9 @@ describe('Prueba de humo: cada página se monta con datos reales de db.json', ()
     await montar(ruta, sesion);
     expect((await screen.findAllByText(texto)).length).toBeGreaterThan(0);
     sinErroresDeReact();
+    // Aviso de Chrome "A form field element should have an id or name attribute": ningún control sin id ni name.
+    const sinNombre = [...document.querySelectorAll('input, select, textarea')].filter((c) => !c.id && !c.getAttribute('name'));
+    expect(sinNombre.map((c) => c.outerHTML.slice(0, 80))).toEqual([]);
   });
 
   it('/medicos y /sede exigen elegir seguro antes (redirige a /seguro)', async () => {

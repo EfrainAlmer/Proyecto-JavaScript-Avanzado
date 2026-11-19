@@ -180,7 +180,7 @@ dialog::backdrop{background:rgb(0 11 51/.55)}
 .topbar p{margin:0;max-width:none}
 .topbar a{color:#fff;font-weight:600;text-decoration:none}
 .topbar a:hover{text-decoration:underline}
-.topbar .reclamos{margin-left:auto}
+.topbar .reclamos{margin-left:auto;display:inline-flex;align-items:center;min-height:24px} /* objetivo táctil mínimo WCAG 2.5.8 */
 @media(max-width:700px){.topbar .hide-sm{display:none}.topbar .reclamos{margin-left:0}}
 
 textarea{font:400 15px var(--font);color:var(--navy);background:var(--bg);border:1.5px solid var(--line);border-radius:var(--r-sm);padding:11px 12px;width:100%;min-height:110px;resize:vertical}
@@ -217,6 +217,11 @@ label.chk{display:flex;gap:10px;align-items:flex-start;font-weight:400;font-size
 
 /* Lab 13 · aviso de conectividad (useConexion) */
 .sin-red{max-width:1180px;margin:8px auto 0;padding:10px 16px;border-radius:var(--r-btn);background:#FFF4D6;color:#7A4B00;font-weight:600;text-align:center}
+
+/* Botones en la misma fila que campos con etiqueta: un "espacio de etiqueta" invisible arriba los alinea con los inputs. */
+.acciones-campo{display:grid;gap:4px;grid-template-columns:auto auto;column-gap:8px}
+.acciones-campo::before{content:"\00a0";grid-column:1/-1;font-size:12px;font-weight:600}
+@media(max-width:520px){.acciones-campo::before{display:none}} /* en móvil los botones bajan a su propia fila */
 
 /* Listas paginadas (usePaginado + <MostrarMas>) */
 .mostrar-mas{display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;margin-top:14px}

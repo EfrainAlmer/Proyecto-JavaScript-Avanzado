@@ -47,7 +47,7 @@ export function Mensajes() {
     <section className="wrap" style={{ padding: '48px 20px' }}>
       <h1>Mensajes</h1>
       <label style={{ maxWidth: 420 }}>Buscar
-        <input type="search" value={busqueda} onChange={(e) => setBusqueda(e.target.value)} placeholder="Buscar mensaje" />
+        <input type="search" name="busqueda" value={busqueda} onChange={(e) => setBusqueda(e.target.value)} placeholder="Buscar mensaje" />
       </label>
       <FiltroBotones
         etiqueta="Filtrar mensajes" opciones={FILTROS} seleccionado={filtro} onChange={setFiltro}

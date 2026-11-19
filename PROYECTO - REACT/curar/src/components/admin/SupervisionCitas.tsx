@@ -5,7 +5,7 @@ import { filtrarCitas, indexar, type FilaCita as Fila, type FiltroEstado, type O
 import { fechaHora } from '../../utils/formato';
 
 const ESTADOS: readonly FiltroEstado[] = ['Todas', 'Pendiente', 'Confirmada', 'Atendida', 'Cancelada'];
-const POR_PAGINA = 50;
+const POR_PAGINA = 25; // con 50, la pestaña medía 19 000 px en móvil
 
 interface FilaCitaProps {
   readonly fila: Fila;

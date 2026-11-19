@@ -21,6 +21,9 @@ const FILTROS: readonly { readonly id: Filtro; readonly texto: string }[] = [
   { id: 'Atendida', texto: 'Atendidas' },
 ];
 
+/** Solo la primera letra: con text-transform: capitalize salía "19 De Noviembre". */
+const mayuscula = (t: string): string => t.charAt(0).toUpperCase() + t.slice(1);
+
 const saludoDe = (fecha: Date): string => {
   const h = fecha.getHours();
   return h < 12 ? 'Buenos días' : h < 19 ? 'Buenas tardes' : 'Buenas noches';
@@ -92,7 +95,7 @@ export function PanelMedico() {
             {miMedico && <><span className="pm-cmp">CMP: {miMedico.cmp ?? 's/n'}</span> Servicio de {miMedico.especialidad} · {miSede}</>}
           </p>
         </div>
-        <div className="pm-fecha"><i className="bi bi-calendar3" aria-hidden="true" /> {fechaCompleta(hoy)}</div>
+        <div className="pm-fecha"><i className="bi bi-calendar3" aria-hidden="true" /> {mayuscula(fechaCompleta(hoy))}</div>
       </header>
 
       <div className="pm-stats" role="list">
@@ -108,7 +111,7 @@ export function PanelMedico() {
         <section className="pm-card" aria-labelledby="agenda-tit">
           <div className="pm-card-cab">
             <h2 id="agenda-tit"><i className="bi bi-list-check" aria-hidden="true" /> Agenda y Gestión de Citas</h2>
-            <input className="pm-buscar" type="search" placeholder="Buscar DNI o paciente…" aria-label="Buscar por DNI o paciente" value={q} onChange={(e) => setQ(e.target.value)} />
+            <input className="pm-buscar" type="search" name="buscar" placeholder="Buscar DNI o paciente…" aria-label="Buscar por DNI o paciente" value={q} onChange={(e) => setQ(e.target.value)} />
           </div>
 
           <div className="pm-filtros" role="group" aria-label="Filtrar por estado">

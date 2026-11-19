@@ -21,15 +21,15 @@ describe('SupervisionCitas (useDeferredValue + useMemo + memo + useTransition)',
     const filas = (): HTMLElement[] => within(screen.getAllByRole('rowgroup')[1] as HTMLElement).getAllByRole('row');
 
     await u.type(buscar, 'ana');
-    await waitFor(() => expect(screen.getByRole('status')).toHaveTextContent('1000 citas encontradas. Se muestran 50.'));
-    expect(filas()).toHaveLength(50);
+    await waitFor(() => expect(screen.getByRole('status')).toHaveTextContent('1000 citas encontradas. Se muestran 25.'));
+    expect(filas()).toHaveLength(25);
     expect(filas()[0]).toHaveTextContent('10 oct 2026'); // Ana: meses 1, 4, 7 y 10
 
     await u.click(screen.getByRole('button', { name: 'Más recientes primero' }));
     await waitFor(() => expect(filas()[0]).toHaveTextContent('10 ene 2026'));
 
-    await u.click(screen.getByRole('button', { name: 'Mostrar 50 más' }));
-    await waitFor(() => expect(filas()).toHaveLength(100));
+    await u.click(screen.getByRole('button', { name: 'Mostrar 25 más' }));
+    await waitFor(() => expect(filas()).toHaveLength(50));
 
     await u.click(within(filas()[0] as HTMLElement).getByRole('button', { name: 'Anular cita' }));
     expect(onAnular).toHaveBeenCalledWith('c0');

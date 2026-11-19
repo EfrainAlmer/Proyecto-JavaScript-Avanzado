@@ -52,7 +52,7 @@ export function PanelPaciente() {
     <section className="wrap pg-panel-paciente" style={{ padding: '48px 20px' }}>
       <div className="panel-head">
         <div><h1>Hola, {usuario?.nombre}</h1><p>Tus citas, recetas y familiares en un solo lugar.</p></div>
-        <Link className="btn" to="/reservar"><i className="bi bi-calendar-plus" /> Reservar nueva cita</Link>
+        <Link className="btn" to="/reservar"><i className="bi bi-calendar-plus" aria-hidden="true" /> Reservar nueva cita</Link>
       </div>
       <p className="err" role="alert">{textoError(errorLectura)}</p>
       {cambiarEstado.error && <p className="err" role="alert">No se canceló la cita. {textoError(cambiarEstado.error)}</p>}
@@ -64,7 +64,7 @@ export function PanelPaciente() {
       <div className="row g-4">
         <div className="col-lg-8">
           <div className="panel-card sep">
-            <h2><i className="bi bi-calendar-check" />Próximas citas</h2>
+            <h2><i className="bi bi-calendar-check" aria-hidden="true" />Próximas citas</h2>
             {proximas.length > 0 ? (
               proximas.slice(0, 3).map((c) => (
                 <TarjetaCita key={c.id} cita={c} titulo={`Dr(a). ${medico(c.medicoId)?.nombre ?? c.medicoId}`} subtitulo={detalle(c)}>
@@ -84,7 +84,7 @@ export function PanelPaciente() {
             <p className="mas"><Link to="/citas" className="link">Ver todas mis citas</Link></p>
           </div>
           <div className="panel-card">
-            <h2><i className="bi bi-clock-history" />Historial de atenciones</h2>
+            <h2><i className="bi bi-clock-history" aria-hidden="true" />Historial de atenciones</h2>
             <div className="table-responsive">
               <table className="table align-middle t-apilada">
                 <thead><tr><th scope="col">Fecha</th><th scope="col">Médico</th><th scope="col">Motivo</th><th scope="col"><span className="visually-hidden">Receta</span></th></tr></thead>
@@ -97,7 +97,7 @@ export function PanelPaciente() {
                           <td data-label="Fecha" style={{ whiteSpace: 'nowrap' }}>{fechaMedia(c.fecha)}</td>
                           <td data-label="Médico">Dr(a). {m?.nombre ?? c.medicoId}<br /><small>{m?.especialidad}</small></td>
                           <td data-label="Motivo">{c.motivo ?? 'Consulta médica'}</td>
-                          <td>{tieneReceta(c) && <Link className="btn sm ghost" to="/recetas"><i className="bi bi-file-earmark-text" /> Ver receta</Link>}</td>
+                          <td>{tieneReceta(c) && <Link className="btn sm ghost" to="/recetas"><i className="bi bi-file-earmark-text" aria-hidden="true" /> Ver receta</Link>}</td>
                         </tr>
                       );
                     })
@@ -112,7 +112,7 @@ export function PanelPaciente() {
         </div>
         <div className="col-lg-4">
           <div className="panel-card">
-            <div className="cab"><h2><i className="bi bi-people" />Mis familiares</h2><Link className="btn sm ghost" to="/familiares">+ Agregar</Link></div>
+            <div className="cab"><h2><i className="bi bi-people" aria-hidden="true" />Mis familiares</h2><Link className="btn sm ghost" to="/familiares">+ Agregar</Link></div>
             {familiares.length > 0 ? (
               familiares.map((f) => (
                 <div className="fam" key={f.id ?? f.dni + f.nombre}>

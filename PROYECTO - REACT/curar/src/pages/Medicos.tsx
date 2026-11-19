@@ -31,10 +31,10 @@ export function Medicos() {
       <p style={{ margin: '8px 0 16px' }}>Paso 3 de 4 · {flujo.seguro} · {nombreSede} · <Link to="/sede" className="link">cambiar sede</Link></p>
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit,minmax(220px,1fr))', gap: 12, marginBottom: 20 }}>
         <label>Nombre del médico
-          <input type="search" value={nombre} onChange={(e) => setNombre(e.target.value)} placeholder="Ej. Franco Espinola" />
+          <input type="search" name="nombre" value={nombre} onChange={(e) => setNombre(e.target.value)} placeholder="Ej. Franco Espinola" />
         </label>
         <label>Especialidad
-          <select value={esp} onChange={(e) => setEsp(e.target.value)}>
+          <select name="especialidad" value={esp} onChange={(e) => setEsp(e.target.value)}>
             <option value="">Todas</option>
             {ESPECIALIDADES.map((e) => <option key={e} value={e}>{e}</option>)}
           </select>

@@ -230,7 +230,7 @@ export function Reservar() {
   return (
     <section className="wrap pg-reservar" style={{ padding: '32px 20px 48px' }}>
       <div className="top">
-        <Link className="btn ghost sm pillbtn" to="/panel"><i className="bi bi-arrow-left" /> Volver a mis citas</Link>
+        <Link className="btn ghost sm pillbtn" to="/panel"><i className="bi bi-arrow-left" aria-hidden="true" /> Volver a mis citas</Link>
         <span className="chip">Reserva de Cita</span>
       </div>
       <form className="panel-card card" onSubmit={handleSubmit(confirmar)} noValidate>
@@ -328,7 +328,7 @@ export function Reservar() {
           <>
             <h2 className="step" ref={tituloPaso} tabIndex={-1}>Paso 4: Escoge fecha y hora</h2>
             <div className="alert alert-warning py-2 px-3 small mb-3" role="note">
-              <i className="bi bi-info-circle-fill me-1" /><strong>Regla Curar:</strong> Solo se permite agendar citas con un máximo de <strong>3 días de anticipación</strong>.
+              <i className="bi bi-info-circle-fill me-1" aria-hidden="true" /><strong>Regla Curar:</strong> Solo se permite agendar citas con un máximo de <strong>3 días de anticipación</strong>.
             </div>
             {medico && <p className="resumen">Dr(a). {medico.nombre} · {sede?.nombre} · {seguro}</p>}
 

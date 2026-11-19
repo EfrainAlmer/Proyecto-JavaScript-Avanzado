@@ -5,7 +5,7 @@
   .pm-saludo { margin: 0; } /* mismo h1 que el resto de páginas */
   .pm-sub { margin: 8px 0 0; color: var(--slate-text); display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
   .pm-cmp { background: var(--navy); color: #fff; font-size: 13px; font-weight: 700; padding: 3px 12px; border-radius: 999px; }
-  .pm-fecha { display: inline-flex; align-items: center; gap: 8px; background: var(--card); border: 1px solid var(--line); border-radius: 999px; padding: 10px 18px; font-weight: 700; text-transform: capitalize; box-shadow: 0 4px 12px rgb(0 11 51 / .06); }
+  .pm-fecha { display: inline-flex; align-items: center; gap: 8px; background: var(--card); border: 1px solid var(--line); border-radius: 999px; padding: 10px 18px; font-weight: 700; box-shadow: 0 4px 12px rgb(0 11 51 / .06); }
   .pm-stats { display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px; }
   @media (max-width: 800px) { .pm-stats { grid-template-columns: 1fr 1fr; } }
   .pm-stat { background: var(--card); border: 1px solid var(--line); border-radius: var(--r-lg); padding: 24px 16px; text-align: center; box-shadow: 0 8px 24px rgb(119 148 208 / .12); }
@@ -32,6 +32,7 @@
   .pm-hora { display: grid; gap: 4px; justify-items: start; }
   .pm-hora strong { font-size: 22px; }
   .pm-hora small { color: var(--slate-text); text-transform: capitalize; }
+  .pm-hora .pill { white-space: nowrap; }
   .pm-pac { display: grid; gap: 2px; min-width: 0; }
   .pm-pac b { font-size: 17px; }
   .pm-pac span, .pm-pac small { color: var(--slate-text); }
@@ -55,6 +56,8 @@
   .pm-sig-b2 { display: inline-flex; align-items: center; justify-content: center; gap: 8px; min-height: 48px; border-radius: 999px; border: 1.5px solid rgb(255 255 255 / .8); background: transparent; color: #fff; font: 600 15px var(--font); text-decoration: none; cursor: pointer; }
   .pm-sig-b2:hover { background: rgb(255 255 255 / .1); }
   .pm-sig-mas { color: #AEB9D6; text-align: center; }
-  @media (max-width: 640px) { .pm-cita { grid-template-columns: 1fr; } .pm-acc { justify-content: flex-start; } }
+  /* Hasta 1200 px la tarjeta es estrecha (a 1024 px el nombre del paciente tenía 118 px): las acciones bajan a su propia fila. */
+  @media (max-width: 1200px) { .pm-cita { grid-template-columns: 124px minmax(0, 1fr); } .pm-acc { grid-column: 1 / -1; justify-content: flex-start; } }
+  @media (max-width: 640px) { .pm-cita { grid-template-columns: 1fr; } }
 
 }

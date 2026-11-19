@@ -125,7 +125,7 @@ export function Admin() {
       <p role="status" aria-live="polite">{aviso}</p>
       <div className="row g-3 mb-4">
         <div className="col-6 col-md-3"><div className="stat"><small>Médicos activos</small><strong>{medicosActivos}</strong></div></div>
-        <div className="col-6 col-md-3"><div className="stat ok"><small>Pacientes registrados</small><strong>{totalPacientes}</strong></div></div>
+        <div className="col-6 col-md-3"><div className="stat ok"><small>Pacientes con cuenta</small><strong>{totalPacientes}</strong></div></div>
         <div className="col-6 col-md-3"><div className="stat warn"><small>Citas programadas (hoy)</small><strong>{citasHoy}</strong></div></div>
         <div className="col-6 col-md-3"><div className="stat bad"><small>Reclamos pendientes</small><strong>{reclamosPendientes}</strong></div></div>
       </div>
@@ -139,7 +139,7 @@ export function Admin() {
       {tab === 'medicos' && (
         <>
           <div style={{ display: 'flex', gap: 12, flexWrap: 'wrap', alignItems: 'end', marginBottom: 12 }}>
-            <label style={{ minWidth: 260 }}>Buscar médico<input type="search" value={qMed} onChange={(e) => setQMed(e.target.value)} /></label>
+            <label style={{ minWidth: 260 }}>Buscar médico<input type="search" name="buscarMedico" value={qMed} onChange={(e) => setQMed(e.target.value)} /></label>
           </div>
           {editando && (
             <MedicoForm
