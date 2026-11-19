@@ -19,11 +19,11 @@ interface FilaCitaProps {
 const FilaCita = memo(function FilaCita({ fila: { cita: c, medico, sede }, anulando, onAnular }: FilaCitaProps) {
   return (
     <tr>
-      <td>{c.fecha} · {c.hora}</td>
-      <td>{c.paciente ?? 'Paciente'}<br /><small>DNI {c.dniPaciente}</small></td>
-      <td>{medico}<br /><small>{sede}</small></td>
-      <td><span className="pill" data-estado={c.estado}>{c.estado}</span></td>
-      <td>
+      <td data-label="Fecha / hora">{c.fecha} · {c.hora}</td>
+      <td data-label="Paciente">{c.paciente ?? 'Paciente'}<br /><small>DNI {c.dniPaciente}</small></td>
+      <td data-label="Médico / sede">{medico}<br /><small>{sede}</small></td>
+      <td data-label="Estado"><span className="pill" data-estado={c.estado}>{c.estado}</span></td>
+      <td data-label="Acción">
         {c.estado === 'Pendiente' || c.estado === 'Confirmada'
           ? <button className="btn sm ghost" type="button" disabled={anulando} onClick={() => onAnular(c.id)}>Anular cita</button>
           : '—'}
@@ -111,9 +111,9 @@ export function SupervisionCitas({ lectura, onActualizar, onCancelarConsulta, ci
               ? 'Actualizando citas…'
               : actualizando
                 ? 'Actualizando resultados…'
-                : `${filas.length} citas encontradas. Se muestran ${visibles.length}.${lectura.actualizadoA ? ` Actualizado a las ${lectura.actualizadoA}` : ''}`}
+                : `${filas.length} citas encontradas. Se muestran ${visibles.length}.${lectura.actualizadoA ? ` Actualizado a las ${lectura.actualizadoA}.` : ''}`}
       </p>
-      <table className="table align-middle" style={{ margin: 0, opacity: actualizando ? 0.6 : 1 }}>
+      <table className="table align-middle t-apilada" style={{ margin: 0, opacity: actualizando ? 0.6 : 1 }}>
         <caption className="visually-hidden">Citas</caption>
         <thead><tr><th scope="col">Fecha / Hora</th><th scope="col">Paciente</th><th scope="col">Médico / Sede</th><th scope="col">Estado</th><th scope="col">Acción admin</th></tr></thead>
         <tbody>

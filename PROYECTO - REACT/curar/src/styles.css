@@ -205,3 +205,29 @@ label.chk{display:flex;gap:10px;align-items:flex-start;font-weight:400;font-size
 
 /* Lab 13 · aviso de conectividad (useConexion) */
 .sin-red{max-width:1180px;margin:8px auto 0;padding:10px 16px;border-radius:var(--r-btn);background:#FFF4D6;color:#7A4B00;font-weight:600;text-align:center}
+
+/* Listas paginadas (usePaginado + <MostrarMas>) */
+.mostrar-mas{display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;margin-top:14px}
+.mostrar-mas p{margin:0;color:var(--slate-text);font-size:14px}
+
+/* Tablas apiladas en móvil: cada fila pasa a ser una tarjeta con su etiqueta (data-label), así ninguna
+   columna —sobre todo la de acciones— queda oculta a la derecha a 360 px. */
+@media(max-width:640px){
+  .table.t-apilada thead{position:absolute;width:1px;height:1px;overflow:hidden;clip-path:inset(50%);white-space:nowrap}
+  .table.t-apilada,.table.t-apilada tbody,.table.t-apilada td{display:block;width:100%}
+  .table.t-apilada tr{border:1px solid var(--line);border-radius:var(--r-md);padding:10px 14px;margin-bottom:10px;background:var(--card);display:grid;grid-template-columns:1fr 1fr;column-gap:12px}
+  .table.t-apilada td:first-child,.table.t-apilada td:last-child{grid-column:1/-1}
+  .table.t-apilada>:not(caption)>*>*{border:0;padding:4px 0;background:transparent;box-shadow:none}
+  .table.t-apilada td[data-label]::before{content:attr(data-label);display:block;font-size:12px;font-weight:600;color:var(--slate-text);margin-bottom:2px}
+  .table.t-apilada td:empty{display:none}
+}
+
+/* Menú en móvil: una línea por enlace, desplazamiento horizontal y un degradado que avisa de que hay más. */
+@media(max-width:900px){
+  header.top nav{scrollbar-width:none}
+  header.top nav::-webkit-scrollbar{display:none}
+  header.top nav a{white-space:nowrap;flex:0 0 auto;padding:8px 12px}
+  header.top nav[data-final="false"]{-webkit-mask-image:linear-gradient(to right,#000 85%,transparent);mask-image:linear-gradient(to right,#000 85%,transparent)}
+  header.top nav[data-inicio="false"]{-webkit-mask-image:linear-gradient(to left,#000 85%,transparent);mask-image:linear-gradient(to left,#000 85%,transparent)}
+  header.top nav[data-inicio="false"][data-final="false"]{-webkit-mask-image:linear-gradient(to right,transparent,#000 15%,#000 85%,transparent);mask-image:linear-gradient(to right,transparent,#000 15%,#000 85%,transparent)}
+}

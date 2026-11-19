@@ -1,4 +1,4 @@
-import { useEffect, useLayoutEffect, useRef } from 'react';
+import { useEffect, useLayoutEffect, useRef, useState } from 'react';
 import { useConexion } from '../hooks/useConexion';
 import { Link, matchPath, NavLink, Outlet, useLocation } from 'react-router';
 import { useAuth } from '../context/AuthContext';
@@ -42,6 +42,8 @@ export function Layout() {
   const { pathname } = useLocation();
   const mainRef = useRef<HTMLElement>(null);
   const cabeceraRef = useRef<HTMLElement>(null);
+  const navRef = useRef<HTMLElement>(null);
+  const [bordesNav, setBordesNav] = useState({ inicio: true, final: true });
   const enLinea = useConexion();
 
   /**
@@ -71,6 +73,22 @@ export function Layout() {
     mainRef.current?.focus();
   }, [pathname]);
 
+  /** En móvil el menú se desplaza en horizontal: se lleva a la vista el enlace activo y un degradado avisa en qué lado quedan más enlaces. */
+  function revisarNav(): void {
+    const nav = navRef.current;
+    if (nav) setBordesNav({ inicio: nav.scrollLeft <= 4, final: nav.scrollLeft + nav.clientWidth >= nav.scrollWidth - 4 });
+  }
+  useEffect(() => {
+    const nav = navRef.current;
+    const activo = nav?.querySelector<HTMLElement>('a.active');
+    if (nav && activo) {
+      // Solo se desplaza si el enlace activo no se ve entero; si cabe, el menú empieza desde la izquierda.
+      const derecha = activo.offsetLeft + activo.offsetWidth;
+      nav.scrollLeft = derecha > nav.clientWidth ? derecha - nav.clientWidth + 24 : 0;
+    }
+    revisarNav();
+  }, [pathname, usuario]);
+
   // Derivado del rol de la sesión.
   const r = usuario?.rol ?? 0;
   const rol: RolVista = !r ? 'anonimo' : r & ROLE_ADMIN ? 'admin' : r & ROLE_MEDICO ? 'medico' : 'paciente';
@@ -90,7 +108,7 @@ export function Layout() {
       <header className="top" ref={cabeceraRef}>
         <div className="bar">
           <Link className="logo" to="/" aria-label="Curar, inicio"><Cruz />Curar</Link>
-          <nav aria-label="Principal">
+          <nav aria-label="Principal" ref={navRef} onScroll={revisarNav} data-inicio={bordesNav.inicio} data-final={bordesNav.final}>
             {rol === 'anonimo' && (<><NavLink to="/" end>Inicio</NavLink><NavLink to="/seguro">Buscar médico</NavLink><NavLink to="/centros">Centros</NavLink></>)}
             {rol === 'paciente' && (
               <>

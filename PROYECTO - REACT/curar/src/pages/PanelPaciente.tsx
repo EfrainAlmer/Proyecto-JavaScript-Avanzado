@@ -86,17 +86,17 @@ export function PanelPaciente() {
           <div className="panel-card">
             <h2><i className="bi bi-clock-history" />Historial de atenciones</h2>
             <div className="table-responsive">
-              <table className="table align-middle">
-                <thead><tr><th>Fecha</th><th>Médico</th><th>Motivo</th><th /></tr></thead>
+              <table className="table align-middle t-apilada">
+                <thead><tr><th scope="col">Fecha</th><th scope="col">Médico</th><th scope="col">Motivo</th><th scope="col"><span className="visually-hidden">Receta</span></th></tr></thead>
                 <tbody>
                   {atendidas.length > 0 ? (
                     atendidas.map((c) => {
                       const m = medico(c.medicoId);
                       return (
                         <tr key={c.id}>
-                          <td>{fechaMedia(c.fecha)}</td>
-                          <td>Dr(a). {m?.nombre ?? c.medicoId}<br /><small>{m?.especialidad}</small></td>
-                          <td>{c.motivo ?? 'Consulta médica'}</td>
+                          <td data-label="Fecha" style={{ whiteSpace: 'nowrap' }}>{fechaMedia(c.fecha)}</td>
+                          <td data-label="Médico">Dr(a). {m?.nombre ?? c.medicoId}<br /><small>{m?.especialidad}</small></td>
+                          <td data-label="Motivo">{c.motivo ?? 'Consulta médica'}</td>
                           <td>{tieneReceta(c) && <Link className="btn sm ghost" to="/recetas"><i className="bi bi-file-earmark-text" /> Ver receta</Link>}</td>
                         </tr>
                       );

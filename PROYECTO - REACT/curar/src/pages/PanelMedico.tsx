@@ -7,6 +7,9 @@ import { useCitasMedico, useCambiarEstadoCita } from '../queries/citas';
 import { textoError } from '../services/mensajeHttp';
 import type { Cita, EstadoCita } from '../types/cita';
 import { fechaCompleta, fechaCorta, hora12, isoLocal } from '../utils/formato';
+import { ordenarAgenda, porAtenderDesde } from '../utils/agenda';
+import { usePaginado } from '../hooks/usePaginado';
+import { MostrarMas } from '../components/MostrarMas';
 import { coincide } from '../utils/texto';
 import './PanelMedico.css';
 
@@ -64,16 +67,14 @@ export function PanelMedico() {
   const cuenta = (e: EstadoCita): number => citasMedico.filter((c) => c.estado === e).length;
   // Con cientos de citas por médico, la búsqueda usa el texto diferido y el resultado se memoriza.
   const qDiferida = useDeferredValue(q);
-  const visibles = useMemo(() => {
-    return citasMedico
-      .filter((c) => (filtro === 'Todas' || c.estado === filtro) && coincide(`${c.paciente ?? ''} ${c.dniPaciente}`, qDiferida))
-      .toSorted((a, b) => (a.fecha + a.hora).localeCompare(b.fecha + b.hora));
-  }, [citasMedico, filtro, qDiferida]);
-  // No depende de la búsqueda: escribir en el buscador no lo recalcula.
-  const porAtender = useMemo(
-    () => citasMedico.filter((c) => c.estado === 'Pendiente' || c.estado === 'Confirmada').toSorted((a, b) => (a.fecha + a.hora).localeCompare(b.fecha + b.hora)),
-    [citasMedico],
+  const visibles = useMemo(
+    () => ordenarAgenda(citasMedico.filter((c) => (filtro === 'Todas' || c.estado === filtro) && coincide(`${c.paciente ?? ''} ${c.dniPaciente}`, qDiferida)), hoyIso),
+    [citasMedico, filtro, qDiferida, hoyIso],
   );
+  // Bloques de 10: el panel muestra lo próximo; el resto se carga a demanda.
+  const pagina = usePaginado(visibles, `${filtro}|${qDiferida}`, 10);
+  // No depende de la búsqueda: escribir en el buscador no lo recalcula. Solo cuenta citas de hoy en adelante.
+  const porAtender = useMemo(() => porAtenderDesde(citasMedico, hoyIso), [citasMedico, hoyIso]);
   const siguiente = porAtender[0];
   const restantes = Math.max(0, porAtender.length - 1);
   const diaDe = (fecha: string): string => (fecha === hoyIso ? 'Hoy' : fechaCorta(fecha));
@@ -119,7 +120,7 @@ export function PanelMedico() {
           {visibles.length === 0 ? (
             <p className="tabla" role="status">{cargando ? 'Cargando…' : 'No hay citas para esta vista.'}</p>
           ) : (
-            visibles.map((c) => (
+            pagina.visibles.map((c) => (
               <article className="pm-cita" key={c.id} data-estado={c.estado}>
                 <div className="pm-hora">
                   <strong>{hora12(c.hora)}</strong>
@@ -151,6 +152,7 @@ export function PanelMedico() {
               </article>
             ))
           )}
+          <MostrarMas paginado={pagina} unidad="citas" />
         </section>
 
         <aside className="pm-lado">

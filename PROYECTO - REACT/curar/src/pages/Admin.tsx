@@ -1,5 +1,7 @@
 import { useCallback, useDeferredValue, useMemo, useReducer, useState, useTransition } from 'react';
 import { ADMIN_INICIAL, adminReducer, type PestanaAdmin } from '../components/admin/adminReducer';
+import { MostrarMas } from '../components/MostrarMas';
+import { usePaginado } from '../hooks/usePaginado';
 import { MedicoForm } from '../components/admin/MedicoForm';
 import { SupervisionCitas } from '../components/admin/SupervisionCitas';
 import { medicoInicial, type MedicoData, type MedicoInput } from '../model/medico';
@@ -59,6 +61,7 @@ export function Admin() {
   const medicosFiltrados = useMemo(() => {
     return medicos.filter((m) => coincide(`${m.nombre} ${m.cmp ?? ''} ${m.especialidad}`, qMedDiferido));
   }, [medicos, qMedDiferido]);
+  const paginaMedicos = usePaginado(medicosFiltrados, qMedDiferido, 20); // bloques de 20; buscar vuelve al primero
 
   const sedeDe = (id?: string): string => sedes.find((s) => s.id === id)?.nombre ?? 'Sin asignar';
 
@@ -152,16 +155,16 @@ export function Admin() {
           )}
           <div className="tabla" style={{ overflowX: 'auto' }}>
             <h2 style={{ fontSize: 20, marginBottom: 12 }}>Médicos registrados</h2>
-            <table className="table align-middle" style={{ margin: 0 }}>
+            <table className="table align-middle t-apilada" style={{ margin: 0 }}>
               <caption className="visually-hidden">Directorio médico</caption>
               <thead><tr><th scope="col">Médico</th><th scope="col">CMP</th><th scope="col">Especialidad</th><th scope="col">Sede</th><th scope="col">Estado</th><th scope="col">Acciones</th></tr></thead>
               <tbody>
                 {medicosFiltrados.length > 0 ? (
-                  medicosFiltrados.map((m) => (
+                  paginaMedicos.visibles.map((m) => (
                     <tr key={m.id}>
-                      <td><b>{m.nombre}</b></td><td>{m.cmp ?? '—'}</td><td>{m.especialidad}</td><td>{sedeDe(m.sedeId)}</td>
-                      <td><span className="pill" data-estado={m.estado ?? 'Activo'}>{m.estado ?? 'Activo'}</span></td>
-                      <td>
+                      <td data-label="Médico"><b>{m.nombre}</b></td><td data-label="CMP">{m.cmp ?? '—'}</td><td data-label="Especialidad">{m.especialidad}</td><td data-label="Sede">{sedeDe(m.sedeId)}</td>
+                      <td data-label="Estado"><span className="pill" data-estado={m.estado ?? 'Activo'}>{m.estado ?? 'Activo'}</span></td>
+                      <td data-label="Acciones">
                         <button className="btn sm ghost" type="button" onClick={() => editar(m)}>Editar</button>{' '}
                         {borrando === m.id ? (
                           <>
@@ -179,6 +182,7 @@ export function Admin() {
                 )}
               </tbody>
             </table>
+            <MostrarMas paginado={paginaMedicos} unidad="médicos" />
           </div>
         </>
       )}
