@@ -1,4 +1,4 @@
-import { Suspense, use, useEffect, useRef, useState } from 'react';
+import { Suspense, use, useEffect, useRef, useState, useEffectEvent } from 'react';
 import { useQueryClient } from '@tanstack/react-query';
 import { LimiteError } from '../components/LimiteError';
 import { useAuth } from '../context/AuthContext';
@@ -47,9 +47,12 @@ export function Recetas() {
     setPeticion({ id: secuencia.current, promesa });
   }
 
+  // useEffectEvent: el efecto solo se repite cuando cambia `dni`; `pedir` lee siempre la caché y el estado
+  // actuales sin ser dependencia. Así no hace falta suprimir la advertencia de dependencias (Lab 13).
+  const pedirAlEntrar = useEffectEvent((documento: string) => pedir(documento, false));
   useEffect(() => {
-    if (dni) pedir(dni, false);
-  }, [dni]); // eslint-disable-line react-hooks/exhaustive-deps -- `pedir` solo usa setState, refs y la caché (estables)
+    if (dni) pedirAlEntrar(dni);
+  }, [dni]);
 
   return (
     <section className="wrap" style={{ padding: '48px 20px' }}>

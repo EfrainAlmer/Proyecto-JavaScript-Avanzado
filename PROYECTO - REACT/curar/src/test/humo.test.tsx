@@ -239,6 +239,39 @@ describe('Prueba de humo: cada página se monta con datos reales de db.json', ()
     expect(JSON.parse(String((post?.[1] as RequestInit).body))).toMatchObject({ id: 'm54321', nombre: 'Rosa Quispe', sedeId: primeraSede?.id });
   });
 
+  it('Layout: avisa sin conexión (useSyncExternalStore) y compensa la cabecera fija (useLayoutEffect)', async () => {
+    await montar('/');
+    expect(document.documentElement.style.getPropertyValue('scroll-padding-top')).toMatch(/px$/u);
+    const enLinea = vi.spyOn(navigator, 'onLine', 'get').mockReturnValue(false);
+    act(() => { window.dispatchEvent(new Event('offline')); });
+    expect(screen.getByText(/Sin conexión a internet/u)).toBeInTheDocument();
+    enLinea.mockReturnValue(true);
+    act(() => { window.dispatchEvent(new Event('online')); });
+    expect(screen.queryByText(/Sin conexión a internet/u)).not.toBeInTheDocument();
+  });
+
+  it('/historial: el rango de fechas filtra, marca el intervalo invertido en "Hasta" y Limpiar restablece', async () => {
+    await montar('/historial', PACIENTE);
+    expect(await screen.findAllByText('2026-10-01', { exact: false })).toHaveLength(2); // atención + receta
+    const desde = screen.getByLabelText('Desde');
+    const hasta = screen.getByLabelText('Hasta');
+    fireEvent.change(desde, { target: { value: '2026-11-01' } });
+    fireEvent.change(hasta, { target: { value: '2026-10-01' } });
+    await userEvent.click(screen.getByRole('button', { name: 'Aplicar fechas' }));
+    expect(await screen.findByText('La fecha final no puede ser anterior a la de inicio.')).toBeInTheDocument();
+    expect(hasta).toHaveAttribute('aria-invalid', 'true');
+    expect(screen.getAllByText('2026-10-01', { exact: false })).toHaveLength(2); // un rango inválido no filtra
+
+    fireEvent.change(hasta, { target: { value: '2026-11-30' } });
+    await userEvent.click(screen.getByRole('button', { name: 'Aplicar fechas' }));
+    expect(await screen.findByText('No hay registros con estos filtros.')).toBeInTheDocument();
+
+    await userEvent.click(screen.getByRole('button', { name: 'Limpiar fechas' }));
+    expect(await screen.findAllByText('2026-10-01', { exact: false })).toHaveLength(2); // atención + receta
+    expect(desde).toHaveValue('');
+    expect(hasta).toHaveValue('');
+  });
+
   it('/admin: avanzar un reclamo lo escribe con useMutation y la lista se relee (invalidación)', async () => {
     const reclamo = { codigo: 'LR-1', tipo: 'Reclamo', nombre: 'Ana', dni: '12345678', correo: 'ana@ejemplo.pe', telefono: '999999999', domicilio: 'Lima', sede: 's1', servicio: 'Citas', detalle: 'Demora', pedido: 'Atención', fecha: '2026-11-18', estado: 'Recibido' };
     await fetch('/api/reclamos', { method: 'POST', body: JSON.stringify(reclamo) }); // la API falsa lo guarda
@@ -507,6 +540,37 @@ describe('Prueba de humo: cada página se monta con datos reales de db.json', ()
       expect(screen.getByText(/N\.º de cita:/u)).toBeInTheDocument(); // el recibo viene de la respuesta del POST
       const posts = espia.mock.calls.filter(([url, init]) => String(url).endsWith('/citas') && init?.method === 'POST');
       expect(posts).toHaveLength(1);
+    } finally {
+      vi.useRealTimers();
+    }
+  });
+
+  it('/reservar: un 409 del servidor muestra el conflicto, conserva lo escrito y no invalida ni relee citas', async () => {
+    vi.useFakeTimers({ toFake: ['Date'], now: new Date(2026, 10, 16, 8, 0) });
+    try {
+      const real = fetch;
+      const espia = vi.fn((url: string, init?: RequestInit) => {
+        // json-server nunca lo hace: simulamos el servidor real que rechaza una hora ya tomada.
+        if (String(url).endsWith('/citas') && init?.method === 'POST') return Promise.resolve(new Response('{}', { status: 409 }));
+        return real(url, init);
+      });
+      vi.stubGlobal('fetch', espia);
+      await montar('/reservar?medicoId=m1', PACIENTE);
+      const u = userEvent.setup();
+      await u.click(await screen.findByRole('button', { name: '09:30' }));
+      await u.type(screen.getByLabelText('Motivo de consulta'), 'Control');
+      await u.click(screen.getByRole('button', { name: 'Confirmar Reserva' }));
+
+      expect(await screen.findByText(/conflicto con otro cambio/u)).toBeInTheDocument();
+      expect(screen.queryByText('¡Cita confirmada exitosamente!')).not.toBeInTheDocument();
+      expect(screen.getByLabelText('Motivo de consulta')).toHaveValue('Control');
+      // Sin éxito no hay invalidación: después del POST rechazado no se vuelve a leer ninguna lista de citas.
+      const llamadas = espia.mock.calls;
+      const iPost = llamadas.findIndex(([url, init]) => String(url).endsWith('/citas') && init?.method === 'POST');
+      expect(iPost).toBeGreaterThan(-1);
+      const lecturasTrasPost = llamadas.slice(iPost + 1).filter(([url, init]) => String(url).includes('/citas') && (init?.method ?? 'GET') === 'GET');
+      expect(lecturasTrasPost).toHaveLength(0);
+      expect(llamadas.filter(([, init]) => init?.method === 'POST')).toHaveLength(1); // y no se reintenta
     } finally {
       vi.useRealTimers();
     }

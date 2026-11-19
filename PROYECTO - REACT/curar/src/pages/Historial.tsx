@@ -1,6 +1,8 @@
 import { useState } from 'react';
 import { Link } from 'react-router';
 import { FiltroBotones } from '../components/FiltroBotones';
+import { FiltroFechas } from '../components/FiltroFechas';
+import { dentroDelRango, type RangoFechasData } from '../model/rango';
 import { useAuth } from '../context/AuthContext';
 import { useCatalogo } from '../queries/catalogo';
 import { useCitasPaciente, useRecetas } from '../queries/citas';
@@ -23,6 +25,7 @@ export function Historial() {
   const { medicos } = useCatalogo(); // médicos y sedes: caché de TanStack Query
   const [tipo, setTipo] = useState<Tipo>('Todos');
   const [quien, setQuien] = useState('');
+  const [rango, setRango] = useState<RangoFechasData | null>(null); // último rango aplicado (ya validado)
   const dni = usuario?.dni;
   const lecturaCitas = useCitasPaciente(dni);
   const lecturaRecetas = useRecetas(dni);
@@ -41,7 +44,7 @@ export function Historial() {
   }));
   const items = [...atenciones, ...deRecetas].toSorted((a, b) => b.fecha.localeCompare(a.fecha));
   const nombres = [...new Set(items.map((i) => i.paciente))];
-  const visibles = items.filter((i) => (tipo === 'Todos' || i.tipo === tipo) && (!quien || i.paciente === quien));
+  const visibles = items.filter((i) => (tipo === 'Todos' || i.tipo === tipo) && (!quien || i.paciente === quien) && (!rango || dentroDelRango(i.fecha, rango)));
 
   return (
     <section className="wrap" style={{ padding: '48px 20px' }}>
@@ -56,9 +59,10 @@ export function Historial() {
           </select>
         </label>
       </div>
+      <FiltroFechas onAplicar={setRango} />
       <p className="err" role="alert">{textoError(lecturaCitas.error ?? lecturaRecetas.error)}</p>
       {visibles.length === 0 ? (
-        <p className="tabla" role="status">{cargando ? 'Cargando…' : 'Aún no hay registros en tu historial.'}</p>
+        <p className="tabla" role="status">{cargando ? 'Cargando…' : items.length > 0 ? 'No hay registros con estos filtros.' : 'Aún no hay registros en tu historial.'}</p>
       ) : (
         visibles.map((i) => (
           <article className="tabla" key={i.id}>

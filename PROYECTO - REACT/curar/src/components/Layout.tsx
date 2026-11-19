@@ -1,4 +1,5 @@
-import { useEffect, useRef } from 'react';
+import { useEffect, useLayoutEffect, useRef } from 'react';
+import { useConexion } from '../hooks/useConexion';
 import { Link, matchPath, NavLink, Outlet, useLocation } from 'react-router';
 import { useAuth } from '../context/AuthContext';
 import { Cruz } from './Logo';
@@ -40,6 +41,29 @@ export function Layout() {
   const { usuario, salir } = useAuth();
   const { pathname } = useLocation();
   const mainRef = useRef<HTMLElement>(null);
+  const cabeceraRef = useRef<HTMLElement>(null);
+  const enLinea = useConexion();
+
+  /**
+   * Lab 13 · useLayoutEffect: la cabecera es `position: sticky` y su alto cambia (el menú se parte en 2 líneas
+   * a 360 px, o según el rol). Sin compensarlo, al recorrer con Tab/Shift+Tab el campo enfocado puede quedar
+   * DEBAJO de la cabecera (WCAG 2.4.11). Se mide el DOM y se fija `scroll-padding-top` antes del pintado y antes
+   * de los useEffect, así el foco que mueve el efecto de abajo ya usa el margen correcto.
+   */
+  useLayoutEffect(() => {
+    const cabecera = cabeceraRef.current;
+    if (!cabecera) return;
+    const raiz = document.documentElement;
+    const aplicar = (): void => raiz.style.setProperty('scroll-padding-top', `${cabecera.offsetHeight + 8}px`);
+    aplicar();
+    if (typeof ResizeObserver === 'undefined') return () => raiz.style.removeProperty('scroll-padding-top');
+    const observador = new ResizeObserver(aplicar);
+    observador.observe(cabecera);
+    return () => {
+      observador.disconnect();
+      raiz.style.removeProperty('scroll-padding-top');
+    };
+  }, []);
 
   // Al cambiar de ruta: actualiza el título y lleva el foco al contenido (accesibilidad).
   useEffect(() => {
@@ -63,7 +87,7 @@ export function Layout() {
           <Link className="reclamos" to="/reclamaciones">Libro de Reclamaciones</Link>
         </div>
       </div>
-      <header className="top">
+      <header className="top" ref={cabeceraRef}>
         <div className="bar">
           <Link className="logo" to="/" aria-label="Curar, inicio"><Cruz />Curar</Link>
           <nav aria-label="Principal">
@@ -83,6 +107,12 @@ export function Layout() {
             <Link className="btn brand" to="/login">Iniciar sesión</Link>
           )}
         </div>
+        {/* Dentro de la cabecera fija: no la tapa y su alto entra en la medición de useLayoutEffect. */}
+        {!enLinea && (
+          <p className="sin-red" role="status">
+            Sin conexión a internet. Lo que ves puede estar desactualizado y las acciones fallarán hasta que vuelva la red.
+          </p>
+        )}
       </header>
       <main id="main" tabIndex={-1} ref={mainRef}>
         <Outlet />

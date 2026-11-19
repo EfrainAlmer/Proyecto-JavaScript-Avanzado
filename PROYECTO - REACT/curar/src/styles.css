@@ -202,3 +202,6 @@ label.chk{display:flex;gap:10px;align-items:flex-start;font-weight:400;font-size
 .btn.sm { padding: 8px 14px; font-size: 13px; }
 .stat.violet { border-left-color: var(--violet); }
 
+
+/* Lab 13 · aviso de conectividad (useConexion) */
+.sin-red{max-width:1180px;margin:8px auto 0;padding:10px 16px;border-radius:var(--r-btn);background:#FFF4D6;color:#7A4B00;font-weight:600;text-align:center}
