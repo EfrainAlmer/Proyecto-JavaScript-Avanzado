@@ -1,0 +1,5 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 26 26">
+  <!-- Marca de Curar: la misma cruz del logo (.logo .cross) sobre el azul marino de la marca. -->
+  <rect width="26" height="26" rx="9" fill="#000B33"/>
+  <path transform="translate(6 6)" d="M5 0h4v5h5v4H9v5H5V9H0V5h5z" fill="#fff"/>
+</svg>

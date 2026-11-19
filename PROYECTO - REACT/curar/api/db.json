@@ -35785,7 +35785,13 @@
       "indicaciones": "Una tableta cada 8 horas por 3 días"
     }
   ],
-  "favoritos": [],
+  "favoritos": [
+    {
+      "dni": "12345678",
+      "medicoId": "m80024",
+      "id": "axHjbqZ47d0"
+    }
+  ],
   "mensajes": [
     {
       "id": "s1",
@@ -35814,5 +35820,6 @@
       "puntaje": 3,
       "fecha": "2026-09-28"
     }
-  ]
+  ],
+  "$schema": "./node_modules/json-server/schema.json"
 }

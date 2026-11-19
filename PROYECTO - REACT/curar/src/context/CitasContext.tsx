@@ -26,8 +26,8 @@ export interface CitasValue {
   cargarCitasMedico: (id: string) => void;
   cargarFamiliares: (dni: string) => void;
   cargarFavoritos: (dni: string) => void;
-  /** Devuelve si la API confirmó el cambio (lo usa el botón optimista para saber si debe revertir). */
-  alternarFavorito: (dni: string, medicoId: string) => Promise<boolean>;
+  /** Devuelve `null` si la API confirmó el cambio, o el mensaje de error (el botón optimista lo muestra junto a la estrella). */
+  alternarFavorito: (dni: string, medicoId: string) => Promise<string | null>;
   reservar: (borrador: BorradorCita, ok: () => void) => void;
   cancelar: (id: string) => void;
   atender: (id: string) => void;
@@ -61,9 +61,16 @@ export function CitasProvider({ children }: { readonly children: ReactNode }) {
     }
   }, []);
 
-  /** Guarda algo en la API: guardadoIniciado → acción de éxito | guardadoFallido. Ignora clics repetidos. */
-  const guardar = useCallback(async <T,>(promesa: () => Promise<T>, accionExito: (valor: T) => AccionCitas): Promise<Salida<T>> => {
-    if (guardandoRef.current) return { ok: false };
+  /**
+   * Guarda algo en la API: guardadoIniciado → acción de éxito | guardadoFallido. Ignora clics repetidos.
+   * Con `errorGlobal: false` el mensaje no se publica en `error` del contexto: lo muestra quien llamó (evita avisos duplicados).
+   */
+  const guardar = useCallback(async <T,>(
+    promesa: () => Promise<T>,
+    accionExito: (valor: T) => AccionCitas,
+    { errorGlobal = true }: { readonly errorGlobal?: boolean } = {},
+  ): Promise<Salida<T> & { readonly error?: string }> => {
+    if (guardandoRef.current) return { ok: false, error: 'Hay otra operación en curso.' };
     guardandoRef.current = true;
     dispatch({ type: 'guardadoIniciado' });
     try {
@@ -71,8 +78,9 @@ export function CitasProvider({ children }: { readonly children: ReactNode }) {
       dispatch(accionExito(valor));
       return { ok: true, valor };
     } catch (e) {
-      dispatch({ type: 'guardadoFallido', error: mensajeHttp(e) });
-      return { ok: false };
+      const error = mensajeHttp(e);
+      dispatch({ type: 'guardadoFallido', error: errorGlobal ? error : '' });
+      return { ok: false, error };
     } finally {
       guardandoRef.current = false;
     }
@@ -108,13 +116,12 @@ export function CitasProvider({ children }: { readonly children: ReactNode }) {
   }, [cargar]);
 
   const { favoritos } = estado;
-  const alternarFavorito = useCallback(async (dni: string, medicoId: string): Promise<boolean> => {
+  const alternarFavorito = useCallback(async (dni: string, medicoId: string): Promise<string | null> => {
     const existente = favoritos.find((f) => f.medicoId === medicoId);
-    if (existente?.id) {
-      const id = existente.id;
-      return (await guardar(() => curarApi.quitarFavorito(id), () => ({ type: 'favoritoQuitado', id }))).ok;
-    }
-    return (await guardar(() => curarApi.agregarFavorito({ dni, medicoId }), (favorito) => ({ type: 'favoritoAgregado', favorito }))).ok;
+    const r = existente?.id
+      ? await guardar(() => curarApi.quitarFavorito(existente.id ?? ''), () => ({ type: 'favoritoQuitado', id: existente.id ?? '' }), { errorGlobal: false })
+      : await guardar(() => curarApi.agregarFavorito({ dni, medicoId }), (favorito) => ({ type: 'favoritoAgregado', favorito }), { errorGlobal: false });
+    return r.ok ? null : (r.error ?? 'Error desconocido.');
   }, [favoritos, guardar]);
 
   const reservar = useCallback((borrador: BorradorCita, ok: () => void): void => {

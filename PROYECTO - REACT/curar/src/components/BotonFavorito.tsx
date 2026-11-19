@@ -28,9 +28,9 @@ export function BotonFavorito({ medicoId, className, children }: BotonFavoritoPr
     setAviso('');
     startTransition(async () => {
       fijarOptimista(!esFavorito); // se ve ya; React lo descarta al terminar la transición
-      const ok = await alternarFavorito(usuario.dni, medicoId);
-      if (!ok) setAviso('No se pudo actualizar el favorito. Intenta de nuevo.');
-      // Si ok: el contexto ya cambió `favoritos`, así que el valor real coincide con el optimista.
+      const error = await alternarFavorito(usuario.dni, medicoId);
+      if (error) setAviso(`No se pudo actualizar el favorito. ${error}`);
+      // Si salió bien: el contexto ya cambió `favoritos`, así que el valor real coincide con el optimista.
       // Si falló: el valor real no cambió y la estrella vuelve sola a como estaba.
     });
   }

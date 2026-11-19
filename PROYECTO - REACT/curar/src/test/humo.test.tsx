@@ -417,7 +417,9 @@ describe('Prueba de humo: cada página se monta con datos reales de db.json', ()
       respuesta.resolve(new Response('', { status: 500 }));
     });
     expect(boton).toHaveAttribute('aria-pressed', 'false'); // revertido sin código de "deshacer"
-    expect(screen.getByText('No se pudo actualizar el favorito. Intenta de nuevo.')).toBeInTheDocument();
+    expect(screen.getByText('No se pudo actualizar el favorito. La API falló. Intenta más tarde.')).toBeInTheDocument();
+    // Un solo aviso: el error no se repite en el mensaje general de la página.
+    expect(screen.getAllByText(/La API falló/u)).toHaveLength(1);
   });
 });
 
