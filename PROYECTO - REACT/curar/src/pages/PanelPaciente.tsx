@@ -3,6 +3,7 @@ import { Link } from 'react-router';
 import { TarjetaCita } from '../components/TarjetaCita';
 import { useAuth } from '../context/AuthContext';
 import { useCitas } from '../context/CitasContext';
+import { useCatalogo } from '../queries/catalogo';
 import { useCarga } from '../hooks/useCarga';
 import { curarApi } from '../services/curarApi';
 import type { Cita, Receta } from '../types/cita';
@@ -11,7 +12,8 @@ import './PanelPaciente.css';
 
 export function PanelPaciente() {
   const { usuario } = useAuth();
-  const { citas, medicos, sedes, familiares, cargando: cargandoStore, guardando, error: errorStore, cargarCitas, cargarMedicos, cargarSedes, cargarFamiliares, cancelar } = useCitas();
+  const { citas, familiares, cargando: cargandoStore, guardando, error: errorStore, cargarCitas, cargarFamiliares, cancelar } = useCitas();
+  const { medicos, sedes } = useCatalogo(); // médicos y sedes: caché de TanStack Query
   const { error, ejecutar } = useCarga();
   const [recetas, setRecetas] = useState<readonly Receta[]>([]);
   const [confirmando, setConfirmando] = useState('');
@@ -20,11 +22,9 @@ export function PanelPaciente() {
   useEffect(() => {
     if (!dni) return;
     cargarCitas(dni);
-    cargarMedicos();
-    cargarSedes();
     cargarFamiliares(dni);
     void ejecutar(curarApi.recetas(dni)).then((r) => r.ok && setRecetas(r.valor));
-  }, [dni, cargarCitas, cargarMedicos, cargarSedes, cargarFamiliares, ejecutar]);
+  }, [dni, cargarCitas, cargarFamiliares, ejecutar]);
 
   // Derivados (se calculan al vuelo; `sort` actúa sobre copias producidas por `filter`).
   const proximas = citas

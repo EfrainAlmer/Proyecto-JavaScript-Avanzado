@@ -1,7 +1,9 @@
+import { QueryClientProvider } from '@tanstack/react-query';
 import { render } from '@testing-library/react';
 import { MemoryRouter, useLocation } from 'react-router';
 import App from '../App';
-import type { ReactNode } from 'react';
+import { crearClienteConsultas } from '../queries/cliente';
+import { useState, type ReactNode } from 'react';
 import { vi } from 'vitest';
 import { AuthProvider } from '../context/AuthContext';
 import { CitasProvider } from '../context/CitasContext';
@@ -9,12 +11,16 @@ import { FlujoProvider } from '../context/FlujoContext';
 
 /** Proveedores globales para probar hooks y componentes. */
 export function Proveedores({ children }: { readonly children: ReactNode }) {
+  // Caché nueva por prueba: ningún dato se filtra de una prueba a otra.
+  const [consultas] = useState(crearClienteConsultas);
   return (
+    <QueryClientProvider client={consultas}>
     <AuthProvider>
       <FlujoProvider>
         <CitasProvider>{children}</CitasProvider>
       </FlujoProvider>
     </AuthProvider>
+    </QueryClientProvider>
   );
 }
 
@@ -45,10 +51,12 @@ export function montarApp(ruta: string) {
     return null;
   }
   render(
-    <MemoryRouter initialEntries={[ruta]}>
-      <App />
-      <Sonda />
-    </MemoryRouter>,
+    <QueryClientProvider client={crearClienteConsultas()}>
+      <MemoryRouter initialEntries={[ruta]}>
+        <App />
+        <Sonda />
+      </MemoryRouter>
+    </QueryClientProvider>,
   );
   return actual;
 }

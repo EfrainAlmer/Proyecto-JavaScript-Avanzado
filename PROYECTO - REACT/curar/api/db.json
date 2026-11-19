@@ -48,10 +48,18 @@
   "medicos": [
     {
       "id": "m1",
-      "nombre": "Franco Espinola",
+      "nombre": "Franz Espinola",
       "especialidad": "Medicina General",
       "calificacion": 4.2,
       "centro": "Hospitales",
+      "horario": [
+        "08:00",
+        "09:30",
+        "10:00",
+        "11:15",
+        "15:30",
+        "16:00"
+      ],
       "sedeId": "s3",
       "cmp": "54321",
       "estado": "Activo",
@@ -60,14 +68,6 @@
       "reconocimientos": [
         "Primer puesto en investigación clínica",
         "Reconocimiento por atención al adulto mayor"
-      ],
-      "horario": [
-        "08:00",
-        "09:30",
-        "10:00",
-        "11:15",
-        "15:30",
-        "16:00"
       ],
       "foto": "/medicos/m1.jpg"
     },

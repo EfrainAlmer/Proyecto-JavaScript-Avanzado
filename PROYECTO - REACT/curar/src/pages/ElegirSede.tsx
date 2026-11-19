@@ -1,20 +1,19 @@
 import { useEffect, useState } from 'react';
 import { Link, useNavigate } from 'react-router';
-import { useCitas } from '../context/CitasContext';
+import { useCatalogo } from '../queries/catalogo';
 import { useFlujo } from '../context/FlujoContext';
 
 const TIPOS = ['Todos', 'Hospitales', 'Policlínicos', 'Clínicas'] as const;
 
 export function ElegirSede() {
-  const { sedes, cargando, error, cargarSedes } = useCitas();
+  const { sedes, cargando, error } = useCatalogo();
   const { flujo, actualizarFlujo } = useFlujo();
   const navigate = useNavigate();
   const [tipo, setTipo] = useState<string>(flujo.tipo || 'Todos');
 
   useEffect(() => {
     if (!flujo.seguro) void navigate('/seguro', { replace: true });
-    cargarSedes();
-  }, [flujo.seguro, navigate, cargarSedes]);
+  }, [flujo.seguro, navigate]);
 
   // Derivado: se calcula en el render a partir de las sedes y los filtros.
   const visibles = sedes.filter((s) => (!flujo.seguro || s.seguros.includes(flujo.seguro)) && (tipo === 'Todos' || s.tipo === tipo));

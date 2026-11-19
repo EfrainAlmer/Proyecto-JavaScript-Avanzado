@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { Link, useNavigate } from 'react-router';
-import { useCitas } from '../context/CitasContext';
+import { useCatalogo } from '../queries/catalogo';
 import { useFlujo } from '../context/FlujoContext';
 import { coincide } from '../utils/texto';
 import { decimal1 } from '../utils/formato';
@@ -8,7 +8,7 @@ import { decimal1 } from '../utils/formato';
 const ESPECIALIDADES = ['Medicina General', 'Pediatría', 'Cardiología', 'Ginecología', 'Geriatría'] as const;
 
 export function Medicos() {
-  const { activos, sedes, cargando, error, cargarMedicos, cargarSedes } = useCitas();
+  const { activos, sedes, cargando, error } = useCatalogo();
   const { flujo } = useFlujo();
   const navigate = useNavigate();
   const [nombre, setNombre] = useState('');
@@ -17,9 +17,7 @@ export function Medicos() {
   useEffect(() => {
     if (!flujo.seguro) void navigate('/seguro', { replace: true });
     else if (!flujo.sede) void navigate('/sede', { replace: true });
-    cargarMedicos();
-    cargarSedes();
-  }, [flujo.seguro, flujo.sede, navigate, cargarMedicos, cargarSedes]);
+  }, [flujo.seguro, flujo.sede, navigate]);
 
   // Estado derivado: nada de useState/useEffect para la lista filtrada.
   const nombreSede = sedes.find((s) => s.id === flujo.sede)?.nombre ?? '';

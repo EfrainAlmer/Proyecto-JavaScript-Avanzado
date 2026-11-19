@@ -18,11 +18,20 @@ function apiFalsa() {
     const lista = datos[coleccion] ?? [];
     const metodo = init?.method ?? 'GET';
     const cuerpo = init?.body ? (JSON.parse(String(init.body)) as Registro) : {};
+    // La API falsa GUARDA los cambios (como json-server): tras invalidar, el GET siguiente ve lo escrito.
     let salida: unknown = lista;
-    if (metodo === 'GET' && id) salida = lista.find((r) => String(r['id']) === id) ?? {};
-    else if (metodo === 'POST') salida = { id: `nuevo-${lista.length}`, ...cuerpo };
-    else if (metodo === 'PATCH' || metodo === 'PUT') salida = { ...(lista.find((r) => String(r['id']) === id) ?? {}), ...cuerpo };
-    else if (metodo === 'DELETE') salida = {};
+    const i = lista.findIndex((r) => String(r['id']) === id);
+    if (metodo === 'GET' && id) salida = lista[i] ?? {};
+    else if (metodo === 'POST') {
+      salida = { id: `nuevo-${lista.length}`, ...cuerpo };
+      datos[coleccion] = [...lista, salida as Registro];
+    } else if (metodo === 'PATCH' || metodo === 'PUT') {
+      salida = { ...(lista[i] ?? {}), ...cuerpo };
+      datos[coleccion] = lista.map((r, j) => (j === i ? (salida as Registro) : r));
+    } else if (metodo === 'DELETE') {
+      salida = {};
+      datos[coleccion] = lista.filter((_r, j) => j !== i);
+    }
     return Promise.resolve(new Response(JSON.stringify(salida), { status: 200 }));
   }));
 }
@@ -421,6 +430,22 @@ describe('Prueba de humo: cada página se monta con datos reales de db.json', ()
     expect(screen.getByText('No se pudo actualizar el favorito. La API falló. Intenta más tarde.')).toBeInTheDocument();
     // Un solo aviso: el error no se repite en el mensaje general de la página.
     expect(screen.getAllByText(/La API falló/u)).toHaveLength(1);
+  });
+
+  it('/centros: si falla PUBLICAR un comentario, la lista leída se conserva y el error se muestra aparte', async () => {
+    const real = fetch;
+    vi.stubGlobal('fetch', vi.fn((url: string, init?: RequestInit) =>
+      String(url).endsWith('/comentarios') && init?.method === 'POST' ? Promise.resolve(new Response('', { status: 500 })) : real(url, init),
+    ));
+    await montar('/centros', PACIENTE);
+    const u = userEvent.setup();
+    await u.click((await screen.findAllByRole('button', { name: 'Ver comentarios' }))[1] as HTMLElement); // Policlínico Santa Cruz (tiene 1)
+    expect(await screen.findByText(/Atención ordenada y puntual/u)).toBeInTheDocument();
+    await u.type(screen.getByLabelText('Tu comentario'), 'Muy buena atención');
+    await u.click(screen.getByRole('button', { name: 'Publicar comentario' }));
+    expect(await screen.findByText('No se publicó tu comentario. La API falló. Intenta más tarde.')).toBeInTheDocument();
+    expect(screen.getByText(/Atención ordenada y puntual/u)).toBeInTheDocument(); // la lectura no se perdió
+    expect(screen.getByLabelText('Tu comentario')).toHaveValue('Muy buena atención'); // y lo escrito tampoco
   });
 });
 

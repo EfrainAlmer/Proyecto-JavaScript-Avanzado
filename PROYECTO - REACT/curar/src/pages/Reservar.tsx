@@ -6,6 +6,7 @@ import { Link, useSearchParams } from 'react-router';
 import { FieldMessage } from '../components/FieldMessage';
 import { useAuth } from '../context/AuthContext';
 import { useCitas } from '../context/CitasContext';
+import { useCatalogo } from '../queries/catalogo';
 import { useFlujo } from '../context/FlujoContext';
 import { useCarga } from '../hooks/useCarga';
 import { ESPECIALIDADES } from '../model/medico';
@@ -31,7 +32,8 @@ const esSeguro = (s: string | null | undefined): s is Seguro => s === 'EsSalud' 
 export function Reservar() {
   const { usuario } = useAuth();
   const { flujo } = useFlujo();
-  const { medicos, sedes, activos, familiares, cargando, guardando, error, setError: setErrorStore, cargarMedicos, cargarSedes, cargarFavoritos, cargarFamiliares, reservar } = useCitas();
+  const { familiares, guardando, error, setError: setErrorStore, cargarFavoritos, cargarFamiliares, reservar } = useCitas();
+  const { medicos, sedes, activos, cargando: cargandoCatalogo } = useCatalogo(); // médicos y sedes: caché de TanStack Query
   const [params] = useSearchParams();
   const medicoParam = params.get('medicoId');
   const paraParam = params.get('para');
@@ -86,9 +88,7 @@ export function Reservar() {
 
   useEffect(() => {
     setErrorStore('');
-    cargarMedicos();
-    cargarSedes();
-  }, [setErrorStore, cargarMedicos, cargarSedes]);
+  }, [setErrorStore]);
 
   const dni = usuario?.dni;
   useEffect(() => {
@@ -296,7 +296,7 @@ export function Reservar() {
                   </button>
                 ))
               ) : (
-                <p className="tabla" role="status">{cargando ? 'Cargando sedes…' : `No hay sedes con ${seguro} que atiendan ${especialidad}. Vuelve atrás y prueba otra combinación.`}</p>
+                <p className="tabla" role="status">{cargandoCatalogo ? 'Cargando sedes…' : `No hay sedes con ${seguro} que atiendan ${especialidad}. Vuelve atrás y prueba otra combinación.`}</p>
               )}
             </div>
             <FieldMessage id="sede-error" message={errors.sedeId?.message} />
@@ -325,7 +325,7 @@ export function Reservar() {
                   </div>
                 ))
               ) : (
-                <p className="tabla" role="status">{cargando ? 'Cargando médicos…' : `No hay médicos de ${especialidad} en esta sede.`}</p>
+                <p className="tabla" role="status">{cargandoCatalogo ? 'Cargando médicos…' : `No hay médicos de ${especialidad} en esta sede.`}</p>
               )}
             </div>
             <FieldMessage id="medico-error" message={errors.medicoId?.message} />

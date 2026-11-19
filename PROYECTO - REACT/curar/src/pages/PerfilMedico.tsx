@@ -2,6 +2,8 @@ import { useEffect } from 'react';
 import { Link, useParams } from 'react-router';
 import { useAuth } from '../context/AuthContext';
 import { useCitas } from '../context/CitasContext';
+import { useMedico, useSedes } from '../queries/catalogo';
+import { mensajeHttp } from '../services/mensajeHttp';
 import { decimal1 } from '../utils/formato';
 import { BotonFavorito } from '../components/BotonFavorito';
 import { valoracion } from '../utils/valoracion';
@@ -9,17 +11,19 @@ import { valoracion } from '../utils/valoracion';
 export function PerfilMedico() {
   const { id = '' } = useParams();
   const { usuario } = useAuth();
-  const { medicos, sedes, cargando, error, cargarMedicos, cargarSedes, cargarFavoritos } = useCitas();
+  const { cargarFavoritos } = useCitas();
+  // Clave ['medicos', id]: cuelga de ['medicos'], así que si el admin edita al médico, este perfil también se actualiza.
+  const medico = useMedico(id);
+  const sedes = useSedes();
   const dni = usuario?.dni;
 
   useEffect(() => {
-    cargarMedicos();
-    cargarSedes();
     if (dni) cargarFavoritos(dni);
-  }, [dni, cargarMedicos, cargarSedes, cargarFavoritos]);
+  }, [dni, cargarFavoritos]);
 
-  const m = medicos.find((x) => x.id === id);
-  const sede = sedes.find((s) => s.id === m?.sedeId)?.nombre ?? 'Sede por asignar';
+  const m = medico.data;
+  const sede = sedes.data?.find((s) => s.id === m?.sedeId)?.nombre ?? 'Sede por asignar';
+  const error = medico.error ?? sedes.error;
 
   return (
     <section className="wrap" style={{ padding: '48px 20px' }}>
@@ -62,9 +66,9 @@ export function PerfilMedico() {
           </div>
         </>
       ) : (
-        <p className="tabla" role="status">{cargando ? 'Cargando perfil…' : 'No encontramos a este médico.'}</p>
+        <p className="tabla" role="status">{medico.isPending ? 'Cargando perfil…' : 'No encontramos a este médico.'}</p>
       )}
-      <p className="err" role="alert">{error}</p>
+      <p className="err" role="alert">{error ? mensajeHttp(error) : ''}</p>
     </section>
   );
 }

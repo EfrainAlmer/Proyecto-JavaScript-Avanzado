@@ -3,6 +3,7 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { CODIGO_DEMO, useAuth } from '../context/AuthContext';
 import { useCitas } from '../context/CitasContext';
 import { useFlujo } from '../context/FlujoContext';
+import { useCatalogo } from '../queries/catalogo';
 import { Proveedores, simularFetch } from './utilidades';
 
 beforeEach(() => {
@@ -33,8 +34,8 @@ describe('CitasProvider', () => {
       { id: 'b', nombre: 'B', especialidad: 'X', calificacion: 4, centro: 'c', horario: [], estado: 'Inactivo' },
     ];
     simularFetch(() => medicos);
-    const { result } = renderHook(() => useCitas(), { wrapper: Proveedores });
-    act(() => result.current.cargarMedicos());
+    // Lab 14: los médicos viven en TanStack Query; `activos` se deriva con `select`, sin guardarse aparte.
+    const { result } = renderHook(() => useCatalogo(), { wrapper: Proveedores });
     await waitFor(() => expect(result.current.medicos).toHaveLength(2));
     expect(result.current.activos.map((m) => m.id)).toEqual(['a']);
   });
@@ -42,7 +43,7 @@ describe('CitasProvider', () => {
   it('muestra un mensaje legible cuando la API no responde', async () => {
     vi.stubGlobal('fetch', vi.fn(() => Promise.reject(new TypeError('red caída'))));
     const { result } = renderHook(() => useCitas(), { wrapper: Proveedores });
-    act(() => result.current.cargarSedes());
+    act(() => result.current.cargarCitas('12345678'));
     await waitFor(() => expect(result.current.error).toContain('No se pudo contactar la API'));
   });
 });

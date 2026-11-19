@@ -1,14 +1,13 @@
 import { zodResolver } from '@hookform/resolvers/zod';
 import { Campo } from '../components/Campo';
-import { useEffect, useState } from 'react';
+import { useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { Link } from 'react-router';
 import { useAuth } from '../context/AuthContext';
-import { useCitas } from '../context/CitasContext';
-import { useCarga } from '../hooks/useCarga';
+import { useCatalogo, useComentarios, useCrearComentario } from '../queries/catalogo';
+import { mensajeHttp } from '../services/mensajeHttp';
 import { comentarioInicial, comentarioSchema, type ComentarioData, type ComentarioInput } from '../model/comentario';
-import { curarApi } from '../services/curarApi';
-import type { Comentario, Sede } from '../types/cita';
+import type { Sede } from '../types/cita';
 
 const TIPOS = ['Todos', 'Hospitales', 'Policlínicos', 'Clínicas'] as const;
 
@@ -16,22 +15,18 @@ const urlMapa = (s: Sede): string => `https://www.google.com/maps/search/?api=1&
 
 export function Centros() {
   const { usuario } = useAuth();
-  const { sedes, activos, cargando: cargandoStore, error: errorStore, cargarSedes, cargarMedicos } = useCitas();
-  const { error, ejecutar } = useCarga();
+  const { sedes, activos, cargando: cargandoCatalogo, error: errorCatalogo } = useCatalogo();
+  const lectura = useComentarios();
+  const escritura = useCrearComentario();
   const [tipo, setTipo] = useState<string>('Todos');
   const [sel, setSel] = useState('');
-  const [comentarios, setComentarios] = useState<readonly Comentario[]>([]);
   const { register, handleSubmit, reset, formState: { errors, isSubmitting } } = useForm<ComentarioInput, unknown, ComentarioData>({
     resolver: zodResolver(comentarioSchema),
     defaultValues: comentarioInicial(),
     mode: 'onBlur',
   });
 
-  useEffect(() => {
-    cargarSedes();
-    cargarMedicos();
-    void ejecutar(curarApi.comentarios()).then((r) => r.ok && setComentarios(r.valor));
-  }, [cargarSedes, cargarMedicos, ejecutar]);
+  const comentarios = lectura.data ?? [];
 
   const visibles = sedes.filter((s) => tipo === 'Todos' || s.tipo === tipo);
   const delSel = comentarios.filter((c) => c.sedeId === sel);
@@ -47,12 +42,13 @@ export function Centros() {
 
   async function comentar(data: ComentarioData): Promise<void> {
     if (!usuario || !sel) return;
-    const r = await ejecutar(curarApi.crearComentario({
-      sedeId: sel, autor: usuario.nombre.split(' ')[0] ?? 'Paciente', ...data, fecha: new Date().toISOString().slice(0, 10),
-    }));
-    if (!r.ok) return;
-    setComentarios((l) => [r.valor, ...l]);
-    reset(comentarioInicial());
+    if (escritura.isPending) return;
+    try {
+      await escritura.mutateAsync({ sedeId: sel, autor: usuario.nombre.split(' ')[0] ?? 'Paciente', ...data, fecha: new Date().toISOString().slice(0, 10) });
+      reset(comentarioInicial()); // la lista se actualiza sola: onSuccess invalida ['comentarios']
+    } catch {
+      // El error de ESCRITURA se muestra junto al formulario (escritura.error); la lista no se toca.
+    }
   }
 
   return (
@@ -64,10 +60,10 @@ export function Centros() {
           <button key={t} type="button" className={`btn${tipo === t ? '' : ' ghost'}`} aria-pressed={tipo === t} onClick={() => setTipo(t)}>{t}</button>
         ))}
       </div>
-      <p className="err" role="alert">{errorStore}{error}</p>
+      <p className="err" role="alert">{errorCatalogo}{lectura.error ? ` ${mensajeHttp(lectura.error)}` : ''}</p>
       <div className="docs">
         {visibles.length === 0 ? (
-          <p className="tabla" role="status">{cargandoStore ? 'Cargando centros…' : 'No hay centros de este tipo.'}</p>
+          <p className="tabla" role="status">{cargandoCatalogo ? 'Cargando centros…' : 'No hay centros de este tipo.'}</p>
         ) : (
           visibles.map((s) => (
             <article className="tabla" key={s.id}>
@@ -106,7 +102,8 @@ export function Centros() {
                 </select>
               </label>
               <Campo label="Tu comentario" error={errors.texto?.message}>{(a11y) => <input maxLength={300} {...a11y} {...register('texto')} />}</Campo>
-              <button className="btn brand" type="submit" disabled={isSubmitting}>Publicar comentario</button>
+              <button className="btn brand" type="submit" disabled={isSubmitting || escritura.isPending}>Publicar comentario</button>
+              {escritura.error && <p className="err" role="alert">No se publicó tu comentario. {mensajeHttp(escritura.error)}</p>}
             </form>
           ) : (
             <p><Link to="/login" className="link">Inicia sesión</Link> para comentar.</p>

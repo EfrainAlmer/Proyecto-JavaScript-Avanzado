@@ -2,13 +2,11 @@ import { createContext, useCallback, useContext, useMemo, useReducer, useRef, ty
 import type { Salida } from '../services/carga';
 import { curarApi } from '../services/curarApi';
 import { mensajeHttp } from '../services/mensajeHttp';
-import type { BorradorCita, Cita, Familiar, Favorito, Medico, Sede } from '../types/cita';
+import type { BorradorCita, Cita, Familiar, Favorito } from '../types/cita';
 import { citasReducer, ESTADO_INICIAL, type AccionCitas } from './citasReducer';
 
 export interface CitasValue {
-  readonly medicos: readonly Medico[];
   readonly citas: readonly Cita[];
-  readonly sedes: readonly Sede[];
   readonly citasMedico: readonly Cita[];
   readonly familiares: readonly Familiar[];
   readonly favoritos: readonly Favorito[];
@@ -18,10 +16,7 @@ export interface CitasValue {
   // Valores derivados: se calculan del estado, no se guardan.
   readonly total: number;
   readonly activas: number;
-  readonly activos: readonly Medico[];
   setError: (mensaje: string) => void;
-  cargarMedicos: () => void;
-  cargarSedes: () => void;
   cargarCitas: (dni: string) => void;
   cargarCitasMedico: (id: string) => void;
   cargarFamiliares: (dni: string) => void;
@@ -34,9 +29,6 @@ export interface CitasValue {
   cancelarMedico: (id: string) => void;
   agregarFamiliar: (familiar: Familiar) => Promise<Salida<Familiar>>;
   quitarFamiliar: (id: string) => Promise<Salida<unknown>>;
-  /** Refleja en la lista local un médico creado o editado por el administrador. */
-  medicoGuardado: (medico: Medico) => void;
-  medicoEliminado: (id: string) => void;
 }
 
 const CitasContext = createContext<CitasValue | null>(null);
@@ -46,8 +38,6 @@ export function CitasProvider({ children }: { readonly children: ReactNode }) {
 
   // Las referencias cambian al instante (no esperan al re-render): evitan peticiones duplicadas.
   const guardandoRef = useRef(false);
-  const medicosPedidos = useRef(false);
-  const sedesPedidas = useRef(false);
 
   /** Carga una colección: cargaIniciada → cargado | cargaFallida. */
   const cargar = useCallback(async <T,>(promesa: Promise<T>, accionExito: (datos: T) => AccionCitas): Promise<boolean> => {
@@ -85,22 +75,6 @@ export function CitasProvider({ children }: { readonly children: ReactNode }) {
       guardandoRef.current = false;
     }
   }, []);
-
-  const cargarMedicos = useCallback((): void => {
-    if (medicosPedidos.current) return;
-    medicosPedidos.current = true;
-    void cargar(curarApi.medicos(), (datos) => ({ type: 'cargado', coleccion: 'medicos', datos })).then((ok) => {
-      if (!ok) medicosPedidos.current = false;
-    });
-  }, [cargar]);
-
-  const cargarSedes = useCallback((): void => {
-    if (sedesPedidas.current) return;
-    sedesPedidas.current = true;
-    void cargar(curarApi.sedes(), (datos) => ({ type: 'cargado', coleccion: 'sedes', datos })).then((ok) => {
-      if (!ok) sedesPedidas.current = false;
-    });
-  }, [cargar]);
 
   const cargarCitas = useCallback((dni: string): void => {
     void cargar(curarApi.citas(dni), (datos) => ({ type: 'cargado', coleccion: 'citas', datos }));
@@ -144,23 +118,20 @@ export function CitasProvider({ children }: { readonly children: ReactNode }) {
   );
 
   const setError = useCallback((error: string): void => dispatch({ type: 'errorFijado', error }), []);
-  const medicoGuardado = useCallback((medico: Medico): void => dispatch({ type: 'medicoGuardado', medico }), []);
-  const medicoEliminado = useCallback((id: string): void => dispatch({ type: 'medicoEliminado', id }), []);
 
   const valor = useMemo<CitasValue>(
     () => ({
-      medicos: estado.medicos, citas: estado.citas, sedes: estado.sedes, citasMedico: estado.citasMedico,
+      citas: estado.citas, citasMedico: estado.citasMedico,
       familiares: estado.familiares, favoritos: estado.favoritos, guardando: estado.guardando, error: estado.error,
       // Derivados del estado del reducer.
       cargando: estado.cargas > 0,
       total: estado.citas.length,
       activas: estado.citas.filter((c) => c.estado !== 'Cancelada').length,
-      activos: estado.medicos.filter((m) => m.estado !== 'Inactivo'),
-      setError, cargarMedicos, cargarSedes, cargarCitas, cargarCitasMedico, cargarFamiliares, cargarFavoritos, alternarFavorito,
-      reservar, cancelar, atender, cancelarMedico: cancelar, agregarFamiliar, quitarFamiliar, medicoGuardado, medicoEliminado,
+      setError, cargarCitas, cargarCitasMedico, cargarFamiliares, cargarFavoritos, alternarFavorito,
+      reservar, cancelar, atender, cancelarMedico: cancelar, agregarFamiliar, quitarFamiliar,
     }),
-    [estado, setError, cargarMedicos, cargarSedes, cargarCitas, cargarCitasMedico, cargarFamiliares, cargarFavoritos, alternarFavorito,
-     reservar, cancelar, atender, agregarFamiliar, quitarFamiliar, medicoGuardado, medicoEliminado],
+    [estado, setError, cargarCitas, cargarCitasMedico, cargarFamiliares, cargarFavoritos, alternarFavorito,
+     reservar, cancelar, atender, agregarFamiliar, quitarFamiliar],
   );
 
   return <CitasContext value={valor}>{children}</CitasContext>;

@@ -1,7 +1,8 @@
 import { useCallback, useDeferredValue, useEffect, useMemo, useState, useTransition } from 'react';
 import { MedicoForm } from '../components/admin/MedicoForm';
 import { SupervisionCitas } from '../components/admin/SupervisionCitas';
-import { useCitas } from '../context/CitasContext';
+import { useCatalogo, useEliminarMedico, useGuardarMedico } from '../queries/catalogo';
+import { mensajeHttp } from '../services/mensajeHttp';
 import { useCarga } from '../hooks/useCarga';
 import { medicoInicial, type MedicoData, type MedicoInput } from '../model/medico';
 import { curarApi } from '../services/curarApi';
@@ -19,7 +20,11 @@ const TABS: readonly { readonly id: Tab; readonly n: string }[] = [
 const colorReclamo = (e: Reclamo['estado']): string => (e === 'Recibido' ? 'Pendiente' : e === 'En revisión' ? 'Confirmada' : 'Atendida');
 
 export function Admin() {
-  const { medicos, sedes, medicoGuardado, medicoEliminado, cargarMedicos, cargarSedes } = useCitas();
+  const { medicos, sedes } = useCatalogo(); // médicos y sedes: caché de TanStack Query
+  // Escrituras con useMutation: al terminar bien invalidan ['medicos'] y TODAS las vistas de médicos se recargan.
+  const guardarMedico = useGuardarMedico();
+  const eliminarMedico = useEliminarMedico();
+  const errorEscritura = guardarMedico.error ?? eliminarMedico.error;
   const { cargando, error, ejecutar } = useCarga();
   const [tab, setTab] = useState<Tab>('medicos');
   const [usuarios, setUsuarios] = useState<readonly UsuarioApi[]>([]);
@@ -35,8 +40,6 @@ export function Admin() {
   const hoyIso = isoLocal(new Date());
 
   useEffect(() => {
-    cargarMedicos();
-    cargarSedes();
     void ejecutar(Promise.all([curarApi.todosUsuarios(), curarApi.todasCitas(), curarApi.reclamos()])).then((r) => {
       if (!r.ok) return;
       const [u, c, rec] = r.valor;
@@ -44,7 +47,7 @@ export function Admin() {
       setCitas(c);
       setReclamos(rec);
     });
-  }, [cargarMedicos, cargarSedes, ejecutar]);
+  }, [ejecutar]);
 
   // Estadísticas y listas: derivadas en cada render.
   const medicosActivos = medicos.filter((m) => m.estado !== 'Inactivo').length;
@@ -76,25 +79,28 @@ export function Admin() {
     setAviso('');
     if (!editando) return;
     const centro = sedes.find((s) => s.id === data.sedeId)?.tipo ?? 'Por asignar';
-    if (editando === 'nuevo') {
-      const r = await ejecutar(curarApi.altaMedico({ id: `m${data.cmp}`, ...data, calificacion: 0, centro, horario: [...HORARIO_BASE] }));
-      if (!r.ok) return;
-      medicoGuardado(r.valor);
-    } else {
-      const r = await ejecutar(curarApi.guardarMedico({ ...editando, ...data, centro }));
-      if (!r.ok) return;
-      medicoGuardado(r.valor);
+    if (guardarMedico.isPending) return;
+    const nuevo = editando === 'nuevo';
+    const medico: Medico = nuevo
+      ? { id: `m${data.cmp}`, ...data, calificacion: 0, centro, horario: [...HORARIO_BASE] }
+      : { ...editando, ...data, centro };
+    try {
+      await guardarMedico.mutateAsync({ medico, nuevo });
+      setEditando(null);
+      setAviso('Médico guardado.');
+    } catch {
+      // guardarMedico.error lo muestra arriba; el formulario sigue abierto para reintentar.
     }
-    setEditando(null);
-    setAviso('Médico guardado.');
   }
 
   async function eliminar(id: string): Promise<void> {
-    const r = await ejecutar(curarApi.eliminarMedico(id));
-    if (!r.ok) return;
-    medicoEliminado(id);
-    setBorrando('');
-    setAviso('Médico dado de baja.');
+    try {
+      await eliminarMedico.mutateAsync(id);
+      setBorrando('');
+      setAviso('Médico dado de baja.');
+    } catch {
+      // eliminarMedico.error lo muestra arriba.
+    }
   }
 
   // Estable entre renders (useCallback): así las filas memorizadas de SupervisionCitas no se re-renderizan todas.
@@ -119,7 +125,7 @@ export function Admin() {
         <div><h1>Panel de Administración General</h1><p>Control central de personal, citas y gobernanza pública.</p></div>
         <button className="btn" type="button" onClick={() => { setTab('medicos'); nuevo(); }}>+ Registrar Médico</button>
       </div>
-      <p className="err" role="alert">{error}</p>
+      <p className="err" role="alert">{error}{errorEscritura ? ` ${mensajeHttp(errorEscritura)}` : ''}</p>
       <p role="status" aria-live="polite">{aviso}</p>
       <div className="row g-3 mb-4">
         <div className="col-6 col-md-3"><div className="stat"><small>Médicos activos</small><strong>{medicosActivos}</strong></div></div>

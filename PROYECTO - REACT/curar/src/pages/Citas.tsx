@@ -4,6 +4,7 @@ import { ArticuloEstado } from '../components/ArticuloEstado';
 import { FiltroBotones } from '../components/FiltroBotones';
 import { useAuth } from '../context/AuthContext';
 import { useCitas } from '../context/CitasContext';
+import { useCatalogo } from '../queries/catalogo';
 import type { EstadoCita } from '../types/cita';
 
 type Filtro = 'Todas' | EstadoCita;
@@ -11,7 +12,8 @@ const FILTROS: readonly Filtro[] = ['Todas', 'Pendiente', 'Confirmada', 'Cancela
 
 export function Citas() {
   const { usuario } = useAuth();
-  const { citas, medicos, sedes, favoritos, total, activas, cargando, guardando, error, cargarCitas, cargarMedicos, cargarSedes, cargarFavoritos, cancelar } = useCitas();
+  const { citas, favoritos, total, activas, cargando, guardando, error, cargarCitas, cargarFavoritos, cancelar } = useCitas();
+  const { medicos, sedes } = useCatalogo(); // médicos y sedes: caché de TanStack Query
   const [filtro, setFiltro] = useState<Filtro>('Todas');
   const [confirmando, setConfirmando] = useState('');
   const dni = usuario?.dni;
@@ -19,10 +21,8 @@ export function Citas() {
   useEffect(() => {
     if (!dni) return;
     cargarCitas(dni);
-    cargarMedicos();
-    cargarSedes();
     cargarFavoritos(dni);
-  }, [dni, cargarCitas, cargarMedicos, cargarSedes, cargarFavoritos]);
+  }, [dni, cargarCitas, cargarFavoritos]);
 
   const visibles = citas.filter((c) => filtro === 'Todas' || c.estado === filtro);
   const medico = (id: string) => medicos.find((m) => m.id === id);

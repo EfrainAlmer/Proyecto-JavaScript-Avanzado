@@ -1,10 +1,11 @@
-import type { Cita, Familiar, Favorito, Medico, Sede } from '../types/cita';
+import type { Cita, Familiar, Favorito } from '../types/cita';
 
-/** Estado del almacén de citas (equivale al antiguo `CitasStore` de Angular). */
+/**
+ * Estado del almacén de citas (equivale al antiguo `CitasStore` de Angular).
+ * Lab 14: médicos y sedes ya NO están aquí; los guarda TanStack Query (una sola caché por recurso).
+ */
 export interface EstadoCitas {
-  readonly medicos: readonly Medico[];
   readonly citas: readonly Cita[];
-  readonly sedes: readonly Sede[];
   readonly citasMedico: readonly Cita[];
   readonly familiares: readonly Familiar[];
   readonly favoritos: readonly Favorito[];
@@ -15,7 +16,7 @@ export interface EstadoCitas {
 }
 
 /** Colecciones que se reemplazan completas al cargarlas desde la API. */
-type Colecciones = Pick<EstadoCitas, 'medicos' | 'citas' | 'sedes' | 'citasMedico' | 'familiares' | 'favoritos'>;
+type Colecciones = Pick<EstadoCitas, 'citas' | 'citasMedico' | 'familiares' | 'favoritos'>;
 
 /** Una acción `cargado` por colección, con el tipo de datos correcto para cada una. */
 type AccionCargado = { [K in keyof Colecciones]: { readonly type: 'cargado'; readonly coleccion: K; readonly datos: Colecciones[K] } }[keyof Colecciones];
@@ -32,12 +33,10 @@ export type AccionCitas =
   | { readonly type: 'favoritoQuitado'; readonly id: string }
   | { readonly type: 'familiarAgregado'; readonly familiar: Familiar }
   | { readonly type: 'familiarQuitado'; readonly id: string }
-  | { readonly type: 'medicoGuardado'; readonly medico: Medico }
-  | { readonly type: 'medicoEliminado'; readonly id: string }
   | { readonly type: 'errorFijado'; readonly error: string };
 
 export const ESTADO_INICIAL: EstadoCitas = {
-  medicos: [], citas: [], sedes: [], citasMedico: [], familiares: [], favoritos: [], cargas: 0, guardando: false, error: '',
+  citas: [], citasMedico: [], familiares: [], favoritos: [], cargas: 0, guardando: false, error: '',
 };
 
 const reemplazar = <T extends { readonly id?: string }>(lista: readonly T[], nuevo: T): T[] => lista.map((x) => (x.id === nuevo.id ? nuevo : x));
@@ -69,12 +68,6 @@ export function citasReducer(estado: EstadoCitas, accion: AccionCitas): EstadoCi
       return terminarGuardado({ ...estado, familiares: [...estado.familiares, accion.familiar] });
     case 'familiarQuitado':
       return terminarGuardado({ ...estado, familiares: estado.familiares.filter((f) => f.id !== accion.id) });
-    case 'medicoGuardado': {
-      const existe = estado.medicos.some((m) => m.id === accion.medico.id);
-      return { ...estado, medicos: existe ? reemplazar(estado.medicos, accion.medico) : [...estado.medicos, accion.medico] };
-    }
-    case 'medicoEliminado':
-      return { ...estado, medicos: estado.medicos.filter((m) => m.id !== accion.id) };
     case 'errorFijado':
       return estado.error === accion.error ? estado : { ...estado, error: accion.error };
   }

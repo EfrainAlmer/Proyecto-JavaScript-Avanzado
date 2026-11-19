@@ -2,6 +2,7 @@ import { useDeferredValue, useEffect, useEffectEvent, useMemo, useState } from '
 import { Link } from 'react-router';
 import { useAuth } from '../context/AuthContext';
 import { useCitas } from '../context/CitasContext';
+import { useCatalogo } from '../queries/catalogo';
 import type { EstadoCita } from '../types/cita';
 import { fechaCompleta, fechaCorta, hora12, isoLocal } from '../utils/formato';
 import { coincide } from '../utils/texto';
@@ -22,7 +23,8 @@ const saludoDe = (fecha: Date): string => {
 
 export function PanelMedico() {
   const { usuario } = useAuth();
-  const { medicos, sedes, citasMedico, cargando, guardando, error, cargarMedicos, cargarSedes, cargarCitasMedico, cancelarMedico } = useCitas();
+  const { citasMedico, cargando, guardando, error, cargarCitasMedico, cancelarMedico } = useCitas();
+  const { medicos, sedes } = useCatalogo(); // médicos y sedes: caché de TanStack Query
   const [q, setQ] = useState('');
   const [filtro, setFiltro] = useState<Filtro>('Todas');
   const [confirmando, setConfirmando] = useState('');
@@ -31,10 +33,8 @@ export function PanelMedico() {
   const medicoId = usuario?.medicoId;
 
   useEffect(() => {
-    cargarMedicos();
-    cargarSedes();
     if (medicoId) cargarCitasMedico(medicoId);
-  }, [medicoId, cargarMedicos, cargarSedes, cargarCitasMedico]);
+  }, [medicoId, cargarCitasMedico]);
 
   // Lee el médico actual sin que el listener dependa de él.
   const refrescarAgenda = useEffectEvent(() => {

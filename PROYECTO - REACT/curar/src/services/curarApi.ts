@@ -27,6 +27,7 @@ const borrar = async (url: string): Promise<void> => {
 
 export const curarApi = {
   medicos: (senal?: AbortSignal) => obtener('medicos', medicoSchema, senal),
+  medico: async (id: string, senal?: AbortSignal) => decodificar(medicoSchema, await http('GET', `${API}/medicos/${enc(id)}`, undefined, senal)),
   altaMedico: (m: Medico) => enviar('POST', `${API}/medicos`, m, medicoSchema),
   guardarMedico: (m: Medico) => enviar('PUT', `${API}/medicos/${enc(m.id)}`, m, medicoSchema),
   eliminarMedico: (id: string) => borrar(`${API}/medicos/${enc(id)}`),

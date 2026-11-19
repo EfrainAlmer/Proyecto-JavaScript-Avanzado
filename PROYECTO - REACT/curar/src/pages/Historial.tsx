@@ -3,6 +3,7 @@ import { Link } from 'react-router';
 import { FiltroBotones } from '../components/FiltroBotones';
 import { useAuth } from '../context/AuthContext';
 import { useCitas } from '../context/CitasContext';
+import { useCatalogo } from '../queries/catalogo';
 import { useCarga } from '../hooks/useCarga';
 import { curarApi } from '../services/curarApi';
 import type { Receta } from '../types/cita';
@@ -21,7 +22,8 @@ interface Item {
 
 export function Historial() {
   const { usuario } = useAuth();
-  const { medicos, citas, cargando: cargandoStore, error: errorStore, cargarMedicos, cargarCitas } = useCitas();
+  const { citas, cargando: cargandoStore, error: errorStore, cargarCitas } = useCitas();
+  const { medicos } = useCatalogo(); // médicos y sedes: caché de TanStack Query
   const { cargando, error, ejecutar } = useCarga();
   const [tipo, setTipo] = useState<Tipo>('Todos');
   const [quien, setQuien] = useState('');
@@ -30,10 +32,9 @@ export function Historial() {
 
   useEffect(() => {
     if (!dni) return;
-    cargarMedicos();
     cargarCitas(dni);
     void ejecutar(curarApi.recetas(dni)).then((r) => r.ok && setRecetas(r.valor));
-  }, [dni, cargarMedicos, cargarCitas, ejecutar]);
+  }, [dni, cargarCitas, ejecutar]);
 
   // Todo lo siguiente es estado derivado: se recalcula en cada render.
   const nombreMedico = (id: string): string => medicos.find((m) => m.id === id)?.nombre ?? id;

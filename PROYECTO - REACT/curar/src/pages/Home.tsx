@@ -4,7 +4,7 @@ import { useForm } from 'react-hook-form';
 import { Link, useNavigate } from 'react-router';
 import { TarjetaMedico } from '../components/TarjetaMedico';
 import { useAuth } from '../context/AuthContext';
-import { useCitas } from '../context/CitasContext';
+import { useCatalogo } from '../queries/catalogo';
 import { useFlujo } from '../context/FlujoContext';
 import { busquedaInicial, busquedaSchema, type BusquedaData, type BusquedaInput } from '../model/busqueda';
 import { isoLocal } from '../utils/formato';
@@ -13,7 +13,8 @@ const TOTAL_SLIDES = 2;
 
 export function Home() {
   const { usuario } = useAuth();
-  const { activos, cargando, error, cargarMedicos } = useCitas();
+  // Lab 14: los médicos vienen de la caché de TanStack Query (antes: CitasContext + cargarMedicos en un efecto).
+  const { activos, cargando, error } = useCatalogo();
   // Con más de 100 médicos, el inicio muestra solo los 8 mejor calificados; se recalcula solo si cambia la lista.
   const destacados = useMemo(() => activos.toSorted((a, b) => b.calificacion - a.calificacion).slice(0, 8), [activos]);
   const { actualizarFlujo } = useFlujo();
@@ -26,10 +27,6 @@ export function Home() {
     defaultValues: busquedaInicial(),
   });
   const hoy = isoLocal(new Date());
-
-  useEffect(() => {
-    cargarMedicos();
-  }, [cargarMedicos]);
 
   // Lee `pausado` reciente en cada tic sin que el temporizador dependa de él.
   const avanzar = useEffectEvent(() => {
