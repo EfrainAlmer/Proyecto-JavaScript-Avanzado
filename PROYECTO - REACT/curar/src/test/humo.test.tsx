@@ -13,7 +13,8 @@ function apiFalsa() {
   const datos = structuredClone(baseDatos) as unknown as Record<string, Registro[]>;
   datos['citas']?.push(CITA_PENDIENTE); // db.json no trae citas pendientes de m1
   vi.stubGlobal('fetch', vi.fn((url: string, init?: RequestInit) => {
-    const [coleccion = '', id] = new URL(url).pathname.split('/').filter(Boolean);
+    // Las URL ahora son relativas (/api/medicos): se resuelven contra un origen ficticio y se quita el prefijo /api.
+    const [coleccion = '', id] = new URL(url, 'http://localhost').pathname.replace(/^\/api/u, '').split('/').filter(Boolean);
     const lista = datos[coleccion] ?? [];
     const metodo = init?.method ?? 'GET';
     const cuerpo = init?.body ? (JSON.parse(String(init.body)) as Registro) : {};
