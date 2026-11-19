@@ -2,6 +2,8 @@
 
 Migración del proyecto Angular `curar` (reserva de citas EsSalud/SIS con roles paciente, médico y administrador) a React, integrando los laboratorios 11, 12, 13 y 14.
 
+Requisito por requisito de cada laboratorio: [INTEGRACION.md](INTEGRACION.md).
+
 ## Puesta en marcha
 
 Se necesitan **dos terminales**:
