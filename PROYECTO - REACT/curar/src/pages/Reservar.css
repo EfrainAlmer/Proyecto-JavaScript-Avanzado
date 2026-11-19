@@ -5,9 +5,10 @@
   .top { display: flex; justify-content: space-between; align-items: center; gap: 12px; margin-bottom: 16px; }
   .pillbtn { border-radius: 999px; padding-inline: 24px; }
   .chip { font-size: 13px; font-weight: 600; background: var(--card); border: 1px solid var(--line); padding: 4px 12px; border-radius: 6px; }
-  .card { padding: clamp(22px, 5vw, 48px); }
-  & h1 { font-size: clamp(26px, 3.4vw, 34px); font-weight: 700; margin-bottom: 24px; }
-  .step { font-size: 22px; font-weight: 700; color: var(--acc); margin-bottom: 16px; }
+  /* .card de Bootstrap trae su propio color de texto (gris #212529): se fuerza el azul marino del resto de la app. */
+  .card { padding: clamp(22px, 5vw, 48px); --bs-card-color: var(--navy); color: var(--navy); }
+  & h1 { margin-bottom: 24px; } /* tamaño y peso del resto de páginas (h1 global) */
+  .step { font-size: 20px; font-weight: 600; color: var(--navy); margin-bottom: 16px; }
   .campo { font-size: 16px; font-weight: 600; color: var(--navy); margin-bottom: 20px; }
   .big { font-size: 17px; padding: 14px 16px; }
   .seg { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-bottom: 24px; }

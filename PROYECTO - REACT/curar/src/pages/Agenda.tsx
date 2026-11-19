@@ -12,7 +12,7 @@ import type { Cita, EstadoCita } from '../types/cita';
 import { MostrarMas } from '../components/MostrarMas';
 import { usePaginado } from '../hooks/usePaginado';
 import { ordenarAgenda } from '../utils/agenda';
-import { isoLocal } from '../utils/formato';
+import { isoLocal, fechaHora } from '../utils/formato';
 
 export function Agenda() {
   const { usuario } = useAuth();
@@ -68,7 +68,7 @@ export function Agenda() {
       {pagina.visibles.map((c) => (
         <div key={c.id}>
           <ArticuloEstado estado={c.estado}>
-            <b>{c.fecha} · {c.hora}</b> — {c.paciente ?? 'Paciente'} · DNI {c.dniPaciente} · {c.seguro} <small>· Motivo: {c.motivo ?? 'No indicado'}</small>{' '}
+            <b>{fechaHora(c.fecha, c.hora)}</b> — {c.paciente ?? 'Paciente'} · DNI {c.dniPaciente} · {c.seguro} <small>· Motivo: {c.motivo ?? 'No indicado'}</small>{' '}
             <span className="pill" data-estado={c.estado}>{c.estado}</span>
             {c.estado === 'Pendiente' && <button className="btn" type="button" disabled={cargando} onClick={() => void cambiar(c, 'Confirmada')}>Confirmar</button>}
             {(c.estado === 'Pendiente' || c.estado === 'Confirmada') && <button className="btn ghost" type="button" disabled={cargando} onClick={() => void cambiar(c, 'Cancelada')}>Cancelar</button>}

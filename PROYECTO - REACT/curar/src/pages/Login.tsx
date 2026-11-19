@@ -39,7 +39,7 @@ export function Login() {
   return (
     <AuthShell>
       <form onSubmit={handleSubmit(entrar)} noValidate>
-        <h1 style={{ fontSize: 24 }}>Iniciar sesión</h1>
+        <h1>Iniciar sesión</h1>
         <Campo label="DNI" error={errors.dni?.message}>{(a11y) => <input inputMode="numeric" maxLength={8} autoComplete="username" {...a11y} {...register('dni')} />}</Campo>
         <Campo label="Contraseña" error={errors.password?.message}>{(a11y) => <input type="password" autoComplete="current-password" {...a11y} {...register('password')} />}</Campo>
         <button className="btn brand" type="submit" disabled={isSubmitting} style={{ width: '100%', justifyContent: 'center' }}>

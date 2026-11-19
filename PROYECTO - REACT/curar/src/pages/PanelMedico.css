@@ -2,7 +2,7 @@
 .pg-panel-medico {
 
   .pm-cab { display: flex; justify-content: space-between; align-items: flex-end; gap: 16px; flex-wrap: wrap; margin-bottom: 24px; }
-  .pm-saludo { font-size: clamp(26px, 3.4vw, 36px); font-weight: 700; margin: 0; }
+  .pm-saludo { margin: 0; } /* mismo h1 que el resto de páginas */
   .pm-sub { margin: 8px 0 0; color: var(--slate-text); display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
   .pm-cmp { background: var(--navy); color: #fff; font-size: 13px; font-weight: 700; padding: 3px 12px; border-radius: 999px; }
   .pm-fecha { display: inline-flex; align-items: center; gap: 8px; background: var(--card); border: 1px solid var(--line); border-radius: 999px; padding: 10px 18px; font-weight: 700; text-transform: capitalize; box-shadow: 0 4px 12px rgb(0 11 51 / .06); }
@@ -17,7 +17,7 @@
   @media (max-width: 1000px) { .pm-cols { grid-template-columns: 1fr; } }
   .pm-card { background: var(--card); border: 1px solid var(--line); border-radius: var(--r-lg); padding: 24px; box-shadow: 0 8px 24px rgb(119 148 208 / .12); }
   .pm-card-cab { display: flex; justify-content: space-between; align-items: center; gap: 12px; flex-wrap: wrap; margin-bottom: 16px; }
-  .pm-card-cab h2 { font-size: 22px; font-weight: 700; margin: 0; display: flex; align-items: center; gap: 10px; }
+  .pm-card-cab h2 { font-size: 20px; font-weight: 600; margin: 0; display: flex; align-items: center; gap: 10px; }
   .pm-buscar { max-width: 260px; border-radius: 999px; }
   .pm-filtros { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 16px; }
   .pm-chip { padding: 8px 18px; border-radius: 999px; border: 1.5px solid var(--line); background: var(--card); color: var(--navy); font: 600 14px var(--font); cursor: pointer; }
@@ -45,7 +45,7 @@
   .pm-sig { background: var(--navy); color: #fff; border-radius: var(--r-lg); padding: 28px; display: grid; gap: 14px; box-shadow: 0 16px 40px rgb(0 11 51 / .25); }
   .pm-badge { justify-self: start; background: #FACC15; color: #1F2937; font-size: 12px; font-weight: 800; letter-spacing: .04em; padding: 5px 14px; border-radius: 999px; }
   .pm-badge-off { background: #475569; color: #fff; }
-  .pm-sig h2 { color: #fff; font-size: 28px; font-weight: 700; margin: 0; }
+  .pm-sig h2 { color: #fff; font-size: 26px; font-weight: 600; margin: 0; }
   .pm-sig-id { color: #AEB9D6; margin: -6px 0 0; }
   .pm-sig-datos { border-top: 1px solid rgb(255 255 255 / .14); padding-top: 14px; display: grid; gap: 8px; }
   .pm-sig-datos p { margin: 0; color: #fff; display: flex; align-items: center; gap: 10px; }

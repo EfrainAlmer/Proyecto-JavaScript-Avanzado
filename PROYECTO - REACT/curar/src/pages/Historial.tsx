@@ -7,6 +7,7 @@ import { useAuth } from '../context/AuthContext';
 import { useCatalogo } from '../queries/catalogo';
 import { useCitasPaciente, useRecetas } from '../queries/citas';
 import { textoError } from '../services/mensajeHttp';
+import { fechaMedia } from '../utils/formato';
 
 type Tipo = 'Todos' | 'Atención' | 'Receta';
 const TIPOS: readonly Tipo[] = ['Todos', 'Atención', 'Receta'];
@@ -66,7 +67,7 @@ export function Historial() {
       ) : (
         visibles.map((i) => (
           <article className="tabla" key={i.id}>
-            <span className="pill">{i.tipo}</span> <b>{i.fecha}</b> · {i.paciente}<br />{i.medico}<br /><small>{i.detalle}</small>
+            <span className="pill">{i.tipo}</span> <b>{fechaMedia(i.fecha)}</b> · {i.paciente}<br />{i.medico}<br /><small>{i.detalle}</small>
           </article>
         ))
       )}

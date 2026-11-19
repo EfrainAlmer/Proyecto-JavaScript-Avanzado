@@ -6,7 +6,7 @@ import { useCatalogo } from '../queries/catalogo';
 import { useCitasMedico, useCambiarEstadoCita } from '../queries/citas';
 import { textoError } from '../services/mensajeHttp';
 import type { Cita, EstadoCita } from '../types/cita';
-import { fechaCompleta, fechaCorta, hora12, isoLocal } from '../utils/formato';
+import { fechaCompleta, fechaCorta, hora24, isoLocal } from '../utils/formato';
 import { ordenarAgenda, porAtenderDesde } from '../utils/agenda';
 import { usePaginado } from '../hooks/usePaginado';
 import { MostrarMas } from '../components/MostrarMas';
@@ -123,7 +123,7 @@ export function PanelMedico() {
             pagina.visibles.map((c) => (
               <article className="pm-cita" key={c.id} data-estado={c.estado}>
                 <div className="pm-hora">
-                  <strong>{hora12(c.hora)}</strong>
+                  <strong>{hora24(c.hora)}</strong>
                   <small>{diaDe(c.fecha)}</small>
                   <span className="pill" data-estado={c.estado}>{c.estado}</span>
                 </div>
@@ -163,7 +163,7 @@ export function PanelMedico() {
                 <h2>{siguiente.paciente ?? 'Paciente'}</h2>
                 <p className="pm-sig-id">DNI: {siguiente.dniPaciente} | {siguiente.seguro}</p>
                 <div className="pm-sig-datos">
-                  <p><i className="bi bi-clock" aria-hidden="true" /> {diaDe(siguiente.fecha)} · {hora12(siguiente.hora)}</p>
+                  <p><i className="bi bi-clock" aria-hidden="true" /> {diaDe(siguiente.fecha)} · {hora24(siguiente.hora)}</p>
                   <p><i className="bi bi-chat-left-text" aria-hidden="true" /> Motivo: {siguiente.motivo ?? 'No indicado'}</p>
                 </div>
                 {confirmando === `a:${siguiente.id}` ? (

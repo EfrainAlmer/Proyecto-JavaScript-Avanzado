@@ -2,6 +2,7 @@ import { memo, useDeferredValue, useMemo, useState, useTransition } from 'react'
 import { Campo } from '../Campo';
 import type { Cita, Medico, Sede } from '../../types/cita';
 import { filtrarCitas, indexar, type FilaCita as Fila, type FiltroEstado, type Orden } from '../../utils/filtrarCitas';
+import { fechaHora } from '../../utils/formato';
 
 const ESTADOS: readonly FiltroEstado[] = ['Todas', 'Pendiente', 'Confirmada', 'Atendida', 'Cancelada'];
 const POR_PAGINA = 50;
@@ -19,7 +20,7 @@ interface FilaCitaProps {
 const FilaCita = memo(function FilaCita({ fila: { cita: c, medico, sede }, anulando, onAnular }: FilaCitaProps) {
   return (
     <tr>
-      <td data-label="Fecha / hora">{c.fecha} · {c.hora}</td>
+      <td data-label="Fecha / hora">{fechaHora(c.fecha, c.hora)}</td>
       <td data-label="Paciente">{c.paciente ?? 'Paciente'}<br /><small>DNI {c.dniPaciente}</small></td>
       <td data-label="Médico / sede">{medico}<br /><small>{sede}</small></td>
       <td data-label="Estado"><span className="pill" data-estado={c.estado}>{c.estado}</span></td>

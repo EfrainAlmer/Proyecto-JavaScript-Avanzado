@@ -8,6 +8,7 @@ import { CENTROS_MENSAJE, mensajeInicial, mensajeSchema, type MensajeData, type 
 import { coincide } from '../utils/texto';
 import { useMensajes, useCrearMensaje } from '../queries/cuentas';
 import { textoError } from '../services/mensajeHttp';
+import { fechaMedia } from '../utils/formato';
 
 type Filtro = 'Todos' | 'Enviado' | 'Recibido';
 const FILTROS: readonly Filtro[] = ['Todos', 'Enviado', 'Recibido'];
@@ -55,7 +56,7 @@ export function Mensajes() {
       <p className="err" role="alert">{textoError(lectura.error)}</p>
       {visibles.map((m) => (
         <article className="tabla" key={m.id ?? m.fecha + m.texto}>
-          <b>{m.centro}</b> <span className="pill">{m.tipo}</span> <small>{m.fecha}</small><br />{m.texto}
+          <b>{m.centro}</b> <span className="pill">{m.tipo}</span> <small>{fechaMedia(m.fecha)}</small><br />{m.texto}
         </article>
       ))}
       {visibles.length === 0 && !cargando && <p className="tabla" role="status">No hay mensajes en esta vista.</p>}

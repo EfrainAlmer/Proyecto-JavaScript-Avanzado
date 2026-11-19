@@ -33,7 +33,7 @@ export function Verificar() {
   return (
     <AuthShell>
       <form onSubmit={handleSubmit(confirmar)} noValidate>
-        <h1 style={{ fontSize: 24, fontWeight: 400 }}>Verifica tu correo</h1>
+        <h1>Verifica tu correo</h1>
         <p style={{ color: 'var(--slate-text)', marginBottom: 14 }}>Escribe el código de 6 dígitos. <b>Modo demostración:</b> el código es {CODIGO_DEMO}.</p>
         <label>Código de verificación
           <input inputMode="numeric" maxLength={6} autoComplete="one-time-code" aria-invalid={Boolean(errors.codigo)} {...register('codigo')} />

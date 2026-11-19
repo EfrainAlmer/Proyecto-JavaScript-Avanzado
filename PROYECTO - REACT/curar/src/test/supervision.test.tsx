@@ -23,10 +23,10 @@ describe('SupervisionCitas (useDeferredValue + useMemo + memo + useTransition)',
     await u.type(buscar, 'ana');
     await waitFor(() => expect(screen.getByRole('status')).toHaveTextContent('1000 citas encontradas. Se muestran 50.'));
     expect(filas()).toHaveLength(50);
-    expect(filas()[0]).toHaveTextContent('2026-10-10'); // Ana: meses 1, 4, 7 y 10
+    expect(filas()[0]).toHaveTextContent('10 oct 2026'); // Ana: meses 1, 4, 7 y 10
 
     await u.click(screen.getByRole('button', { name: 'Más recientes primero' }));
-    await waitFor(() => expect(filas()[0]).toHaveTextContent('2026-01-10'));
+    await waitFor(() => expect(filas()[0]).toHaveTextContent('10 ene 2026'));
 
     await u.click(screen.getByRole('button', { name: 'Mostrar 50 más' }));
     await waitFor(() => expect(filas()).toHaveLength(100));

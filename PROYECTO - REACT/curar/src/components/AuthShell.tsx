@@ -17,7 +17,15 @@ export function AuthShell({ children }: AuthShellProps) {
             <div className="logo"><Cruz />Curar</div>
             {children}
           </div>
-          <div className="vis" aria-hidden="true">+ Curar</div>
+          {/* Antes era un bloque decorativo vacío ("+ Curar"); ahora resume qué obtiene quien entra. */}
+          <aside className="vis" aria-label="Qué puedes hacer en Curar">
+            <h2>Tu salud, sin colas</h2>
+            <ul>
+              <li><i className="bi bi-calendar2-check" aria-hidden="true" /> Reserva tu cita en 4 pasos</li>
+              <li><i className="bi bi-file-earmark-medical" aria-hidden="true" /> Consulta tus recetas e historial</li>
+              <li><i className="bi bi-people" aria-hidden="true" /> Gestiona las citas de tu familia</li>
+            </ul>
+          </aside>
         </div>
       </div>
     </section>

@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { PERM_RECETAR, PERM_RESERVAR, ROLE_PACIENTE, tienePermiso } from '../types/cita';
-import { decimal1, fechaCorta, hora12, mesAnio } from '../utils/formato';
+import { decimal1, fechaCorta, fechaHora, hora24, mesAnio } from '../utils/formato';
 import { cargarAtomico, capitalizarNombre, PATRON_CLAVE, PATRON_DNI, PATRON_TELEFONO, validarCita } from '../utils/validacion';
 import { valoracion } from '../utils/valoracion';
 
@@ -40,8 +40,9 @@ describe('Formato', () => {
     expect(mesAnio('2026-11-01')).toContain('2026');
   });
   it('convierte a reloj de 12 horas y a un decimal', () => {
-    expect(hora12('15:30')).toBe('3:30 PM');
-    expect(hora12('00:15')).toBe('12:15 AM');
+    expect(hora24('15:30')).toBe('15:30');
+    expect(hora24('8:05')).toBe('08:05');
+    expect(fechaHora('2026-11-19', '8:00')).toBe('19 nov 2026 · 08:00');
     expect(decimal1(4.55)).toBe('4.5');
   });
 });

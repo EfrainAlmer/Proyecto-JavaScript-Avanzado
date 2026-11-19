@@ -54,11 +54,14 @@ export function fechaCompleta(valor: string | Date): string {
 
 export const decimal1 = (n: number): string => n.toFixed(1);
 
-export function hora12(h: string): string {
+/** "08:00": hora de 24 h con dos dígitos, igual que los botones de horario de la reserva. */
+export function hora24(h: string): string {
   const [hh = '0', mm = '00'] = h.split(':');
-  const n = Number(hh);
-  return `${n % 12 || 12}:${mm} ${n < 12 ? 'AM' : 'PM'}`;
+  return `${hh.padStart(2, '0')}:${mm.padStart(2, '0')}`;
 }
+
+/** "19 nov 2026 · 08:00": formato único de fecha + hora de una cita en toda la aplicación. */
+export const fechaHora = (fecha: string, hora: string): string => `${fechaMedia(fecha)} · ${hora24(hora)}`;
 
 /** Fecha ISO local (YYYY-MM-DD). */
 export const isoLocal = (d: Date): string => d.toLocaleDateString('sv-SE');

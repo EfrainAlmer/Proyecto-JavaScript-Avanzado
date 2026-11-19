@@ -10,7 +10,7 @@ import { claveInicial, claveSchema, perfilInicial, perfilSchema, SEGUROS_CUENTA,
 import { useCitasPaciente } from '../queries/citas';
 import { curarApi } from '../services/curarApi';
 import { PERM_RECETAR, PERM_RESERVAR, tienePermiso } from '../types/cita';
-import { mesAnio } from '../utils/formato';
+import { mesAnio, fechaHora } from '../utils/formato';
 import { useUsuario, useActualizarUsuario } from '../queries/cuentas';
 import { mensajeHttp, textoError } from '../services/mensajeHttp';
 
@@ -111,7 +111,7 @@ export function CuentaPaciente() {
               <h2 style={{ fontSize: 20 }}>Próximas citas</h2>
               {proximas.length > 0 ? (
                 proximas.map((c) => (
-                  <p key={c.id}>{c.fecha} · {c.hora} — {c.seguro} <span className="pill" data-estado={c.estado}>{c.estado}</span></p>
+                  <p key={c.id}>{fechaHora(c.fecha, c.hora)} — {c.seguro} <span className="pill" data-estado={c.estado}>{c.estado}</span></p>
                 ))
               ) : (
                 <p>Aún no tienes citas. <Link to="/seguro" className="link">Reserva una</Link>.</p>

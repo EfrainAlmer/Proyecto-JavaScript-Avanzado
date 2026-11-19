@@ -8,6 +8,7 @@ import { useCatalogo } from '../queries/catalogo';
 import { useCambiarEstadoCita, useCitasPaciente, useFavoritos } from '../queries/citas';
 import { textoError } from '../services/mensajeHttp';
 import type { EstadoCita } from '../types/cita';
+import { fechaHora } from '../utils/formato';
 
 type Filtro = 'Todas' | EstadoCita;
 const FILTROS: readonly Filtro[] = ['Todas', 'Pendiente', 'Confirmada', 'Cancelada'];
@@ -51,7 +52,7 @@ export function Citas() {
         const m = medico(c.medicoId);
         return (
           <ArticuloEstado key={c.id} estado={c.estado}>
-            <b>{c.fecha} · {c.hora}</b> — {c.seguro}
+            <b>{fechaHora(c.fecha, c.hora)}</b> — {c.seguro}
             <br />{m?.nombre ?? c.medicoId} · {m?.especialidad}
             <br /><small>{nombreSede(m?.sedeId)}{c.motivo && ` · Motivo: ${c.motivo}`}</small>
             <br />

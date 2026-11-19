@@ -55,7 +55,7 @@ export function Registro() {
       <form onSubmit={handleSubmit(crear)} noValidate>
         {paso === 1 ? (
           <>
-            <h1 style={{ fontSize: 28, fontWeight: 400 }}>Crea una cuenta.</h1>
+            <h1>Crea una cuenta.</h1>
             <p style={{ color: 'var(--slate-text)', marginBottom: 14 }}>Vamos a ponerte en marcha.</p>
             <div role="group" aria-label="Tipo de cuenta" style={{ display: 'flex', gap: 8, marginBottom: 12 }}>
               <button type="button" className={`btn${rol === ROLE_PACIENTE ? '' : ' ghost'}`} aria-pressed={rol === ROLE_PACIENTE} onClick={() => setValue('rol', ROLE_PACIENTE)}>Soy paciente</button>
@@ -66,7 +66,7 @@ export function Registro() {
           </>
         ) : (
           <>
-            <h1 style={{ fontSize: 24, fontWeight: 400 }}>Completa tus datos</h1>
+            <h1>Completa tus datos</h1>
             <Campo label="DNI" error={errors.dni?.message}>{(a11y) => <input inputMode="numeric" maxLength={8} {...a11y} {...register('dni')} />}</Campo>
             <Campo label="Nombres y apellidos" error={errors.nombre?.message}>{(a11y) => <input autoComplete="name" {...a11y} {...register('nombre')} />}</Campo>
             <Campo label="Celular" error={errors.telefono?.message}>{(a11y) => <input inputMode="numeric" maxLength={9} placeholder="9XXXXXXXX" {...a11y} {...register('telefono')} />}</Campo>

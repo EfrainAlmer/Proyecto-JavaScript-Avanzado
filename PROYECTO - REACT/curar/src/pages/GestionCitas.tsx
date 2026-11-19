@@ -9,7 +9,7 @@ import type { EstadoCita } from '../types/cita';
 import { MostrarMas } from '../components/MostrarMas';
 import { usePaginado } from '../hooks/usePaginado';
 import { ordenarAgenda } from '../utils/agenda';
-import { isoLocal } from '../utils/formato';
+import { isoLocal, fechaHora } from '../utils/formato';
 
 type Filtro = 'Todas' | EstadoCita;
 const FILTROS: readonly Filtro[] = ['Todas', 'Pendiente', 'Confirmada', 'Atendida', 'Cancelada'];
@@ -49,7 +49,7 @@ export function GestionCitas() {
               pagina.visibles.map((c) => (
                 <tr key={c.id}>
                   <td data-label="Paciente"><b>{c.paciente ?? 'Paciente'}</b><br /><small>DNI {c.dniPaciente}</small><br /><small>Motivo: {c.motivo ?? 'No indicado'}</small></td>
-                  <td data-label="Fecha y hora">{c.fecha} a las {c.hora}</td>
+                  <td data-label="Fecha y hora">{fechaHora(c.fecha, c.hora)}</td>
                   <td data-label="Seguro">{c.seguro}</td>
                   <td data-label="Estado / acción">
                     {c.estado === 'Pendiente' || c.estado === 'Confirmada' ? (

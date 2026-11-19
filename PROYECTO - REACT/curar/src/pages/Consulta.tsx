@@ -13,7 +13,7 @@ import { claves } from '../queries/claves';
 import { curarApi } from '../services/curarApi';
 import { mensajeHttp, textoError } from '../services/mensajeHttp';
 import type { Informe, Receta } from '../types/cita';
-import { diaMesCompleto, hora12 } from '../utils/formato';
+import { diaMesCompleto, hora24 } from '../utils/formato';
 import './Consulta.css';
 
 export function Consulta() {
@@ -117,7 +117,7 @@ export function Consulta() {
               <h1>{cita.paciente ?? 'Paciente'}</h1>
               <p className="co-id">DNI: {cita.dniPaciente} | {cita.seguro}</p>
               <div className="co-datos">
-                <p><i className="bi bi-clock" aria-hidden="true" /> {diaMesCompleto(cita.fecha)} · {hora12(cita.hora)}</p>
+                <p><i className="bi bi-clock" aria-hidden="true" /> {diaMesCompleto(cita.fecha)} · {hora24(cita.hora)}</p>
                 <p><i className="bi bi-chat-left-text" aria-hidden="true" /> Motivo de la cita: {cita.motivo ?? 'No indicado'}</p>
               </div>
             </article>

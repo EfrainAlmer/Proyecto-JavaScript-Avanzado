@@ -5,6 +5,7 @@ import { useAuth } from '../context/AuthContext';
 import { recetasConsulta } from '../queries/citas';
 import { mensajeHttp } from '../services/mensajeHttp';
 import type { Receta } from '../types/cita';
+import { fechaMedia } from '../utils/formato';
 
 interface Peticion {
   readonly id: number;
@@ -19,7 +20,7 @@ function ListaRecetas({ promesa }: { readonly promesa: Promise<Receta[]> }) {
     <div aria-label="Recetas" role="list">
       {recetas.map((r) => (
         <article className="tabla" role="listitem" key={r.id ?? r.fecha + r.medicamento}>
-          <b>{r.fecha}</b> · Dr(a). {r.medicoNombre}<br />{r.medicamento} — {r.cantidad} envase(s)<br /><small>{r.indicaciones}</small>
+          <b>{fechaMedia(r.fecha)}</b> · Dr(a). {r.medicoNombre}<br />{r.medicamento} — {r.cantidad} envase(s)<br /><small>{r.indicaciones}</small>
         </article>
       ))}
     </div>

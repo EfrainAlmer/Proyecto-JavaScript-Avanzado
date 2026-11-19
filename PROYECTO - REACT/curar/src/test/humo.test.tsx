@@ -252,7 +252,7 @@ describe('Prueba de humo: cada página se monta con datos reales de db.json', ()
 
   it('/historial: el rango de fechas filtra, marca el intervalo invertido en "Hasta" y Limpiar restablece', async () => {
     await montar('/historial', PACIENTE);
-    expect(await screen.findAllByText('2026-10-01', { exact: false })).toHaveLength(2); // atención + receta
+    expect(await screen.findAllByText('1 oct 2026', { exact: false })).toHaveLength(2); // atención + receta
     const desde = screen.getByLabelText('Desde');
     const hasta = screen.getByLabelText('Hasta');
     fireEvent.change(desde, { target: { value: '2026-11-01' } });
@@ -260,14 +260,14 @@ describe('Prueba de humo: cada página se monta con datos reales de db.json', ()
     await userEvent.click(screen.getByRole('button', { name: 'Aplicar fechas' }));
     expect(await screen.findByText('La fecha final no puede ser anterior a la de inicio.')).toBeInTheDocument();
     expect(hasta).toHaveAttribute('aria-invalid', 'true');
-    expect(screen.getAllByText('2026-10-01', { exact: false })).toHaveLength(2); // un rango inválido no filtra
+    expect(screen.getAllByText('1 oct 2026', { exact: false })).toHaveLength(2); // un rango inválido no filtra
 
     fireEvent.change(hasta, { target: { value: '2026-11-30' } });
     await userEvent.click(screen.getByRole('button', { name: 'Aplicar fechas' }));
     expect(await screen.findByText('No hay registros con estos filtros.')).toBeInTheDocument();
 
     await userEvent.click(screen.getByRole('button', { name: 'Limpiar fechas' }));
-    expect(await screen.findAllByText('2026-10-01', { exact: false })).toHaveLength(2); // atención + receta
+    expect(await screen.findAllByText('1 oct 2026', { exact: false })).toHaveLength(2); // atención + receta
     expect(desde).toHaveValue('');
     expect(hasta).toHaveValue('');
   });

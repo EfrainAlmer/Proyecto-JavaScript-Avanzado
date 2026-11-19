@@ -9,7 +9,7 @@ import { useCatalogo, useEliminarMedico, useGuardarMedico } from '../queries/cat
 import { useTodasCitas, useCambiarEstadoCita } from '../queries/citas';
 import { textoError } from '../services/mensajeHttp';
 import { HORARIO_BASE, type Cita, type Medico, type Reclamo } from '../types/cita';
-import { isoLocal } from '../utils/formato';
+import { isoLocal, fechaMedia } from '../utils/formato';
 import { coincide } from '../utils/texto';
 import { useUsuarios, useReclamos, useActualizarReclamo } from '../queries/cuentas';
 import { useQueryClient } from '@tanstack/react-query';
@@ -203,7 +203,7 @@ export function Admin() {
               {reclamos.length > 0 ? (
                 reclamos.map((r) => (
                   <tr key={r.id ?? r.codigo}>
-                    <td><b>{r.codigo}</b><br /><small>{r.fecha}</small></td>
+                    <td><b>{r.codigo}</b><br /><small>{fechaMedia(r.fecha)}</small></td>
                     <td>{r.nombre}<br /><small>DNI {r.dni}</small></td>
                     <td><span className="pill">{r.tipo}</span> {r.servicio}<br /><small>{r.detalle}</small></td>
                     <td><span className="pill" data-estado={colorReclamo(r.estado)}>{r.estado}</span></td>

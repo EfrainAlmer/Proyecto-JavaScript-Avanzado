@@ -8,6 +8,7 @@ import { comentarioInicial, comentarioSchema, type ComentarioData, type Comentar
 import { useCatalogo, useComentarios, useCrearComentario } from '../queries/catalogo';
 import { mensajeHttp } from '../services/mensajeHttp';
 import type { Sede } from '../types/cita';
+import { fechaMedia } from '../utils/formato';
 
 const TIPOS = ['Todos', 'Hospitales', 'Policlínicos', 'Clínicas'] as const;
 
@@ -89,7 +90,7 @@ export function Centros() {
           <h2 style={{ fontSize: 20 }}>Comentarios y calificaciones</h2>
           {delSel.length > 0 ? (
             delSel.map((c) => (
-              <p key={c.id ?? `${c.autor}${c.fecha}${c.texto}`}><b>{c.autor}</b> · {'★'.repeat(c.puntaje)} · <small>{c.fecha}</small><br />{c.texto}</p>
+              <p key={c.id ?? `${c.autor}${c.fecha}${c.texto}`}><b>{c.autor}</b> · {'★'.repeat(c.puntaje)} · <small>{fechaMedia(c.fecha)}</small><br />{c.texto}</p>
             ))
           ) : (
             <p>Aún no hay comentarios.</p>

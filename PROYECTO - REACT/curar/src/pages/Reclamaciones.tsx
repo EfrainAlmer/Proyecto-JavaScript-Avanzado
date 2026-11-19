@@ -8,6 +8,7 @@ import { reclamoInicial, reclamoSchema, SERVICIOS, TIPOS_RECLAMO, type ReclamoDa
 import { useCatalogo } from '../queries/catalogo';
 import { useCrearReclamo } from '../queries/cuentas';
 import { textoError } from '../services/mensajeHttp';
+import { fechaMedia } from '../utils/formato';
 
 export function Reclamaciones() {
   const { usuario } = useAuth();
@@ -52,7 +53,7 @@ export function Reclamaciones() {
         <div className="tabla" role="status" style={{ maxWidth: 640 }}>
           <h2 style={{ fontSize: 22 }}>Hoja de reclamación registrada</h2>
           <p style={{ margin: '12px 0' }}><span className="pill">{enviado.codigo}</span></p>
-          <p><b>Tipo:</b> {enviado.tipo} · <b>Fecha:</b> {enviado.fecha}</p>
+          <p><b>Tipo:</b> {enviado.tipo} · <b>Fecha:</b> {fechaMedia(enviado.fecha)}</p>
           <p style={{ marginTop: 8 }}>La respuesta se dará al correo que indicaste ({enviado.correo}). Guarda tu código.</p>
           <p style={{ marginTop: 16, display: 'flex', gap: 8, flexWrap: 'wrap' }}>
             <button className="btn ghost" type="button" onClick={otro}>Registrar otro</button>
