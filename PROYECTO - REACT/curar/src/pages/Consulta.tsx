@@ -1,4 +1,5 @@
 import { zodResolver } from '@hookform/resolvers/zod';
+import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { useEffect, useRef, useState } from 'react';
 import { FormProvider, useForm } from 'react-hook-form';
 import { Link, useParams } from 'react-router';
@@ -6,21 +7,20 @@ import { InformeFields } from '../components/consulta/InformeFields';
 import { RecetasFields } from '../components/consulta/RecetasFields';
 import { SignosVitalesFields } from '../components/consulta/SignosVitalesFields';
 import { useAuth } from '../context/AuthContext';
-import { useCarga } from '../hooks/useCarga';
 import { consultaInicial, consultaSchema, type ConsultaData, type ConsultaInput } from '../model/consulta';
+import { useCita } from '../queries/citas';
+import { claves } from '../queries/claves';
 import { curarApi } from '../services/curarApi';
-import { mensajeHttp } from '../services/mensajeHttp';
-import type { Cita, Informe, Receta } from '../types/cita';
+import { mensajeHttp, textoError } from '../services/mensajeHttp';
+import type { Informe, Receta } from '../types/cita';
 import { diaMesCompleto, hora12 } from '../utils/formato';
 import './Consulta.css';
 
 export function Consulta() {
   const { id = '' } = useParams();
   const { usuario } = useAuth();
-  const carga = useCarga(); // solo para cargar la cita
-  const { ejecutar } = carga;
-  const [cita, setCita] = useState<Cita | null>(null);
-  const [ajena, setAjena] = useState(false);
+  const lectura = useCita(id);
+  const cache = useQueryClient();
   /** null = aún no se finaliza; número = recetas emitidas (pantalla de éxito). */
   const [emitidas, setEmitidas] = useState<number | null>(null);
   const formRef = useRef<HTMLFormElement>(null);
@@ -28,6 +28,10 @@ export function Consulta() {
   const informeGuardado = useRef(false);
   const recetasGuardadas = useRef(false);
   const medicoId = usuario?.medicoId;
+  // Derivados de la lectura (antes eran dos useState): una cita de otro médico no se muestra.
+  const ajena = lectura.data !== undefined && lectura.data.medicoId !== medicoId;
+  const cita = ajena ? null : (lectura.data ?? null);
+  const precargada = useRef('');
 
   const methods = useForm<ConsultaInput, unknown, ConsultaData>({
     resolver: zodResolver(consultaSchema),
@@ -38,21 +42,32 @@ export function Consulta() {
   });
   const { handleSubmit, reset, setError, clearErrors, formState: { errors, isSubmitting } } = methods;
 
+  // El motivo llega de la API: se precarga UNA vez por cita (no al recargarse la caché tras finalizar).
   useEffect(() => {
-    let vigente = true;
-    void ejecutar(curarApi.cita(id)).then((r) => {
-      if (!vigente || !r.ok) return;
-      if (r.valor.medicoId !== medicoId) {
-        setAjena(true);
-        return;
+    if (!cita || precargada.current === cita.id) return;
+    precargada.current = cita.id;
+    reset(consultaInicial(cita.motivo));
+  }, [cita, reset]);
+
+  // Las tres escrituras de la atención como UNA mutación: al terminar, se invalidan citas y recetas.
+  const finalizarAtencion = useMutation({
+    mutationFn: async ({ citaId, informe, recetas }: { readonly citaId: string; readonly informe: Informe; readonly recetas: readonly Receta[] }) => {
+      if (!informeGuardado.current) {
+        await curarApi.crearInforme(informe);
+        informeGuardado.current = true;
       }
-      setCita(r.valor);
-      reset(consultaInicial(r.valor.motivo)); // el motivo llega de la API: se precarga con reset
-    });
-    return () => {
-      vigente = false;
-    };
-  }, [id, medicoId, ejecutar, reset]);
+      if (!recetasGuardadas.current && recetas.length > 0) {
+        await Promise.all(recetas.map((r) => curarApi.crearReceta(r)));
+        recetasGuardadas.current = true;
+      }
+      await curarApi.cambiarEstado(citaId, 'Atendida');
+      return recetas.length;
+    },
+    onSuccess: () => Promise.all([
+      cache.invalidateQueries({ queryKey: claves.citas.todas }),
+      cache.invalidateQueries({ queryKey: ['recetas'] }),
+    ]),
+  });
 
   async function finalizar(data: ConsultaData): Promise<void> {
     if (!cita || !usuario) return;
@@ -64,16 +79,7 @@ export function Consulta() {
     const nuevoInforme: Informe = { ...base, ...informe, ...(presion ? { presion } : {}), ...(frecuencia === undefined ? {} : { frecuencia }) };
     const lista: Receta[] = recetas.map((r) => ({ ...base, ...r }));
     try {
-      if (!informeGuardado.current) {
-        await curarApi.crearInforme(nuevoInforme);
-        informeGuardado.current = true;
-      }
-      if (!recetasGuardadas.current && lista.length > 0) {
-        await Promise.all(lista.map((r) => curarApi.crearReceta(r)));
-        recetasGuardadas.current = true;
-      }
-      await curarApi.cambiarEstado(cita.id, 'Atendida');
-      setEmitidas(lista.length);
+      setEmitidas(await finalizarAtencion.mutateAsync({ citaId: cita.id, informe: nuevoInforme, recetas: lista }));
       window.scrollTo(0, 0);
     } catch (e) {
       setError('root.server', { message: mensajeHttp(e) });
@@ -134,7 +140,7 @@ export function Consulta() {
           </>
         )
       ) : (
-        <p className="tabla" role="status">{carga.cargando ? 'Cargando cita…' : ajena ? 'Esta cita no pertenece a tu agenda.' : carga.error || 'No encontramos la cita.'}</p>
+        <p className="tabla" role="status">{lectura.isLoading ? 'Cargando cita…' : ajena ? 'Esta cita no pertenece a tu agenda.' : textoError(lectura.error) || 'No encontramos la cita.'}</p>
       )}
     </section>
   );

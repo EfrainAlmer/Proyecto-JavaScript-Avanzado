@@ -1,7 +1,7 @@
 import { zodResolver } from '@hookform/resolvers/zod';
-import { Campo } from '../Campo';
 import { Controller, useForm } from 'react-hook-form';
 import Select from 'react-select';
+import { Campo } from '../Campo';
 import { ESPECIALIDADES, ESTADOS_MEDICO, medicoSchema, type MedicoData, type MedicoInput } from '../../model/medico';
 import type { Sede } from '../../types/cita';
 

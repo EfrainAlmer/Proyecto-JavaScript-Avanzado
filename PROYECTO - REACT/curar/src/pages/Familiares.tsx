@@ -1,28 +1,31 @@
 import { zodResolver } from '@hookform/resolvers/zod';
-import { Campo } from '../components/Campo';
-import { useEffect, useState } from 'react';
+import { useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { Link } from 'react-router';
+import { Campo } from '../components/Campo';
 import { useAuth } from '../context/AuthContext';
-import { useCitas } from '../context/CitasContext';
 import { familiarInicial, familiarSchema, PARENTESCOS, SEGUROS_FAMILIAR, type FamiliarData, type FamiliarInput } from '../model/familiar';
+import { useFamiliares, useAgregarFamiliar, useQuitarFamiliar } from '../queries/citas';
+import { textoError } from '../services/mensajeHttp';
 
 export function Familiares() {
   const { usuario } = useAuth();
-  const { familiares, cargando, guardando, error, cargarFamiliares, agregarFamiliar, quitarFamiliar } = useCitas();
   const [aviso, setAviso] = useState('');
   const [borrando, setBorrando] = useState('');
   const dniTitular = usuario?.dni;
+  const lectura = useFamiliares(dniTitular);
+  const agregarFamiliar = useAgregarFamiliar();
+  const quitarFamiliar = useQuitarFamiliar();
+  const familiares = lectura.data ?? [];
+  const cargando = lectura.isLoading;
+  const guardando = agregarFamiliar.isPending || quitarFamiliar.isPending;
+  const errorEscritura = agregarFamiliar.error ?? quitarFamiliar.error;
 
   const { register, handleSubmit, reset, setError, formState: { errors, isSubmitting } } = useForm<FamiliarInput, unknown, FamiliarData>({
     resolver: zodResolver(familiarSchema),
     defaultValues: familiarInicial(),
     mode: 'onBlur',
   });
-
-  useEffect(() => {
-    if (dniTitular) cargarFamiliares(dniTitular);
-  }, [dniTitular, cargarFamiliares]);
 
   async function agregar(data: FamiliarData): Promise<void> {
     setAviso('');
@@ -32,23 +35,30 @@ export function Familiares() {
       setError('dni', { message: 'Ese DNI ya está registrado en tu cuenta.' });
       return;
     }
-    const r = await agregarFamiliar({ dniTitular: usuario.dni, ...data });
-    if (!r.ok) return;
-    reset(familiarInicial());
-    setAviso('Familiar agregado.');
+    try {
+      await agregarFamiliar.mutateAsync({ dniTitular: usuario.dni, ...data });
+      reset(familiarInicial());
+      setAviso('Familiar agregado.');
+    } catch {
+      // errorEscritura lo muestra; el formulario conserva lo escrito.
+    }
   }
 
   async function quitar(id: string): Promise<void> {
-    if (!id) return;
-    const r = await quitarFamiliar(id);
-    if (r.ok) setBorrando('');
+    if (!id || !dniTitular) return;
+    try {
+      await quitarFamiliar.mutateAsync({ id, dniTitular });
+      setBorrando('');
+    } catch {
+      // errorEscritura lo muestra.
+    }
   }
 
   return (
     <section className="wrap" style={{ padding: '48px 20px' }}>
       <h1>Mis familiares</h1>
       <p style={{ margin: '6px 0 16px' }}>Registra a tus familiares para reservar citas a su nombre. Para cambiar tus datos ve a <Link to="/cuenta" className="link">Mi cuenta</Link>.</p>
-      <p className="err" role="alert">{error}</p>
+      <p className="err" role="alert">{textoError(lectura.error ?? errorEscritura)}</p>
       {familiares.length === 0 ? (
         <p className="tabla" role="status">{cargando ? 'Cargando…' : 'Aún no registraste familiares.'}</p>
       ) : (

@@ -1,5 +1,5 @@
-import type { Cita, EstadoCita, Medico, Sede } from '../types/cita';
 import { normalizar } from './texto';
+import type { Cita, EstadoCita, Medico, Sede } from '../types/cita';
 
 export type FiltroEstado = 'Todas' | EstadoCita;
 export type Orden = 'recientes' | 'antiguas';

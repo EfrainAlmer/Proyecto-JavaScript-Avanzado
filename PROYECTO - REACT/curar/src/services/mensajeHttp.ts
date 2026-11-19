@@ -20,3 +20,6 @@ export function mensajeHttp(e: unknown): string {
     }
   }
 }
+
+/** Para pintar directamente: '' si no hay error. */
+export const textoError = (e: unknown): string => (e ? mensajeHttp(e) : '');

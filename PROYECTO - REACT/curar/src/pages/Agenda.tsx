@@ -1,18 +1,17 @@
 import { zodResolver } from '@hookform/resolvers/zod';
-import { Campo } from '../components/Campo';
-import { useEffect, useState } from 'react';
+import { useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { ArticuloEstado } from '../components/ArticuloEstado';
+import { Campo } from '../components/Campo';
 import { useAuth } from '../context/AuthContext';
-import { useCarga } from '../hooks/useCarga';
+import { useCandado } from '../hooks/useCandado';
 import { MEDICAMENTO_VACIO, medicamentoSchema, type MedicamentoData, type MedicamentoInput } from '../model/consulta';
-import { curarApi } from '../services/curarApi';
+import { useCitasMedico, useCambiarEstadoCita, useCrearReceta } from '../queries/citas';
+import { textoError } from '../services/mensajeHttp';
 import type { Cita, EstadoCita } from '../types/cita';
 
 export function Agenda() {
   const { usuario } = useAuth();
-  const { cargando, error, setError, ejecutar } = useCarga();
-  const [citas, setCitas] = useState<readonly Cita[]>([]);
   const [receta, setReceta] = useState<Cita | null>(null);
   const [aviso, setAviso] = useState('');
   // Reutiliza el esquema de un medicamento de la consulta: mismas reglas, un solo lugar.
@@ -22,34 +21,35 @@ export function Agenda() {
     mode: 'onBlur',
   });
   const medicoId = usuario?.medicoId;
-
-  useEffect(() => {
-    if (!medicoId) {
-      setError('Tu cuenta no tiene un perfil médico asociado.');
-      return;
-    }
-    void ejecutar(curarApi.citasDeMedico(medicoId)).then((r) => r.ok && setCitas(r.valor));
-  }, [medicoId, ejecutar, setError]);
+  // Misma clave que el panel médico (['citas', 'medico', id]): comparten caché y se actualizan juntos.
+  const lectura = useCitasMedico(medicoId);
+  const cambiarEstado = useCambiarEstadoCita();
+  const crearReceta = useCrearReceta();
+  const conCandado = useCandado();
+  const citas = lectura.data ?? [];
+  const cargando = lectura.isLoading || cambiarEstado.isPending;
+  const error = !medicoId ? 'Tu cuenta no tiene un perfil médico asociado.' : textoError(lectura.error ?? cambiarEstado.error ?? crearReceta.error);
 
   const pendientes = citas.filter((c) => c.estado === 'Pendiente').length;
 
   async function cambiar(c: Cita, estado: EstadoCita): Promise<void> {
-    if (cargando) return;
-    const r = await ejecutar(curarApi.cambiarEstado(c.id, estado));
-    if (r.ok) setCitas((l) => l.map((x) => (x.id === c.id ? r.valor : x)));
+    await conCandado(() => cambiarEstado.mutateAsync({ id: c.id, estado })).catch(() => undefined);
   }
 
   async function emitir(c: Cita, data: MedicamentoData): Promise<void> {
     setAviso('');
     if (!usuario) return;
-    const r = await ejecutar(curarApi.crearReceta({
-      dniPaciente: c.dniPaciente, paciente: c.paciente ?? '', medicoId: c.medicoId, medicoNombre: usuario.nombre,
-      fecha: new Date().toISOString().slice(0, 10), ...data,
-    }));
-    if (!r.ok) return;
-    setAviso('Receta emitida.');
-    setReceta(null);
-    reset({ ...MEDICAMENTO_VACIO });
+    try {
+      await crearReceta.mutateAsync({
+        dniPaciente: c.dniPaciente, paciente: c.paciente ?? '', medicoId: c.medicoId, medicoNombre: usuario.nombre,
+        fecha: new Date().toISOString().slice(0, 10), ...data,
+      });
+      setAviso('Receta emitida.');
+      setReceta(null);
+      reset({ ...MEDICAMENTO_VACIO });
+    } catch {
+      // crearReceta.error se muestra arriba; el formulario conserva lo escrito.
+    }
   }
 
   return (

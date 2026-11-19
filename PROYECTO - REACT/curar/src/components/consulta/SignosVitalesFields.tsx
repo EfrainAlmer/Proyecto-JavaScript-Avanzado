@@ -1,6 +1,6 @@
 import { useFormContext } from 'react-hook-form';
-import type { ConsultaData, ConsultaInput } from '../../model/consulta';
 import { Campo } from '../Campo';
+import type { ConsultaData, ConsultaInput } from '../../model/consulta';
 
 /** Sub-formulario: recibe los métodos del formulario por contexto, sin props. */
 export function SignosVitalesFields() {

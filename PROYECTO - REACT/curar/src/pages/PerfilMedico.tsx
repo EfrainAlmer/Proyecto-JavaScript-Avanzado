@@ -1,25 +1,17 @@
-import { useEffect } from 'react';
 import { Link, useParams } from 'react-router';
+import { BotonFavorito } from '../components/BotonFavorito';
 import { useAuth } from '../context/AuthContext';
-import { useCitas } from '../context/CitasContext';
 import { useMedico, useSedes } from '../queries/catalogo';
 import { mensajeHttp } from '../services/mensajeHttp';
 import { decimal1 } from '../utils/formato';
-import { BotonFavorito } from '../components/BotonFavorito';
 import { valoracion } from '../utils/valoracion';
 
 export function PerfilMedico() {
   const { id = '' } = useParams();
   const { usuario } = useAuth();
-  const { cargarFavoritos } = useCitas();
   // Clave ['medicos', id]: cuelga de ['medicos'], así que si el admin edita al médico, este perfil también se actualiza.
   const medico = useMedico(id);
   const sedes = useSedes();
-  const dni = usuario?.dni;
-
-  useEffect(() => {
-    if (dni) cargarFavoritos(dni);
-  }, [dni, cargarFavoritos]);
 
   const m = medico.data;
   const sede = sedes.data?.find((s) => s.id === m?.sedeId)?.nombre ?? 'Sede por asignar';

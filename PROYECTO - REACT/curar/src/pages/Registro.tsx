@@ -1,9 +1,9 @@
 import { zodResolver } from '@hookform/resolvers/zod';
-import { Campo } from '../components/Campo';
 import { useState } from 'react';
 import { useForm, useWatch } from 'react-hook-form';
 import { Link, useNavigate } from 'react-router';
 import { AuthShell } from '../components/AuthShell';
+import { Campo } from '../components/Campo';
 import { useAuth } from '../context/AuthContext';
 import { ESPECIALIDADES_REGISTRO, registroInicial, registroSchema, type RegistroData, type RegistroInput } from '../model/auth';
 import { mensajeHttp } from '../services/mensajeHttp';

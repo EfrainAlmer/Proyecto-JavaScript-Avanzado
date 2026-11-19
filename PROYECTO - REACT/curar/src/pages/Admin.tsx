@@ -1,14 +1,15 @@
 import { useCallback, useDeferredValue, useEffect, useMemo, useState, useTransition } from 'react';
 import { MedicoForm } from '../components/admin/MedicoForm';
 import { SupervisionCitas } from '../components/admin/SupervisionCitas';
-import { useCatalogo, useEliminarMedico, useGuardarMedico } from '../queries/catalogo';
-import { mensajeHttp } from '../services/mensajeHttp';
 import { useCarga } from '../hooks/useCarga';
 import { medicoInicial, type MedicoData, type MedicoInput } from '../model/medico';
+import { useCatalogo, useEliminarMedico, useGuardarMedico } from '../queries/catalogo';
+import { useTodasCitas, useCambiarEstadoCita } from '../queries/citas';
 import { curarApi } from '../services/curarApi';
+import { textoError } from '../services/mensajeHttp';
 import { HORARIO_BASE, type Cita, type Medico, type Reclamo, type UsuarioApi } from '../types/cita';
-import { coincide } from '../utils/texto';
 import { isoLocal } from '../utils/formato';
+import { coincide } from '../utils/texto';
 
 type Tab = 'medicos' | 'citas' | 'reclamos';
 const TABS: readonly { readonly id: Tab; readonly n: string }[] = [
@@ -19,16 +20,22 @@ const TABS: readonly { readonly id: Tab; readonly n: string }[] = [
 
 const colorReclamo = (e: Reclamo['estado']): string => (e === 'Recibido' ? 'Pendiente' : e === 'En revisión' ? 'Confirmada' : 'Atendida');
 
+/** Vacío estable para los useMemo de SupervisionCitas. */
+const SIN_CITAS: readonly Cita[] = [];
+
 export function Admin() {
   const { medicos, sedes } = useCatalogo(); // médicos y sedes: caché de TanStack Query
   // Escrituras con useMutation: al terminar bien invalidan ['medicos'] y TODAS las vistas de médicos se recargan.
   const guardarMedico = useGuardarMedico();
   const eliminarMedico = useEliminarMedico();
-  const errorEscritura = guardarMedico.error ?? eliminarMedico.error;
+  const errorEscrituraMedico = guardarMedico.error ?? eliminarMedico.error;
   const { cargando, error, ejecutar } = useCarga();
+  // Todas las citas (clave ['citas']): si el admin anula una, también se actualizan el panel del médico y el del paciente.
+  const lecturaCitas = useTodasCitas();
+  const citas = lecturaCitas.data ?? SIN_CITAS;
+  const { mutateAsync: cambiarEstadoCita, error: errorAnular } = useCambiarEstadoCita();
   const [tab, setTab] = useState<Tab>('medicos');
   const [usuarios, setUsuarios] = useState<readonly UsuarioApi[]>([]);
-  const [citas, setCitas] = useState<readonly Cita[]>([]);
   const [reclamos, setReclamos] = useState<readonly Reclamo[]>([]);
   const [aviso, setAviso] = useState('');
   const [qMed, setQMed] = useState('');
@@ -40,11 +47,10 @@ export function Admin() {
   const hoyIso = isoLocal(new Date());
 
   useEffect(() => {
-    void ejecutar(Promise.all([curarApi.todosUsuarios(), curarApi.todasCitas(), curarApi.reclamos()])).then((r) => {
+    void ejecutar(Promise.all([curarApi.todosUsuarios(), curarApi.reclamos()])).then((r) => {
       if (!r.ok) return;
-      const [u, c, rec] = r.valor;
+      const [u, rec] = r.valor;
       setUsuarios(u);
-      setCitas(c);
       setReclamos(rec);
     });
   }, [ejecutar]);
@@ -106,11 +112,8 @@ export function Admin() {
   // Estable entre renders (useCallback): así las filas memorizadas de SupervisionCitas no se re-renderizan todas.
   const anularCita = useCallback((id: string): void => {
     setAnulando(id);
-    void ejecutar(curarApi.cancelar(id)).then((r) => {
-      if (r.ok) setCitas((l) => l.map((c) => (c.id === id ? r.valor : c)));
-      setAnulando('');
-    });
-  }, [ejecutar]);
+    void cambiarEstadoCita({ id, estado: 'Cancelada' }).catch(() => undefined).finally(() => setAnulando(''));
+  }, [cambiarEstadoCita]); // mutateAsync es estable: la referencia no cambia entre renders
 
   async function avanzarReclamo(rec: Reclamo): Promise<void> {
     if (!rec.id || rec.estado === 'Respondido') return;
@@ -125,7 +128,7 @@ export function Admin() {
         <div><h1>Panel de Administración General</h1><p>Control central de personal, citas y gobernanza pública.</p></div>
         <button className="btn" type="button" onClick={() => { setTab('medicos'); nuevo(); }}>+ Registrar Médico</button>
       </div>
-      <p className="err" role="alert">{error}{errorEscritura ? ` ${mensajeHttp(errorEscritura)}` : ''}</p>
+      <p className="err" role="alert">{error} {textoError(lecturaCitas.error ?? errorEscrituraMedico ?? errorAnular)}</p>
       <p role="status" aria-live="polite">{aviso}</p>
       <div className="row g-3 mb-4">
         <div className="col-6 col-md-3"><div className="stat"><small>Médicos activos</small><strong>{medicosActivos}</strong></div></div>

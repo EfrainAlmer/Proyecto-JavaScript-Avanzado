@@ -1,9 +1,9 @@
 import { useEffect, useState } from 'react';
 import { Link, useNavigate } from 'react-router';
-import { useCatalogo } from '../queries/catalogo';
 import { useFlujo } from '../context/FlujoContext';
-import { coincide } from '../utils/texto';
+import { useCatalogo } from '../queries/catalogo';
 import { decimal1 } from '../utils/formato';
+import { coincide } from '../utils/texto';
 
 const ESPECIALIDADES = ['Medicina General', 'Pediatría', 'Cardiología', 'Ginecología', 'Geriatría'] as const;
 

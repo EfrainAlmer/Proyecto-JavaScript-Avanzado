@@ -1,6 +1,7 @@
 import { useOptimistic, useState, useTransition, type ReactNode } from 'react';
 import { useAuth } from '../context/AuthContext';
-import { useCitas } from '../context/CitasContext';
+import { useAlternarFavorito, useFavoritos } from '../queries/citas';
+import { mensajeHttp } from '../services/mensajeHttp';
 
 interface BotonFavoritoProps {
   readonly medicoId: string;
@@ -15,12 +16,14 @@ interface BotonFavoritoProps {
  */
 export function BotonFavorito({ medicoId, className, children }: BotonFavoritoProps) {
   const { usuario } = useAuth();
-  const { favoritos, alternarFavorito } = useCitas();
+  const favoritos = useFavoritos(usuario?.dni);
+  const alternarFavorito = useAlternarFavorito();
   const [aviso, setAviso] = useState('');
   const [pendiente, startTransition] = useTransition();
 
   // Valor real (confirmado por la API) y valor visible (puede adelantarse mientras la transición está en curso).
-  const esFavorito = favoritos.some((f) => f.medicoId === medicoId);
+  const existente = favoritos.data?.find((f) => f.medicoId === medicoId);
+  const esFavorito = existente !== undefined;
   const [favoritoVisible, fijarOptimista] = useOptimistic(esFavorito);
 
   function alternar(): void {
@@ -28,9 +31,13 @@ export function BotonFavorito({ medicoId, className, children }: BotonFavoritoPr
     setAviso('');
     startTransition(async () => {
       fijarOptimista(!esFavorito); // se ve ya; React lo descarta al terminar la transición
-      const error = await alternarFavorito(usuario.dni, medicoId);
-      if (error) setAviso(`No se pudo actualizar el favorito. ${error}`);
-      // Si salió bien: el contexto ya cambió `favoritos`, así que el valor real coincide con el optimista.
+      try {
+        // Lab 14: useMutation; resuelve cuando ['favoritos', dni] ya se recargó, así la estrella no "rebota".
+        await alternarFavorito.mutateAsync({ dni: usuario.dni, medicoId, favoritoId: existente?.id });
+      } catch (e) {
+        setAviso(`No se pudo actualizar el favorito. ${mensajeHttp(e)}`);
+      }
+      // Si salió bien: la caché ya tiene la lista nueva, así que el valor real coincide con el optimista.
       // Si falló: el valor real no cambió y la estrella vuelve sola a como estaba.
     });
   }

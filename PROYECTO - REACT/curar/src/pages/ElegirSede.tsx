@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import { Link, useNavigate } from 'react-router';
-import { useCatalogo } from '../queries/catalogo';
 import { useFlujo } from '../context/FlujoContext';
+import { useCatalogo } from '../queries/catalogo';
 
 const TIPOS = ['Todos', 'Hospitales', 'Policlínicos', 'Clínicas'] as const;
 

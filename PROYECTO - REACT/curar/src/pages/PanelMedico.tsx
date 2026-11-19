@@ -1,9 +1,11 @@
 import { useDeferredValue, useEffect, useEffectEvent, useMemo, useState } from 'react';
 import { Link } from 'react-router';
 import { useAuth } from '../context/AuthContext';
-import { useCitas } from '../context/CitasContext';
+import { useCandado } from '../hooks/useCandado';
 import { useCatalogo } from '../queries/catalogo';
-import type { EstadoCita } from '../types/cita';
+import { useCitasMedico, useCambiarEstadoCita } from '../queries/citas';
+import { textoError } from '../services/mensajeHttp';
+import type { Cita, EstadoCita } from '../types/cita';
 import { fechaCompleta, fechaCorta, hora12, isoLocal } from '../utils/formato';
 import { coincide } from '../utils/texto';
 import './PanelMedico.css';
@@ -21,9 +23,11 @@ const saludoDe = (fecha: Date): string => {
   return h < 12 ? 'Buenos días' : h < 19 ? 'Buenas tardes' : 'Buenas noches';
 };
 
+/** Arreglo vacío estable: `?? []` crearía uno nuevo en cada render e invalidaría los useMemo de abajo. */
+const SIN_CITAS: readonly Cita[] = [];
+
 export function PanelMedico() {
   const { usuario } = useAuth();
-  const { citasMedico, cargando, guardando, error, cargarCitasMedico, cancelarMedico } = useCitas();
   const { medicos, sedes } = useCatalogo(); // médicos y sedes: caché de TanStack Query
   const [q, setQ] = useState('');
   const [filtro, setFiltro] = useState<Filtro>('Todas');
@@ -31,14 +35,17 @@ export function PanelMedico() {
   const [hoy] = useState(() => new Date());
   const hoyIso = isoLocal(hoy);
   const medicoId = usuario?.medicoId;
+  const lectura = useCitasMedico(medicoId);
+  const cambiarEstado = useCambiarEstadoCita();
+  const conCandado = useCandado();
+  const citasMedico = lectura.data ?? SIN_CITAS;
+  const cargando = lectura.isLoading;
+  const guardando = cambiarEstado.isPending;
+  const error = textoError(lectura.error ?? cambiarEstado.error);
 
-  useEffect(() => {
-    if (medicoId) cargarCitasMedico(medicoId);
-  }, [medicoId, cargarCitasMedico]);
-
-  // Lee el médico actual sin que el listener dependa de él.
+  // Lee la consulta actual sin que el listener dependa de ella (Lab 13); recarga con TanStack Query (Lab 14).
   const refrescarAgenda = useEffectEvent(() => {
-    if (medicoId) cargarCitasMedico(medicoId);
+    if (medicoId) void lectura.refetch();
   });
 
   // Al volver a esta pestaña, la agenda se recarga: otra persona pudo reservar o cancelar mientras tanto.
@@ -72,8 +79,7 @@ export function PanelMedico() {
   const diaDe = (fecha: string): string => (fecha === hoyIso ? 'Hoy' : fechaCorta(fecha));
 
   function cancelar(id: string): void {
-    cancelarMedico(id);
-    setConfirmando('');
+    void conCandado(() => cambiarEstado.mutateAsync({ id, estado: 'Cancelada' })).then(() => setConfirmando(''), () => undefined);
   }
 
   return (

@@ -1,14 +1,14 @@
 import { zodResolver } from '@hookform/resolvers/zod';
-import { Campo } from '../components/Campo';
 import { useEffect, useState } from 'react';
 import { useForm } from 'react-hook-form';
+import { Campo } from '../components/Campo';
 import { FiltroBotones } from '../components/FiltroBotones';
 import { useAuth } from '../context/AuthContext';
 import { useCarga } from '../hooks/useCarga';
 import { CENTROS_MENSAJE, mensajeInicial, mensajeSchema, type MensajeData, type MensajeInput } from '../model/mensaje';
 import { curarApi } from '../services/curarApi';
-import { coincide } from '../utils/texto';
 import type { Mensaje } from '../types/cita';
+import { coincide } from '../utils/texto';
 
 type Filtro = 'Todos' | 'Enviado' | 'Recibido';
 const FILTROS: readonly Filtro[] = ['Todos', 'Enviado', 'Recibido'];

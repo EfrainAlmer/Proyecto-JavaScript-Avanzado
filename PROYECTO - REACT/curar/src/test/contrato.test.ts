@@ -1,8 +1,7 @@
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import { z } from 'zod';
 import base from '../../api/base.json';
-import {
-  ApiError, citaSchema, comentarioSchema, medicoSchema, mensajeSchema, recetaSchema, reclamoSchema, sedeSchema, TIMEOUT, usuarioSchema,
+import { ApiError, citaSchema, comentarioSchema, medicoSchema, mensajeSchema, recetaSchema, reclamoSchema, sedeSchema, TIMEOUT, usuarioSchema,
 } from '../services/contract';
 import { curarApi } from '../services/curarApi';
 import { http } from '../services/http';

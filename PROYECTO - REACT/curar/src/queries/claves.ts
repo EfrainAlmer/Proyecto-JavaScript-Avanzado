@@ -9,4 +9,15 @@ export const claves = {
   },
   sedes: ['sedes'] as const,
   comentarios: ['comentarios'] as const,
+  /** Toda escritura sobre citas invalida ['citas']: paciente, médico, admin, detalle y horas ocupadas a la vez. */
+  citas: {
+    todas: ['citas'] as const,
+    paciente: (dni: string) => ['citas', 'paciente', dni] as const,
+    medico: (medicoId: string) => ['citas', 'medico', medicoId] as const,
+    detalle: (id: string) => ['citas', 'detalle', id] as const,
+    ocupadas: (medicoId: string, fecha: string) => ['citas', 'ocupadas', medicoId, fecha] as const,
+  },
+  favoritos: (dni: string) => ['favoritos', dni] as const,
+  recetas: (dni: string) => ['recetas', dni] as const,
+  familiares: (dni: string) => ['familiares', dni] as const,
 };

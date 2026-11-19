@@ -1,8 +1,8 @@
 import { queryOptions, useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
+import { claves } from './claves';
 import { curarApi } from '../services/curarApi';
 import { mensajeHttp } from '../services/mensajeHttp';
 import type { Comentario, Medico, Sede } from '../types/cita';
-import { claves } from './claves';
 
 /** Arreglo vacío estable: `data ?? []` crearía uno nuevo en cada render y rompería los useMemo que dependen de él. */
 const VACIO: readonly never[] = Object.freeze([]);

@@ -1,12 +1,12 @@
 import { zodResolver } from '@hookform/resolvers/zod';
-import { Campo } from '../components/Campo';
 import { useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { Link } from 'react-router';
+import { Campo } from '../components/Campo';
 import { useAuth } from '../context/AuthContext';
+import { comentarioInicial, comentarioSchema, type ComentarioData, type ComentarioInput } from '../model/comentario';
 import { useCatalogo, useComentarios, useCrearComentario } from '../queries/catalogo';
 import { mensajeHttp } from '../services/mensajeHttp';
-import { comentarioInicial, comentarioSchema, type ComentarioData, type ComentarioInput } from '../model/comentario';
 import type { Sede } from '../types/cita';
 
 const TIPOS = ['Todos', 'Hospitales', 'Policlínicos', 'Clínicas'] as const;

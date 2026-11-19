@@ -392,9 +392,10 @@ describe('Prueba de humo: cada página se monta con datos reales de db.json', ()
 
   it('/medicos/:id: el favorito cambia al instante y se confirma al responder la API (useOptimistic)', async () => {
     const real = fetch;
-    const respuesta = Promise.withResolvers<Response>();
+    const puerta = Promise.withResolvers<void>();
+    // El POST espera a que la prueba "abra la puerta"; luego lo guarda la API falsa (así el GET posterior lo ve).
     vi.stubGlobal('fetch', vi.fn((url: string, init?: RequestInit) =>
-      String(url).endsWith('/favoritos') && init?.method === 'POST' ? respuesta.promise : real(url, init),
+      String(url).endsWith('/favoritos') && init?.method === 'POST' ? puerta.promise.then(() => real(url, init)) : real(url, init),
     ));
     await montar('/medicos/m1', PACIENTE);
     const u = userEvent.setup();
@@ -405,7 +406,7 @@ describe('Prueba de humo: cada página se monta con datos reales de db.json', ()
     expect(boton).toHaveTextContent('★ Quitar de favoritos');
 
     await act(async () => {
-      respuesta.resolve(new Response(JSON.stringify({ id: 'f1', dni: PACIENTE.dni, medicoId: 'm1' }), { status: 201 }));
+      puerta.resolve();
     });
     expect(boton).toHaveAttribute('aria-pressed', 'true'); // confirmado
     expect(boton).toHaveAttribute('aria-busy', 'false');
@@ -446,6 +447,41 @@ describe('Prueba de humo: cada página se monta con datos reales de db.json', ()
     expect(await screen.findByText('No se publicó tu comentario. La API falló. Intenta más tarde.')).toBeInTheDocument();
     expect(screen.getByText(/Atención ordenada y puntual/u)).toBeInTheDocument(); // la lectura no se perdió
     expect(screen.getByLabelText('Tu comentario')).toHaveValue('Muy buena atención'); // y lo escrito tampoco
+  });
+
+  it('/reservar: si el POST sale bien pero la recarga de citas falla, se conserva la confirmación y NO se reenvía el POST', async () => {
+    vi.useFakeTimers({ toFake: ['Date'], now: new Date(2026, 10, 16, 8, 0) });
+    try {
+      const real = fetch;
+      const estado = { postHecho: false };
+      const espia = vi.fn((url: string, init?: RequestInit) => {
+        if (String(url).endsWith('/citas') && init?.method === 'POST') estado.postHecho = true;
+        else if (String(url).endsWith('/citas') && estado.postHecho) return Promise.resolve(new Response('', { status: 503 })); // la LECTURA posterior falla
+        return real(url, init);
+      });
+      vi.stubGlobal('fetch', espia);
+      await montar('/reservar?medicoId=m1', PACIENTE);
+      const u = userEvent.setup();
+      await u.click(await screen.findByRole('button', { name: '09:30' }));
+      await u.type(screen.getByLabelText('Motivo de consulta'), 'Control');
+      await u.click(screen.getByRole('button', { name: 'Confirmar Reserva' }));
+
+      expect(await screen.findByText('¡Cita confirmada exitosamente!')).toBeInTheDocument();
+      expect(screen.getByText(/N\.º de cita:/u)).toBeInTheDocument(); // el recibo viene de la respuesta del POST
+      const posts = espia.mock.calls.filter(([url, init]) => String(url).endsWith('/citas') && init?.method === 'POST');
+      expect(posts).toHaveLength(1);
+    } finally {
+      vi.useRealTimers();
+    }
+  });
+
+  it('/citas: cancelar actualiza la lista por invalidación, sin tocar el estado a mano', async () => {
+    await montar('/citas', PACIENTE);
+    const u = userEvent.setup();
+    const antes = (await screen.findAllByRole('button', { name: 'Cancelar cita' })).length;
+    await u.click(screen.getAllByRole('button', { name: 'Cancelar cita' })[0] as HTMLElement);
+    await u.click(screen.getByRole('button', { name: 'Sí, cancelar' }));
+    await waitFor(() => expect(screen.queryAllByRole('button', { name: 'Cancelar cita' })).toHaveLength(antes - 1));
   });
 });
 

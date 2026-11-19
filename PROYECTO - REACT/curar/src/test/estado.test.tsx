@@ -1,9 +1,11 @@
 import { act, renderHook, waitFor } from '@testing-library/react';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { CODIGO_DEMO, useAuth } from '../context/AuthContext';
-import { useCitas } from '../context/CitasContext';
 import { useFlujo } from '../context/FlujoContext';
+import { useCandado } from '../hooks/useCandado';
 import { useCatalogo } from '../queries/catalogo';
+import { useCitasPaciente, useReservarCita } from '../queries/citas';
+import { textoError } from '../services/mensajeHttp';
 import { Proveedores, simularFetch } from './utilidades';
 
 beforeEach(() => {
@@ -12,20 +14,19 @@ beforeEach(() => {
 });
 afterEach(() => vi.unstubAllGlobals());
 
-describe('CitasProvider', () => {
-  it('bloquea envíos duplicados mientras hay una solicitud en curso', async () => {
+describe('Datos remotos con TanStack Query (antes: CitasProvider)', () => {
+  it('el candado + useMutation envían UN solo POST aunque se pulse dos veces', async () => {
     const borrador = { dniPaciente: '12345678', medicoId: 'm1', seguro: 'SIS' as const, fecha: '2026-11-02', hora: '09:30' };
-    const peticiones = simularFetch(() => ({ ...borrador, id: '9', estado: 'Pendiente' }));
-    const { result } = renderHook(() => useCitas(), { wrapper: Proveedores });
+    const peticiones = simularFetch((p) => (p.metodo === 'POST' ? { ...borrador, id: '9', estado: 'Pendiente' } : []));
+    const { result } = renderHook(() => ({ reservar: useReservarCita(), conCandado: useCandado() }), { wrapper: Proveedores });
 
-    act(() => {
-      result.current.reservar(borrador, () => undefined);
-      result.current.reservar(borrador, () => undefined);
+    await act(async () => {
+      const intento = () => result.current.conCandado(() => result.current.reservar.mutateAsync(borrador));
+      await Promise.all([intento(), intento()]); // doble clic: el segundo ni siquiera llega a la API
     });
-    await waitFor(() => expect(result.current.total).toBe(1));
 
     expect(peticiones.filter((p) => p.metodo === 'POST')).toHaveLength(1);
-    expect(result.current.guardando).toBe(false);
+    expect(result.current.reservar.isPending).toBe(false);
   });
 
   it('calcula valores derivados sin duplicar estado', async () => {
@@ -40,11 +41,11 @@ describe('CitasProvider', () => {
     expect(result.current.activos.map((m) => m.id)).toEqual(['a']);
   });
 
-  it('muestra un mensaje legible cuando la API no responde', async () => {
+  it('una lectura fallida expone el error de la consulta con un mensaje legible', async () => {
     vi.stubGlobal('fetch', vi.fn(() => Promise.reject(new TypeError('red caída'))));
-    const { result } = renderHook(() => useCitas(), { wrapper: Proveedores });
-    act(() => result.current.cargarCitas('12345678'));
-    await waitFor(() => expect(result.current.error).toContain('No se pudo contactar la API'));
+    const { result } = renderHook(() => useCitasPaciente('12345678'), { wrapper: Proveedores });
+    await waitFor(() => expect(result.current.isError).toBe(true));
+    expect(textoError(result.current.error)).toContain('No se pudo contactar la API');
   });
 });
 

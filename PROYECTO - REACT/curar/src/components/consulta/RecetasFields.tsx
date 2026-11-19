@@ -1,6 +1,6 @@
 import { useFieldArray, useFormContext } from 'react-hook-form';
-import { MEDICAMENTO_VACIO, type ConsultaData, type ConsultaInput } from '../../model/consulta';
 import { FieldMessage } from '../FieldMessage';
+import { MEDICAMENTO_VACIO, type ConsultaData, type ConsultaInput } from '../../model/consulta';
 
 const MAXIMO = 10;
 

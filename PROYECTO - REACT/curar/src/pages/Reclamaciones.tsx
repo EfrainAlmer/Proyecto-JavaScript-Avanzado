@@ -1,13 +1,13 @@
 import { zodResolver } from '@hookform/resolvers/zod';
-import { Campo } from '../components/Campo';
 import { useState } from 'react';
 import { useForm, useWatch } from 'react-hook-form';
 import { Link } from 'react-router';
+import { Campo } from '../components/Campo';
 import { FieldMessage } from '../components/FieldMessage';
 import { useAuth } from '../context/AuthContext';
-import { useCatalogo } from '../queries/catalogo';
 import { useCarga } from '../hooks/useCarga';
 import { reclamoInicial, reclamoSchema, SERVICIOS, TIPOS_RECLAMO, type ReclamoData, type ReclamoInput } from '../model/reclamo';
+import { useCatalogo } from '../queries/catalogo';
 import { curarApi } from '../services/curarApi';
 import type { Reclamo } from '../types/cita';
 

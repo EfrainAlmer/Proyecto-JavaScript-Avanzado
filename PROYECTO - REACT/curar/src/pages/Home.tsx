@@ -4,9 +4,9 @@ import { useForm } from 'react-hook-form';
 import { Link, useNavigate } from 'react-router';
 import { TarjetaMedico } from '../components/TarjetaMedico';
 import { useAuth } from '../context/AuthContext';
-import { useCatalogo } from '../queries/catalogo';
 import { useFlujo } from '../context/FlujoContext';
 import { busquedaInicial, busquedaSchema, type BusquedaData, type BusquedaInput } from '../model/busqueda';
+import { useCatalogo } from '../queries/catalogo';
 import { isoLocal } from '../utils/formato';
 
 const TOTAL_SLIDES = 2;

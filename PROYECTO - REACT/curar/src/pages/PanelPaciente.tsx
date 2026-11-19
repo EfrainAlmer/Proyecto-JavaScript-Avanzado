@@ -1,30 +1,31 @@
-import { useEffect, useState } from 'react';
+import { useState } from 'react';
 import { Link } from 'react-router';
 import { TarjetaCita } from '../components/TarjetaCita';
 import { useAuth } from '../context/AuthContext';
-import { useCitas } from '../context/CitasContext';
+import { useCandado } from '../hooks/useCandado';
 import { useCatalogo } from '../queries/catalogo';
-import { useCarga } from '../hooks/useCarga';
-import { curarApi } from '../services/curarApi';
-import type { Cita, Receta } from '../types/cita';
+import { useCitasPaciente, useFamiliares, useRecetas, useCambiarEstadoCita } from '../queries/citas';
+import { textoError } from '../services/mensajeHttp';
+import type { Cita } from '../types/cita';
 import { fechaMedia } from '../utils/formato';
 import './PanelPaciente.css';
 
 export function PanelPaciente() {
   const { usuario } = useAuth();
-  const { citas, familiares, cargando: cargandoStore, guardando, error: errorStore, cargarCitas, cargarFamiliares, cancelar } = useCitas();
   const { medicos, sedes } = useCatalogo(); // médicos y sedes: caché de TanStack Query
-  const { error, ejecutar } = useCarga();
-  const [recetas, setRecetas] = useState<readonly Receta[]>([]);
   const [confirmando, setConfirmando] = useState('');
   const dni = usuario?.dni;
-
-  useEffect(() => {
-    if (!dni) return;
-    cargarCitas(dni);
-    cargarFamiliares(dni);
-    void ejecutar(curarApi.recetas(dni)).then((r) => r.ok && setRecetas(r.valor));
-  }, [dni, cargarCitas, cargarFamiliares, ejecutar]);
+  // Cuatro lecturas independientes de la caché; ningún useEffect ni useState para guardarlas.
+  const lecturaCitas = useCitasPaciente(dni);
+  const lecturaFamiliares = useFamiliares(dni);
+  const lecturaRecetas = useRecetas(dni);
+  const cambiarEstado = useCambiarEstadoCita();
+  const conCandado = useCandado();
+  const citas = lecturaCitas.data ?? [];
+  const familiares = lecturaFamiliares.data ?? [];
+  const recetas = lecturaRecetas.data ?? [];
+  const cargandoStore = lecturaCitas.isLoading || lecturaFamiliares.isLoading;
+  const errorLectura = lecturaCitas.error ?? lecturaFamiliares.error ?? lecturaRecetas.error;
 
   // Derivados (se calculan al vuelo; `sort` actúa sobre copias producidas por `filter`).
   const proximas = citas
@@ -44,8 +45,7 @@ export function PanelPaciente() {
   const tieneReceta = (c: Cita): boolean => recetas.some((r) => r.medicoId === c.medicoId && r.fecha === c.fecha);
 
   function cancelarCita(id: string): void {
-    cancelar(id);
-    setConfirmando('');
+    void conCandado(() => cambiarEstado.mutateAsync({ id, estado: 'Cancelada' })).then(() => setConfirmando(''), () => undefined);
   }
 
   return (
@@ -54,7 +54,8 @@ export function PanelPaciente() {
         <div><h1>Hola, {usuario?.nombre}</h1><p>Tus citas, recetas y familiares en un solo lugar.</p></div>
         <Link className="btn" to="/reservar"><i className="bi bi-calendar-plus" /> Reservar nueva cita</Link>
       </div>
-      <p className="err" role="alert">{errorStore}{error}</p>
+      <p className="err" role="alert">{textoError(errorLectura)}</p>
+      {cambiarEstado.error && <p className="err" role="alert">No se canceló la cita. {textoError(cambiarEstado.error)}</p>}
       <div className="row g-3 mb-4">
         <div className="col-md-4"><div className="stat"><small>Citas activas</small><strong>{proximas.length}</strong></div></div>
         <div className="col-md-4"><div className="stat ok"><small>Recetas disponibles</small><strong>{recetas.length}</strong></div></div>
@@ -69,7 +70,7 @@ export function PanelPaciente() {
                 <TarjetaCita key={c.id} cita={c} titulo={`Dr(a). ${medico(c.medicoId)?.nombre ?? c.medicoId}`} subtitulo={detalle(c)}>
                   {confirmando === c.id ? (
                     <>
-                      <button className="btn sm" type="button" disabled={guardando} onClick={() => cancelarCita(c.id)}>Sí, cancelar</button>
+                      <button className="btn sm" type="button" disabled={cambiarEstado.isPending} onClick={() => cancelarCita(c.id)}>Sí, cancelar</button>
                       <button className="btn sm ghost" type="button" onClick={() => setConfirmando('')}>No</button>
                     </>
                   ) : (

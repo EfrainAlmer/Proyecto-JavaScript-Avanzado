@@ -1,15 +1,14 @@
 import { zodResolver } from '@hookform/resolvers/zod';
-import { Campo } from '../components/Campo';
 import { useEffect, useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { Link } from 'react-router';
+import { Campo } from '../components/Campo';
 import { useAuth } from '../context/AuthContext';
-import { useCitas } from '../context/CitasContext';
 import { useCarga } from '../hooks/useCarga';
-import {
-  claveInicial, claveSchema, perfilInicial, perfilSchema, SEGUROS_CUENTA,
+import { claveInicial, claveSchema, perfilInicial, perfilSchema, SEGUROS_CUENTA,
   type ClaveData, type ClaveInput, type PerfilData, type PerfilInput,
 } from '../model/cuenta';
+import { useCitasPaciente } from '../queries/citas';
 import { curarApi } from '../services/curarApi';
 import { PERM_RECETAR, PERM_RESERVAR, tienePermiso, type UsuarioApi } from '../types/cita';
 import { mesAnio } from '../utils/formato';
@@ -19,7 +18,7 @@ const TABS: readonly { readonly id: Tab; readonly n: string }[] = [{ id: 'resume
 
 export function CuentaPaciente() {
   const auth = useAuth();
-  const { citas, cargarCitas } = useCitas();
+  const citas = useCitasPaciente(auth.usuario?.dni).data ?? [];
   const { error, ejecutar } = useCarga();
   const [tab, setTab] = useState<Tab>('resumen');
   const [u, setU] = useState<UsuarioApi | null>(null);
@@ -35,7 +34,6 @@ export function CuentaPaciente() {
 
   useEffect(() => {
     if (!dni) return;
-    cargarCitas(dni);
     void ejecutar(curarApi.usuarios(dni)).then((r) => {
       const x = r.ok ? r.valor[0] : undefined;
       if (!x) return;
@@ -43,7 +41,7 @@ export function CuentaPaciente() {
       const seguro = SEGUROS_CUENTA.find((s) => s === x.seguro) ?? 'SIS';
       reiniciarPerfil({ nombre: x.nombre, correo: x.correo ?? '', telefono: x.telefono ?? '', seguro });
     });
-  }, [dni, cargarCitas, ejecutar, reiniciarPerfil]);
+  }, [dni, ejecutar, reiniciarPerfil]);
 
   // Derivados
   const rol = auth.usuario?.rol ?? 0;

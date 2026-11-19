@@ -1,12 +1,12 @@
-import { StrictMode } from 'react';
-import { createRoot } from 'react-dom/client';
-import { QueryClientProvider } from '@tanstack/react-query';
-import { BrowserRouter } from 'react-router';
 import 'bootstrap/dist/css/bootstrap.min.css';
 import 'bootstrap-icons/font/bootstrap-icons.css';
-import './styles.css';
+import { QueryClientProvider } from '@tanstack/react-query';
+import { StrictMode } from 'react';
+import { createRoot } from 'react-dom/client';
+import { BrowserRouter } from 'react-router';
 import App from './App';
 import { crearClienteConsultas } from './queries/cliente';
+import './styles.css';
 
 // Una sola caché para toda la app (equivale a los servicios singleton con BehaviorSubject de Angular).
 const consultas = crearClienteConsultas();

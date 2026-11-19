@@ -1,8 +1,8 @@
 import { useEffect, useRef } from 'react';
 import { Link, matchPath, NavLink, Outlet, useLocation } from 'react-router';
 import { useAuth } from '../context/AuthContext';
-import { ROLE_ADMIN, ROLE_MEDICO } from '../types/cita';
 import { Cruz } from './Logo';
+import { ROLE_ADMIN, ROLE_MEDICO } from '../types/cita';
 
 type RolVista = 'anonimo' | 'paciente' | 'medico' | 'admin';
 

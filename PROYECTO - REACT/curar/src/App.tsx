@@ -2,7 +2,6 @@ import { Route, Routes } from 'react-router';
 import { Layout } from './components/Layout';
 import { RutaProtegida } from './components/RutaProtegida';
 import { AuthProvider } from './context/AuthContext';
-import { CitasProvider } from './context/CitasContext';
 import { FlujoProvider } from './context/FlujoContext';
 import { Admin } from './pages/Admin';
 import { Agenda } from './pages/Agenda';
@@ -30,55 +29,53 @@ import { Reservar } from './pages/Reservar';
 import { Verificar } from './pages/Verificar';
 import { PERM_GESTIONAR, PERM_RECETAR, PERM_RESERVAR } from './types/cita';
 
-/** Raíz de la aplicación: proveedores de estado global + tabla de rutas. */
+/** Raíz de la aplicación: estado de sesión y del flujo de reserva + tabla de rutas. Los datos remotos viven en TanStack Query (main.tsx). */
 export default function App() {
   return (
     <AuthProvider>
       <FlujoProvider>
-        <CitasProvider>
-          <Routes>
-            <Route element={<Layout />}>
-              {/* Públicas */}
-              <Route index element={<Home />} />
-              <Route path="login" element={<Login />} />
-              <Route path="registro" element={<Registro />} />
-              <Route path="verificar" element={<Verificar />} />
-              <Route path="seguro" element={<ElegirSeguro />} />
-              <Route path="sede" element={<ElegirSede />} />
-              <Route path="medicos" element={<Medicos />} />
-              <Route path="medicos/:id" element={<PerfilMedico />} />
-              <Route path="centros" element={<Centros />} />
-              <Route path="reclamaciones" element={<Reclamaciones />} />
+        <Routes>
+          <Route element={<Layout />}>
+            {/* Públicas */}
+            <Route index element={<Home />} />
+            <Route path="login" element={<Login />} />
+            <Route path="registro" element={<Registro />} />
+            <Route path="verificar" element={<Verificar />} />
+            <Route path="seguro" element={<ElegirSeguro />} />
+            <Route path="sede" element={<ElegirSede />} />
+            <Route path="medicos" element={<Medicos />} />
+            <Route path="medicos/:id" element={<PerfilMedico />} />
+            <Route path="centros" element={<Centros />} />
+            <Route path="reclamaciones" element={<Reclamaciones />} />
 
-              {/* Paciente */}
-              <Route element={<RutaProtegida permiso={PERM_RESERVAR} />}>
-                <Route path="panel" element={<PanelPaciente />} />
-                <Route path="citas" element={<Citas />} />
-                <Route path="reservar" element={<Reservar />} />
-                <Route path="recetas" element={<Recetas />} />
-                <Route path="historial" element={<Historial />} />
-                <Route path="familiares" element={<Familiares />} />
-                <Route path="mensajes" element={<Mensajes />} />
-                <Route path="cuenta" element={<CuentaPaciente />} />
-              </Route>
-
-              {/* Médico */}
-              <Route element={<RutaProtegida permiso={PERM_RECETAR} />}>
-                <Route path="panel-medico" element={<PanelMedico />} />
-                <Route path="gestion-citas" element={<GestionCitas />} />
-                <Route path="consulta/:id" element={<Consulta />} />
-                <Route path="agenda" element={<Agenda />} />
-              </Route>
-
-              {/* Administrador */}
-              <Route element={<RutaProtegida permiso={PERM_GESTIONAR} />}>
-                <Route path="admin" element={<Admin />} />
-              </Route>
-
-              <Route path="*" element={<NoEncontrada />} />
+            {/* Paciente */}
+            <Route element={<RutaProtegida permiso={PERM_RESERVAR} />}>
+              <Route path="panel" element={<PanelPaciente />} />
+              <Route path="citas" element={<Citas />} />
+              <Route path="reservar" element={<Reservar />} />
+              <Route path="recetas" element={<Recetas />} />
+              <Route path="historial" element={<Historial />} />
+              <Route path="familiares" element={<Familiares />} />
+              <Route path="mensajes" element={<Mensajes />} />
+              <Route path="cuenta" element={<CuentaPaciente />} />
             </Route>
-          </Routes>
-        </CitasProvider>
+
+            {/* Médico */}
+            <Route element={<RutaProtegida permiso={PERM_RECETAR} />}>
+              <Route path="panel-medico" element={<PanelMedico />} />
+              <Route path="gestion-citas" element={<GestionCitas />} />
+              <Route path="consulta/:id" element={<Consulta />} />
+              <Route path="agenda" element={<Agenda />} />
+            </Route>
+
+            {/* Administrador */}
+            <Route element={<RutaProtegida permiso={PERM_GESTIONAR} />}>
+              <Route path="admin" element={<Admin />} />
+            </Route>
+
+            <Route path="*" element={<NoEncontrada />} />
+          </Route>
+        </Routes>
       </FlujoProvider>
     </AuthProvider>
   );

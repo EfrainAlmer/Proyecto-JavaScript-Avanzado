@@ -1,7 +1,6 @@
 import { z } from 'zod';
 import { ROLE_MEDICO, ROLE_PACIENTE } from '../types/cita';
-import {
-  capitalizarNombre, PATRON_CLAVE, PATRON_CMP, PATRON_CORREO, PATRON_DNI, PATRON_NOMBRE, PATRON_TELEFONO,
+import { capitalizarNombre, PATRON_CLAVE, PATRON_CMP, PATRON_CORREO, PATRON_DNI, PATRON_NOMBRE, PATRON_TELEFONO,
 } from '../utils/validacion';
 
 /** Reglas del formulario de inicio de sesión (reemplaza a la función `validar` de Login.tsx). */

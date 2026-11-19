@@ -1,12 +1,10 @@
-import { useEffect, useState } from 'react';
+import { useState } from 'react';
 import { Link } from 'react-router';
 import { FiltroBotones } from '../components/FiltroBotones';
 import { useAuth } from '../context/AuthContext';
-import { useCitas } from '../context/CitasContext';
 import { useCatalogo } from '../queries/catalogo';
-import { useCarga } from '../hooks/useCarga';
-import { curarApi } from '../services/curarApi';
-import type { Receta } from '../types/cita';
+import { useCitasPaciente, useRecetas } from '../queries/citas';
+import { textoError } from '../services/mensajeHttp';
 
 type Tipo = 'Todos' | 'Atención' | 'Receta';
 const TIPOS: readonly Tipo[] = ['Todos', 'Atención', 'Receta'];
@@ -22,19 +20,15 @@ interface Item {
 
 export function Historial() {
   const { usuario } = useAuth();
-  const { citas, cargando: cargandoStore, error: errorStore, cargarCitas } = useCitas();
   const { medicos } = useCatalogo(); // médicos y sedes: caché de TanStack Query
-  const { cargando, error, ejecutar } = useCarga();
   const [tipo, setTipo] = useState<Tipo>('Todos');
   const [quien, setQuien] = useState('');
-  const [recetas, setRecetas] = useState<readonly Receta[]>([]);
   const dni = usuario?.dni;
-
-  useEffect(() => {
-    if (!dni) return;
-    cargarCitas(dni);
-    void ejecutar(curarApi.recetas(dni)).then((r) => r.ok && setRecetas(r.valor));
-  }, [dni, cargarCitas, ejecutar]);
+  const lecturaCitas = useCitasPaciente(dni);
+  const lecturaRecetas = useRecetas(dni);
+  const citas = lecturaCitas.data ?? [];
+  const recetas = lecturaRecetas.data ?? [];
+  const cargando = lecturaCitas.isLoading || lecturaRecetas.isLoading;
 
   // Todo lo siguiente es estado derivado: se recalcula en cada render.
   const nombreMedico = (id: string): string => medicos.find((m) => m.id === id)?.nombre ?? id;
@@ -62,9 +56,9 @@ export function Historial() {
           </select>
         </label>
       </div>
-      <p className="err" role="alert">{errorStore}{error}</p>
+      <p className="err" role="alert">{textoError(lecturaCitas.error ?? lecturaRecetas.error)}</p>
       {visibles.length === 0 ? (
-        <p className="tabla" role="status">{cargando || cargandoStore ? 'Cargando…' : 'Aún no hay registros en tu historial.'}</p>
+        <p className="tabla" role="status">{cargando ? 'Cargando…' : 'Aún no hay registros en tu historial.'}</p>
       ) : (
         visibles.map((i) => (
           <article className="tabla" key={i.id}>

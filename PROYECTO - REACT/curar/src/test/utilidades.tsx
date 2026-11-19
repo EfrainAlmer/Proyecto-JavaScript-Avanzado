@@ -1,13 +1,12 @@
 import { QueryClientProvider } from '@tanstack/react-query';
 import { render } from '@testing-library/react';
-import { MemoryRouter, useLocation } from 'react-router';
-import App from '../App';
-import { crearClienteConsultas } from '../queries/cliente';
 import { useState, type ReactNode } from 'react';
+import { MemoryRouter, useLocation } from 'react-router';
 import { vi } from 'vitest';
+import App from '../App';
 import { AuthProvider } from '../context/AuthContext';
-import { CitasProvider } from '../context/CitasContext';
 import { FlujoProvider } from '../context/FlujoContext';
+import { crearClienteConsultas } from '../queries/cliente';
 
 /** Proveedores globales para probar hooks y componentes. */
 export function Proveedores({ children }: { readonly children: ReactNode }) {
@@ -17,7 +16,7 @@ export function Proveedores({ children }: { readonly children: ReactNode }) {
     <QueryClientProvider client={consultas}>
     <AuthProvider>
       <FlujoProvider>
-        <CitasProvider>{children}</CitasProvider>
+        {children}
       </FlujoProvider>
     </AuthProvider>
     </QueryClientProvider>

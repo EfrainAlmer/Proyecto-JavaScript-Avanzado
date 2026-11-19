@@ -1,7 +1,7 @@
 import { memo, useDeferredValue, useMemo, useState, useTransition } from 'react';
+import { Campo } from '../Campo';
 import type { Cita, Medico, Sede } from '../../types/cita';
 import { filtrarCitas, indexar, type FilaCita as Fila, type FiltroEstado, type Orden } from '../../utils/filtrarCitas';
-import { Campo } from '../Campo';
 
 const ESTADOS: readonly FiltroEstado[] = ['Todas', 'Pendiente', 'Confirmada', 'Atendida', 'Cancelada'];
 const POR_PAGINA = 50;

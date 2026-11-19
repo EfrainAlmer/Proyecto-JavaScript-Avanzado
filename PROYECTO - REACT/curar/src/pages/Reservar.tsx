@@ -1,21 +1,21 @@
 import { zodResolver } from '@hookform/resolvers/zod';
-import { Campo } from '../components/Campo';
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { useForm, useWatch } from 'react-hook-form';
 import { Link, useSearchParams } from 'react-router';
+import { BotonFavorito } from '../components/BotonFavorito';
+import { Campo } from '../components/Campo';
 import { FieldMessage } from '../components/FieldMessage';
 import { useAuth } from '../context/AuthContext';
-import { useCitas } from '../context/CitasContext';
-import { useCatalogo } from '../queries/catalogo';
 import { useFlujo } from '../context/FlujoContext';
-import { useCarga } from '../hooks/useCarga';
+import { useCandado } from '../hooks/useCandado';
 import { ESPECIALIDADES } from '../model/medico';
 import { CAMPOS_POR_PASO, esEspecialidad, reservaSchema, type ReservaData, type ReservaInput } from '../model/reserva';
-import { curarApi } from '../services/curarApi';
-import type { Seguro } from '../types/cita';
+import { useCatalogo } from '../queries/catalogo';
+import { useFamiliares, useHorasOcupadas, useReservarCita } from '../queries/citas';
+import { textoError } from '../services/mensajeHttp';
+import type { Familiar, Seguro } from '../types/cita';
 import { decimal1, diaMesLargo, isoLocal } from '../utils/formato';
 import { valoracion } from '../utils/valoracion';
-import { BotonFavorito } from '../components/BotonFavorito';
 import './Reservar.css';
 
 type Paso = 1 | 2 | 3 | 4 | 5;
@@ -29,10 +29,13 @@ const SEGUROS: readonly { readonly id: Seguro; readonly icono: string; readonly 
 
 const esSeguro = (s: string | null | undefined): s is Seguro => s === 'EsSalud' || s === 'SIS';
 
+/** Vacíos estables (no crear uno nuevo en cada render). */
+const SIN_FAMILIARES: readonly Familiar[] = [];
+const SIN_HORAS: readonly string[] = [];
+
 export function Reservar() {
   const { usuario } = useAuth();
   const { flujo } = useFlujo();
-  const { familiares, guardando, error, setError: setErrorStore, cargarFavoritos, cargarFamiliares, reservar } = useCitas();
   const { medicos, sedes, activos, cargando: cargandoCatalogo } = useCatalogo(); // médicos y sedes: caché de TanStack Query
   const [params] = useSearchParams();
   const medicoParam = params.get('medicoId');
@@ -54,9 +57,6 @@ export function Reservar() {
   // Estado de PANTALLA (no son datos de la reserva): qué paso se ve, qué perfil está abierto y las horas ocupadas que vienen de la API.
   const [paso, setPaso] = useState<Paso>(1);
   const [perfilId, setPerfilId] = useState('');
-  const [ocupadas, setOcupadas] = useState<readonly string[]>([]);
-  const horas = useCarga();
-  const { ejecutar: ejecutarHoras } = horas;
   const precargado = useRef(false);
   // Referencias al DOM para mover el foco sin provocar re-renderizados (equivalen a @ViewChild).
   const tituloPaso = useRef<HTMLHeadingElement>(null);
@@ -86,16 +86,14 @@ export function Reservar() {
     name: ['seguro', 'especialidad', 'para', 'sedeId', 'medicoId', 'dia', 'hora'],
   });
 
-  useEffect(() => {
-    setErrorStore('');
-  }, [setErrorStore]);
-
+  // Lab 14: datos remotos desde la caché de TanStack Query (antes: CitasContext + efectos de carga).
   const dni = usuario?.dni;
-  useEffect(() => {
-    if (!dni) return;
-    cargarFavoritos(dni);
-    cargarFamiliares(dni);
-  }, [dni, cargarFavoritos, cargarFamiliares]);
+  const familiares = useFamiliares(dni).data ?? SIN_FAMILIARES;
+  // Horas ocupadas = dato externo que depende de lo elegido: la clave cambia con médico y día.
+  const horasOcupadas = useHorasOcupadas(medicoId, dia);
+  const ocupadas = horasOcupadas.data ?? SIN_HORAS;
+  const reservarCita = useReservarCita();
+  const conCandado = useCandado();
 
   // ?medicoId=… salta directo al paso 4 cuando ya hay datos cargados (sincroniza la URL con el formulario una sola vez).
   useEffect(() => {
@@ -127,19 +125,6 @@ export function Reservar() {
     setValue('para', f.id ?? '');
     if (!medicoParam && esSeguro(f.seguro)) setValue('seguro', f.seguro);
   }, [familiares, paraParam, medicoParam, setValue]);
-
-  // Horas libres reales = horario del médico − citas activas de ese día (dato externo, no del formulario).
-  useEffect(() => {
-    setOcupadas([]);
-    if (!medicoId || !dia) return;
-    let vigente = true;
-    void ejecutarHoras(curarApi.ocupadas(medicoId, dia)).then((r) => {
-      if (vigente && r.ok) setOcupadas(r.valor);
-    });
-    return () => {
-      vigente = false;
-    };
-  }, [medicoId, dia, ejecutarHoras]);
 
   // Modal accesible: al abrir, el foco va al botón Cerrar; Escape cierra; al cerrar, el foco vuelve a quien lo abrió.
   useEffect(() => {
@@ -209,32 +194,35 @@ export function Reservar() {
     }
     if (p === 2 && !getValues('sedeId') && sedesDisponibles.length === 1) setValue('sedeId', sedesDisponibles[0]?.id ?? ''); // una sola opción: ya queda elegida
     if (p === 3 && !getValues('medicoId') && medicosDisponibles.length === 1) setValue('medicoId', medicosDisponibles[0]?.id ?? '');
-    setErrorStore('');
+    reservarCita.reset(); // limpia un error de escritura anterior al cambiar de paso
     setPaso(p);
     window.scrollTo(0, 0);
   }
 
-  function confirmar(data: ReservaData): void {
+  async function confirmar(data: ReservaData): Promise<void> {
     if (!usuario || !medico) return;
-    if (!libres.includes(data.hora)) {
-      setError('hora', { message: 'Esa hora ya no está disponible. Elige otra.' });
-      setValue('hora', '');
-      return;
-    }
-    reservar(
-      {
+    // Candado: dos clics rápidos solo envían UN POST (isPending tarda un render en desactivar el botón).
+    await conCandado(async () => {
+      // Justo antes de reservar se vuelve a leer quién tomó qué hora: alguien pudo reservarla mientras tanto.
+      const tomadas = (await horasOcupadas.refetch()).data ?? [];
+      if (tomadas.includes(data.hora) || !libres.includes(data.hora)) {
+        setError('hora', { message: 'Esa hora ya no está disponible. Elige otra.' });
+        setValue('hora', '');
+        return;
+      }
+      await reservarCita.mutateAsync({
         dniPaciente: usuario.dni, paciente: familiar?.nombre ?? usuario.nombre, medicoId: data.medicoId, seguro: data.seguro,
         fecha: data.dia, hora: data.hora, motivo: data.motivo, ...(familiar?.id ? { familiarId: familiar.id } : {}),
-      },
-      () => {
-        setPaso(5);
-        window.scrollTo(0, 0);
-      },
-    );
+      });
+      // Regla 1 del md: si el POST salió bien pero la recarga de ['citas'] falla, el recibo se conserva igual.
+      setPaso(5);
+      window.scrollTo(0, 0);
+    }).catch(() => undefined); // el error de escritura queda en reservarCita.error
   }
 
   function nueva(): void {
     reset({ ...getValues(), sedeId: '', medicoId: '', hora: '', motivo: '' });
+    reservarCita.reset();
     setPaso(1);
     window.scrollTo(0, 0);
   }
@@ -360,18 +348,18 @@ export function Reservar() {
                   <button key={h} type="button" className={`hora${hora === h ? ' on' : ''}`} aria-pressed={hora === h} onClick={() => setValue('hora', h, { shouldValidate: true })}>{h}</button>
                 ))
               ) : (
-                <p className="tabla" role="status" style={{ gridColumn: '1/-1', margin: 0 }}>{horas.cargando ? 'Buscando horarios…' : 'No hay horarios libres este día. Elige otro día.'}</p>
+                <p className="tabla" role="status" style={{ gridColumn: '1/-1', margin: 0 }}>{horasOcupadas.isFetching ? 'Buscando horarios…' : 'No hay horarios libres este día. Elige otro día.'}</p>
               )}
             </div>
             <FieldMessage id="hora-error" message={errors.hora?.message} />
-            <p className="err" role="alert">{horas.error}</p>
+            <p className="err" role="alert">{textoError(horasOcupadas.error)}</p>
 
             <Campo className="campo" label="Motivo de consulta" error={errors.motivo?.message}>{(a11y) => <input maxLength={120} placeholder="Ej. Dolor de cabeza" {...a11y} {...register('motivo')} />}</Campo>
-            <p className="err" role="alert">{error}</p>
+            {reservarCita.error && <p className="err" role="alert">No se registró la cita. {textoError(reservarCita.error)}</p>}
 
             <div className="nav">
               <button className="btn ghost pillbtn" type="button" onClick={() => void ir(3)}>← Anterior</button>
-              <button className="btn pillbtn confirmar der" type="submit" disabled={guardando || horas.cargando}>{guardando ? 'Reservando…' : 'Confirmar Reserva'}</button>
+              <button className="btn pillbtn confirmar der" type="submit" disabled={reservarCita.isPending || horasOcupadas.isFetching}>{reservarCita.isPending ? 'Reservando…' : 'Confirmar Reserva'}</button>
             </div>
           </>
         )}
@@ -380,7 +368,7 @@ export function Reservar() {
           <div className="ok" role="status">
             <i className="bi bi-check-circle-fill" aria-hidden="true" />
             <h2 ref={tituloPaso} tabIndex={-1}>¡Cita confirmada exitosamente!</h2>
-            <p>Se ha agregado a tus citas pendientes.</p>
+            <p>Se ha agregado a tus citas pendientes.{reservarCita.data && <> N.º de cita: <b>{reservarCita.data.id}</b>.</>}</p>
             {medico && (
               <div className="tabla ficha">
                 <b>Dr(a). {medico.nombre}</b>
