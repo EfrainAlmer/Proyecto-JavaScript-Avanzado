@@ -36,7 +36,15 @@ body{background:var(--fondo);color:var(--tinta);font:400 15px/1.55 var(--display
 .envoltura{max-width:1500px;margin:0 auto;padding:28px clamp(16px,3vw,36px) 48px;display:grid;gap:20px}
 header h1{font-size:clamp(24px,3vw,34px);font-weight:600;margin:0;letter-spacing:-.02em;text-wrap:balance}
 header p{margin:6px 0 0;color:var(--tenue);max-width:80ch}
-.controles{display:flex;flex-wrap:wrap;gap:18px;align-items:flex-start}
+.controles{display:grid;gap:10px}
+.titulo-comp{margin:0;font-size:13px;font-weight:600;color:var(--tenue);text-transform:uppercase;letter-spacing:.06em}
+.grupos{display:grid;gap:8px}
+.grupo-comp{display:grid;grid-template-columns:110px 1fr;gap:10px;align-items:start}
+.grupo-comp>span{font-size:12.5px;font-weight:600;color:var(--tenue);padding-top:9px}
+@media (max-width:640px){.grupo-comp{grid-template-columns:1fr}.grupo-comp>span{padding-top:0}}
+.pildoras{display:flex;flex-wrap:wrap;gap:6px}
+.pildoras li{list-style:none}
+.panel .pildoras span{font-family:var(--mono);font-size:12px;padding:3px 8px;border-radius:6px;background:var(--fondo);border:1px solid var(--linea)}
 .grupo{display:grid;gap:6px}
 .grupo>span{font-size:12px;font-weight:600;color:var(--tenue);text-transform:uppercase;letter-spacing:.06em}
 .chips{display:flex;flex-wrap:wrap;gap:6px}
@@ -101,22 +109,18 @@ td.v{font-family:var(--mono);font-size:12.5px;white-space:nowrap;font-variant-nu
 <div class="envoltura">
   <header>
     <h1>Arquitectura de Curar · React 19 + TypeScript</h1>
-    <p>Así se reparten React y las librerías adicionales en las funcionalidades de Curar (reserva de citas EsSalud/SIS para paciente, médico y administrador). Pulsa un bloque para ver sus archivos y hooks, filtra por laboratorio o sigue un recorrido paso a paso.</p>
+    <p>Así se reparten React y las librerías adicionales en las funcionalidades de Curar (reserva de citas EsSalud/SIS para paciente, médico y administrador). Elige un componente para ver su funcionalidad, los hooks de React y las librerías que usa, y qué capas atraviesa.</p>
   </header>
 
-  <div class="controles">
-    <div class="grupo"><span>Laboratorio</span>
-      <div class="chips" id="filtros" role="group" aria-label="Filtrar por laboratorio"></div>
-    </div>
-    <div class="grupo"><span>Recorridos</span>
-      <div class="chips" id="recorridos" role="group" aria-label="Recorridos de una funcionalidad"></div>
-    </div>
-  </div>
+  <section class="controles" aria-labelledby="t-comp">
+    <h2 id="t-comp" class="titulo-comp">Componentes de Curar</h2>
+    <div id="grupos" class="grupos"></div>
+  </section>
 
   <div class="cuerpo">
     <figure>
       <svg id="diagrama" viewBox="0 0 1180 912" role="img" aria-label="Diagrama por capas de Curar: navegador, arranque, rutas, páginas, componentes, estado en el cliente, estado remoto con TanStack Query, servicios HTTP y servidor json-server."></svg>
-      <figcaption>Las capas van del navegador (arriba) al servidor (abajo). Las flechas grises de la izquierda indican cómo se comunica cada capa con la siguiente; al elegir un bloque o un recorrido aparecen sus conexiones concretas en celeste.</figcaption>
+      <figcaption>Las capas van del navegador (arriba) al servidor (abajo). Las flechas grises de la izquierda indican cómo se comunica cada capa con la siguiente; al elegir un componente o un bloque, sus conexiones aparecen en celeste.</figcaption>
     </figure>
     <aside class="panel" id="panel" aria-live="polite"></aside>
   </div>
@@ -292,6 +296,95 @@ const RECORRIDOS = [
   ] },
 ];
 
+/* Componentes (funcionalidades) de Curar: dónde se aplicó React y con qué librerías. */
+const GRUPOS = ['Público', 'Paciente', 'Médico', 'Administrador'];
+const C = (id, grupo, nombre, func, react, libs, archivos, nodos, labs, recorrido) => ({ id, grupo, nombre, func, react, libs, archivos, nodos, labs, recorrido });
+const COMPONENTES = [
+  C('layout', 'Público', 'Navegación', 'Cabecera con el menú según el rol, título y foco al cambiar de página, transición animada entre páginas, aviso sin conexión y rutas protegidas por permiso.',
+    ['ViewTransition', 'useLayoutEffect', 'useSyncExternalStore', 'useDebugValue', 'useEffect', 'useRef', 'useState', 'useContext (useAuth)'],
+    ['react-router: BrowserRouter, Routes, Outlet, NavLink, matchPath, Navigate'],
+    ['App.tsx', 'components/Layout.tsx', 'components/RutaProtegida.tsx', 'hooks/useConexion.ts'], ['nav', 'br', 'routes', 'layout', 'ruta', 'auth', 'hooks'], [12, 13], 'navegar'),
+  C('home', 'Público', 'Inicio', 'Carrusel de dos mensajes, buscador de disponibilidad, cifras que se animan al verse y ocho médicos destacados (primero los que tienen foto).',
+    ['useEffect + useEffectEvent (carrusel)', 'useMemo (destacados)', 'useState', 'useNavigate', 'Contador (IntersectionObserver)'],
+    ['react-hook-form + Zod: buscador (model/busqueda.ts)', 'TanStack Query: useCatalogo', 'react-router'],
+    ['pages/Home.tsx', 'components/TarjetaMedico.tsx', 'components/Contador.tsx'], ['pPub', 'ui', 'forms', 'flujo', 'qcat', 'api'], [11, 12, 13, 14]),
+  C('login', 'Público', 'Login y registro', 'Iniciar sesión, crear cuenta (la contraseña debe coincidir) y verificar con un código de demostración.',
+    ['useForm', 'useWatch (Registro)', 'useNavigate', 'useContext (AuthContext)', 'useId (Campo)'],
+    ['react-hook-form + Zod: model/auth.ts (regla entre campos)', 'react-router'],
+    ['pages/Login.tsx', 'pages/Registro.tsx', 'pages/Verificar.tsx', 'context/AuthContext.tsx'], ['pPub', 'forms', 'auth', 'api', 'http', 'jsonsrv', 'ruta'], [12, 13], 'login'),
+  C('buscar', 'Público', 'Buscar médico', 'Elegir seguro y sede, y buscar médicos por nombre sin importar las tildes, filtrando por especialidad.',
+    ['useState', 'useEffect', 'useNavigate', 'useContext (FlujoContext)'],
+    ['TanStack Query: useCatalogo (select: solo activos)', 'react-router'],
+    ['pages/ElegirSeguro.tsx', 'pages/ElegirSede.tsx', 'pages/Medicos.tsx', 'utils/texto.ts'], ['pPub', 'flujo', 'qcat', 'api'], [11, 13, 14]),
+  C('perfil', 'Público', 'Perfil y favorito', 'Ficha del médico con su sede y reconocimientos; la estrella de favorito cambia al instante y se deshace sola si el servidor falla.',
+    ['useParams', 'useOptimistic + startTransition', 'useState'],
+    ['TanStack Query: useMedico (placeholderData), useSedes, useFavoritos, useAlternarFavorito', 'react-router'],
+    ['pages/PerfilMedico.tsx', 'components/BotonFavorito.tsx'], ['pPub', 'ui', 'qcat', 'qcit', 'claves', 'api'], [12, 13, 14], 'favorito'),
+  C('centros', 'Público', 'Centros de salud', 'Hospitales, policlínicos y clínicas filtrados por tipo, con comentarios y calificación; el error al comentar se muestra aparte del de lectura.',
+    ['useState', 'useForm'],
+    ['react-hook-form + Zod: model/comentario.ts', 'TanStack Query: useComentarios, useCrearComentario'],
+    ['pages/Centros.tsx'], ['pPub', 'forms', 'qcat', 'msg'], [12, 14]),
+  C('reclamos', 'Público', 'Libro de reclamaciones', 'Formulario de reclamo o queja; el texto de ayuda cambia según el tipo elegido y al enviar se entrega un código de seguimiento.',
+    ['useForm', 'useWatch', 'useState'],
+    ['react-hook-form + Zod: model/reclamo.ts', 'TanStack Query: useCrearReclamo'],
+    ['pages/Reclamaciones.tsx'], ['pPub', 'forms', 'qcue', 'api'], [12, 14]),
+
+  C('panelPac', 'Paciente', 'Mi panel', 'Resumen con citas activas, recetas y familiares; próximas citas con opción de cancelar e historial reciente.',
+    ['useState', 'useEffect', 'useCandado'],
+    ['TanStack Query: useCitasPaciente, useRecetas, useFamiliares, useCambiarEstadoCita'],
+    ['pages/PanelPaciente.tsx', 'components/TarjetaCita.tsx'], ['pPac', 'ui', 'hooks', 'qcit'], [11, 14]),
+  C('reservar', 'Paciente', 'Reservar cita', 'Reserva en cuatro pasos: seguro y especialidad, médico, fecha y hora libres, y confirmación con número de cita.',
+    ['useForm', 'useWatch', 'useMemo', 'useRef', 'useEffect', 'useSearchParams', 'useCandado', 'useContext (FlujoContext)'],
+    ['react-hook-form + Zod: model/reserva.ts', 'TanStack Query: useHorasOcupadas, useReservarCita, useFamiliares', 'react-router'],
+    ['pages/Reservar.tsx', 'components/BotonFavorito.tsx'], ['pPac', 'forms', 'flujo', 'hooks', 'qcit', 'claves', 'api', 'http', 'contract', 'proxy', 'jsonsrv'], [12, 13, 14], 'reservar'),
+  C('citas', 'Paciente', 'Mis citas', 'Lista de citas filtrada por estado; cancelar actualiza todas las vistas que muestran citas.',
+    ['useState', 'useCandado'],
+    ['TanStack Query: useCitasPaciente, useCambiarEstadoCita (invalida ["citas"])', 'react-router'],
+    ['pages/Citas.tsx', 'components/FiltroBotones.tsx'], ['pPac', 'ui', 'hooks', 'qcit', 'claves'], [11, 14]),
+  C('historial', 'Paciente', 'Historial', 'Atenciones y recetas en una sola línea de tiempo, con filtros por tipo, paciente y rango de fechas (reto obligatorio del Lab 12).',
+    ['useState (rango aplicado)', 'useForm (FiltroFechas)'],
+    ['react-hook-form + Zod: model/rango.ts (fecha final ≥ inicial)', 'TanStack Query: useCitasPaciente, useRecetas'],
+    ['pages/Historial.tsx', 'components/FiltroFechas.tsx'], ['pPac', 'forms', 'ui', 'qcit'], [11, 12, 14]),
+  C('recetas', 'Paciente', 'Recetas', 'Recetas emitidas al paciente; se leen con use() mientras se muestra «Cargando…» y, si falla la carga, aparece un botón para reintentar.',
+    ['use()', 'Suspense', 'LimiteError (límite de errores)', 'useEffect + useEffectEvent', 'useRef', 'useState'],
+    ['TanStack Query: ensureQueryData, fetchQuery (useQueryClient)'],
+    ['pages/Recetas.tsx', 'components/LimiteError.tsx'], ['pPac', 'ui', 'qcit', 'api'], [13, 14], 'recetas'),
+  C('familiares', 'Paciente', 'Familiares', 'Registrar y quitar familiares para reservarles citas.',
+    ['useForm', 'useState'],
+    ['react-hook-form + Zod: model/familiar.ts', 'TanStack Query: useFamiliares, useAgregarFamiliar, useQuitarFamiliar'],
+    ['pages/Familiares.tsx'], ['pPac', 'forms', 'qcit'], [12, 14]),
+  C('mensajes', 'Paciente', 'Mensajes', 'Escribir al centro de salud y filtrar entre enviados y recibidos.',
+    ['useForm', 'useState'],
+    ['react-hook-form + Zod: model/mensaje.ts', 'TanStack Query: useMensajes, useCrearMensaje'],
+    ['pages/Mensajes.tsx', 'components/FiltroBotones.tsx'], ['pPac', 'forms', 'ui', 'qcue'], [12, 14]),
+  C('cuenta', 'Paciente', 'Mi cuenta', 'Editar los datos personales precargados; si el servidor rechaza el cambio, el error aparece en el formulario sin perder lo escrito.',
+    ['useForm', 'useRef (precarga una vez)', 'useEffect', 'useState'],
+    ['react-hook-form + Zod: model/cuenta.ts (errores en root.server)', 'TanStack Query: useUsuario, useActualizarUsuario'],
+    ['pages/CuentaPaciente.tsx'], ['pPac', 'forms', 'qcue', 'api'], [12, 14]),
+
+  C('panelMed', 'Médico', 'Panel médico', 'Cifras del día, agenda paginada con búsqueda, siguiente paciente; las pendientes se confirman y las confirmadas se atienden. Se recarga al volver a la pestaña.',
+    ['useDeferredValue', 'useMemo', 'useEffect + useEffectEvent', 'usePaginado', 'useCandado', 'useState'],
+    ['TanStack Query: useCitasMedico, useCambiarEstadoCita', 'react-router'],
+    ['pages/PanelMedico.tsx', 'utils/agenda.ts'], ['pMed', 'hooks', 'qcit', 'claves'], [13, 14]),
+  C('gestion', 'Médico', 'Gestión de citas', 'Tabla de citas filtrada por estado para marcar atendidas; en móvil cada fila pasa a ser una tarjeta.',
+    ['usePaginado', 'useCandado', 'useState'],
+    ['TanStack Query: useCitasMedico, useCambiarEstadoCita', 'react-router'],
+    ['pages/GestionCitas.tsx', 'components/MostrarMas.tsx'], ['pMed', 'ui', 'hooks', 'qcit'], [11, 14]),
+  C('agenda', 'Médico', 'Agenda y recetas', 'Confirmar o cancelar citas y emitir una receta en un formulario que se abre debajo de la cita elegida.',
+    ['useForm', 'usePaginado', 'useCandado', 'useState'],
+    ['react-hook-form + Zod: medicamentoSchema (model/consulta.ts)', 'TanStack Query: useCitasMedico, useCambiarEstadoCita, useCrearReceta'],
+    ['pages/Agenda.tsx'], ['pMed', 'forms', 'hooks', 'qcit'], [12, 14]),
+  C('consulta', 'Médico', 'Consulta médica', 'Un solo formulario repartido en secciones (signos vitales, informe y receta con varios medicamentos) que al finalizar actualiza citas y recetas.',
+    ['FormProvider + useFormContext', 'useFieldArray', 'useParams', 'useRef', 'useEffect', 'useState'],
+    ['react-hook-form + Zod: model/consulta.ts', 'TanStack Query: useCita, useMutation (invalida ["citas"] y ["recetas"])', 'react-router'],
+    ['pages/Consulta.tsx', 'components/consulta/SignosVitalesFields.tsx', 'components/consulta/InformeFields.tsx', 'components/consulta/RecetasFields.tsx'], ['pMed', 'forms', 'qcit', 'claves', 'api'], [12, 14]),
+
+  C('admin', 'Administrador', 'Administración', 'Directorio de médicos (altas, edición y bajas), supervisión de 3000 citas con Actualizar y Cancelar consulta, y avance de reclamos.',
+    ['useReducer (adminReducer)', 'useTransition', 'useDeferredValue', 'useMemo', 'memo', 'useCallback', 'usePaginado'],
+    ['TanStack Query: useTodasCitas, useReclamos, useGuardarMedico, cancelQueries', 'react-hook-form + Zod + react-select (Controller) en MedicoForm'],
+    ['pages/Admin.tsx', 'components/admin/adminReducer.ts', 'components/admin/MedicoForm.tsx', 'components/admin/SupervisionCitas.tsx'], ['pAdm', 'forms', 'superv', 'reducer', 'qcat', 'qcit', 'qcue', 'claves', 'http'], [12, 13, 14], 'supervision'),
+];
+
 const LIBRERIAS = [
   ['React + React DOM', '19.3.1', 'Componentes, hooks, use(), useOptimistic, ViewTransition', '11 · 13'],
   ['TypeScript (strict)', '7.0.2', 'Tipos estrictos, props readonly, sin any', '11'],
@@ -303,7 +396,7 @@ const LIBRERIAS = [
   ['react-select', '5.10', 'Selector de sede accesible, integrado con Controller', '12'],
   ['@tanstack/react-query', '5.107', 'Caché única, claves jerárquicas, mutaciones e invalidación', '14'],
   ['json-server', '1.0 beta', 'API REST de desarrollo sobre api/db.json', '14'],
-  ['Vitest + Testing Library + jsdom', '5.0 · 16.3 · 30.1', '120 pruebas: esquemas, hooks, páginas y resiliencia HTTP', '11–14'],
+  ['Vitest + Testing Library + jsdom', '5.0 · 16.3 · 30.1', '121 pruebas: esquemas, hooks, páginas y resiliencia HTTP', '11–14'],
 ];
 
 const ns = 'http://www.w3.org/2000/svg';
@@ -365,32 +458,35 @@ function dibujarArista(a, b, etiqueta, destacada) {
   if (etiqueta) { const t = el('text', { x: (x1 + x2) / 2, y: (y1 + y2) / 2 + 4, 'text-anchor': 'middle' }, g); t.textContent = etiqueta; }
 }
 
-/* Estado de la vista */
-let filtroLab = null, recorrido = null, paso = 0, seleccionado = null;
+/* Estado de la vista: un componente elegido (y su paso, si tiene recorrido) o un bloque del diagrama. */
+let componente = null, paso = 0, seleccionado = null;
 const panel = document.getElementById('panel');
+const recorridoDe = (c) => (c && c.recorrido ? RECORRIDOS.find((r) => r.id === c.recorrido) : null);
 
 function etiquetasLab(labs) { return `<div class="etiquetas">${labs.map((l) => `<span class="etq l${l}">${LABS[l].nombre}</span>`).join('')}</div>`; }
-function lista(items, mono) { return items.length ? `<ul>${items.map((i) => `<li${mono ? ' class="mono"' : ''}>${i}</li>`).join('')}</ul>` : '<p>—</p>'; }
-const esc = (t) => t.replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
+const esc = (t) => String(t).replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
+function lista(items, mono) { return items.length ? `<ul>${items.map((i) => `<li${mono ? ' class="mono"' : ''}>${esc(i)}</li>`).join('')}</ul>` : '<p>—</p>'; }
 
 function pintar() {
   capaAristas.replaceChildren();
+  const rec = recorridoDe(componente);
+  const activos = componente ? new Set(componente.nodos) : null;
   for (const n of NODOS) {
     const g = elementosNodo[n.id];
-    const enLab = !filtroLab || n.labs.includes(filtroLab);
-    const enRecorrido = !recorrido || recorrido.pasos.some(([id]) => id === n.id);
-    g.classList.toggle('atenuado', !(enLab && enRecorrido));
-    g.classList.toggle('activo', seleccionado === n.id || (recorrido && recorrido.pasos[paso][0] === n.id));
+    g.classList.toggle('atenuado', Boolean(activos) && !activos.has(n.id));
+    g.classList.toggle('activo', seleccionado === n.id || Boolean(rec && rec.pasos[paso][0] === n.id));
     const num = g.querySelector('.numero');
-    const indices = recorrido ? recorrido.pasos.map(([id], i) => (id === n.id ? i + 1 : null)).filter(Boolean) : [];
+    const indices = rec ? rec.pasos.map(([id], i) => (id === n.id ? i + 1 : null)).filter(Boolean) : [];
     num.style.display = indices.length ? '' : 'none';
     if (indices.length) num.querySelector('text').textContent = indices.join('·');
   }
-  if (recorrido) {
-    for (let i = 0; i < recorrido.pasos.length - 1; i++) {
-      const [a] = recorrido.pasos[i], [b] = recorrido.pasos[i + 1];
+  if (rec) {
+    for (let i = 0; i < rec.pasos.length - 1; i++) {
+      const [a] = rec.pasos[i], [b] = rec.pasos[i + 1];
       if (a !== b) dibujarArista(a, b, '', i < paso);
     }
+  } else if (activos) {
+    for (const [a, b, t] of ARISTAS) if (activos.has(a) && activos.has(b)) dibujarArista(a, b, t, true);
   } else if (seleccionado) {
     for (const [a, b, t] of ARISTAS) if (a === seleccionado || b === seleccionado) dibujarArista(a, b, t, true);
   }
@@ -398,49 +494,63 @@ function pintar() {
 }
 
 function pintarPanel() {
-  if (recorrido) {
-    const [id, texto] = recorrido.pasos[paso]; const n = POR_ID[id];
-    panel.innerHTML = `<h3>Recorrido</h3><h2>${recorrido.nombre}</h2>
-      <p><strong>Paso ${paso + 1} de ${recorrido.pasos.length} · ${esc(n.titulo)}</strong></p><p>${esc(texto)}</p>
-      <div class="nav-pasos"><button type="button" id="ant" ${paso === 0 ? 'disabled' : ''}>← Anterior</button><button type="button" id="sig" ${paso === recorrido.pasos.length - 1 ? 'disabled' : ''}>Siguiente →</button></div>
-      <ol class="pasos">${recorrido.pasos.map(([pid, t], i) => `<li class="${i === paso ? 'actual' : ''}"><button type="button" data-paso="${i}">${esc(POR_ID[pid].titulo)}</button></li>`).join('')}</ol>`;
-    panel.querySelector('#ant').onclick = () => { paso--; pintar(); };
-    panel.querySelector('#sig').onclick = () => { paso++; pintar(); };
-    panel.querySelectorAll('[data-paso]').forEach((b) => (b.onclick = () => { paso = Number(b.dataset.paso); pintar(); }));
+  if (componente) {
+    const c = componente, rec = recorridoDe(c);
+    let html = `<h3>${esc(c.grupo)}</h3><h2>${esc(c.nombre)}</h2>${etiquetasLab(c.labs)}
+      <h3>Funcionalidad</h3><p>${esc(c.func)}</p>`;
+    if (rec) {
+      const [id, texto] = rec.pasos[paso];
+      html += `<h3>Cómo funciona, paso a paso</h3>
+        <p><strong>Paso ${paso + 1} de ${rec.pasos.length} · ${esc(POR_ID[id].titulo)}</strong></p><p>${esc(texto)}</p>
+        <div class="nav-pasos"><button type="button" id="ant" ${paso === 0 ? 'disabled' : ''}>← Anterior</button><button type="button" id="sig" ${paso === rec.pasos.length - 1 ? 'disabled' : ''}>Siguiente →</button></div>`;
+    }
+    html += `<h3>React</h3><ul class="pildoras">${c.react.map((r) => `<li><span>${esc(r)}</span></li>`).join('')}</ul>
+      <h3>Librerías</h3>${lista(c.libs)}
+      <h3>Archivos</h3>${lista(c.archivos, true)}`;
+    panel.innerHTML = html;
+    if (rec) {
+      panel.querySelector('#ant').onclick = () => { paso--; pintar(); };
+      panel.querySelector('#sig').onclick = () => { paso++; pintar(); };
+    }
     return;
   }
   if (seleccionado) {
     const n = POR_ID[seleccionado];
-    const con = ARISTAS.filter(([a, b]) => a === n.id || b === n.id).map(([a, b, t]) => (a === n.id ? `→ ${POR_ID[b].titulo} (${t})` : `← ${POR_ID[a].titulo} (${t})`));
+    const usan = COMPONENTES.filter((c) => c.nodos.includes(n.id)).map((c) => c.nombre);
     panel.innerHTML = `<h3>${CAPAS[n.capa].nombre}</h3><h2>${esc(n.titulo)}</h2>${etiquetasLab(n.labs)}
-      <p>${esc(n.que)}</p><h3>Archivos</h3>${lista(n.archivos.map(esc), true)}
-      <h3>APIs de React y librerías</h3>${lista(n.apis.map(esc), true)}<h3>Conexiones</h3>${lista(con.map(esc))}`;
+      <p>${esc(n.que)}</p><h3>Archivos</h3>${lista(n.archivos, true)}
+      <h3>APIs de React y librerías</h3>${lista(n.apis, true)}<h3>Lo usan</h3>${lista(usan)}`;
     return;
   }
-  panel.innerHTML = `<h3>Cómo leer el diagrama</h3><h2>Nueve capas, cuatro laboratorios</h2>
-    <p>Cada bloque lleva puntos de color con los laboratorios que aplica. Pulsa un bloque para ver qué hace, sus archivos y sus conexiones.</p>
-    <ul>${Object.entries(LABS).map(([k, v]) => `<li><span class="etq l${k}">${v.nombre}</span></li>`).join('')}</ul>
-    <p>Los <strong>recorridos</strong> siguen una funcionalidad real de principio a fin, paso a paso.</p>`;
+  panel.innerHTML = `<h3>Cómo leer el diagrama</h3><h2>Elige un componente</h2>
+    <p>Arriba están los componentes de Curar agrupados por rol. Al elegir uno se resaltan las capas que usa y aquí aparecen su funcionalidad, los hooks de React, las librerías y sus archivos.</p>
+    <p>Los componentes con recorrido (Navegación, Login y registro, Perfil y favorito, Reservar cita, Recetas y Administración) se pueden seguir paso a paso.</p>
+    <p>También puedes pulsar cualquier bloque del diagrama.</p>`;
 }
 
-function elegirNodo(id) { recorrido = null; seleccionado = seleccionado === id ? null : id; actualizarChips(); pintar(); }
+function elegirNodo(id) { componente = null; seleccionado = seleccionado === id ? null : id; actualizarChips(); pintar(); }
 
-/* Controles */
-const filtros = document.getElementById('filtros');
-const recorridosEl = document.getElementById('recorridos');
-const chip = (padre, texto, color, onClick) => { const b = document.createElement('button'); b.type = 'button'; b.className = 'chip'; b.innerHTML = (color ? `<span class="punto" style="background:${color}"></span>` : '') + texto; b.onclick = onClick; padre.append(b); return b; };
-const chipsLab = [chip(filtros, 'Todos', null, () => { filtroLab = null; actualizarChips(); pintar(); })];
-for (const [k, v] of Object.entries(LABS)) chipsLab.push(chip(filtros, `Lab ${k}`, v.color, () => { filtroLab = filtroLab === Number(k) ? null : Number(k); actualizarChips(); pintar(); }));
-const chipsRec = RECORRIDOS.map((r) => chip(recorridosEl, r.nombre, null, () => { seleccionado = null; recorrido = recorrido === r ? null : r; paso = 0; actualizarChips(); pintar(); }));
-function actualizarChips() {
-  chipsLab.forEach((b, i) => b.setAttribute('aria-pressed', String(i === 0 ? filtroLab === null : filtroLab === Number(Object.keys(LABS)[i - 1]))));
-  chipsRec.forEach((b, i) => b.setAttribute('aria-pressed', String(recorrido === RECORRIDOS[i])));
+/* Controles: una fila de componentes por rol. */
+const grupos = document.getElementById('grupos');
+const chipsComp = [];
+for (const grupo of GRUPOS) {
+  const fila = document.createElement('div'); fila.className = 'grupo-comp';
+  const etiqueta = document.createElement('span'); etiqueta.textContent = grupo; etiqueta.id = `g-${grupo}`;
+  const chips = document.createElement('div'); chips.className = 'chips'; chips.setAttribute('role', 'group'); chips.setAttribute('aria-labelledby', etiqueta.id);
+  for (const c of COMPONENTES.filter((x) => x.grupo === grupo)) {
+    const b = document.createElement('button'); b.type = 'button'; b.className = 'chip'; b.textContent = c.nombre;
+    b.onclick = () => { seleccionado = null; componente = componente === c ? null : c; paso = 0; actualizarChips(); pintar(); };
+    chips.append(b); chipsComp.push([b, c]);
+  }
+  fila.append(etiqueta, chips); grupos.append(fila);
 }
+function actualizarChips() { chipsComp.forEach(([b, c]) => b.setAttribute('aria-pressed', String(componente === c))); }
 document.addEventListener('keydown', (e) => {
-  if (!recorrido) return;
-  if (e.key === 'ArrowRight' && paso < recorrido.pasos.length - 1) { paso++; pintar(); }
+  const rec = recorridoDe(componente);
+  if (e.key === 'Escape') { componente = null; seleccionado = null; actualizarChips(); pintar(); return; }
+  if (!rec) return;
+  if (e.key === 'ArrowRight' && paso < rec.pasos.length - 1) { paso++; pintar(); }
   if (e.key === 'ArrowLeft' && paso > 0) { paso--; pintar(); }
-  if (e.key === 'Escape') { recorrido = null; actualizarChips(); pintar(); }
 });
 
 document.getElementById('tabla-libs').innerHTML = LIBRERIAS.map(([n, v, u, l]) => `<tr><td><strong>${n}</strong></td><td class="v">${v}</td><td>${u}</td><td>${l}</td></tr>`).join('');
