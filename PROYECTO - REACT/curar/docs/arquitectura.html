@@ -3,55 +3,49 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Arquitectura de Curar</title>
+<title>Arquitectura de Curar por tipo de componente</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
 <style>
-/* Paleta de Curar (azul marino + celeste) con un color por laboratorio. Diagrama por capas, de arriba (navegador) a abajo (servidor). */
+/* Un color por tipo de componente. Cada bloque repite el tipo con texto y barra lateral, no solo con color. */
 :root{
   --fondo:#F4F7FC; --papel:#FFFFFF; --tinta:#000B33; --tenue:#4F5B65; --linea:#D9E2F1; --acento:#3BA8F8;
-  --l11:#0E8A6B; --l12:#7A4FD0; --l13:#B86E00; --l14:#1D74C9;
-  --l11-s:#E3F5EF; --l12-s:#EFE8FC; --l13-s:#FFF1DC; --l14-s:#E2F0FD;
+  --fun:#1D74C9; --cls:#C0392B; --int:#7A4FD0; --lib:#9A5B00; --sop:#5C6770;
   --display:"Montserrat",system-ui,-apple-system,"Segoe UI",sans-serif;
   --mono:"JetBrains Mono",ui-monospace,Consolas,monospace;
   color-scheme:light;
 }
 @media (prefers-color-scheme:dark){
-  :root:not([data-theme="light"]){
+  :root{
     --fondo:#070D22; --papel:#0E1733; --tinta:#E8EEFB; --tenue:#A7B3C8; --linea:#25335A; --acento:#5BB8FA;
-    --l11:#3CCB9F; --l12:#A98BF0; --l13:#F2A93B; --l14:#5BB0F5;
-    --l11-s:#0F2E27; --l12-s:#241B40; --l13-s:#33240C; --l14-s:#0F2742;
+    --fun:#5BB0F5; --cls:#F2877D; --int:#A98BF0; --lib:#F2A93B; --sop:#A7B3C8;
     color-scheme:dark;
   }
-}
-:root[data-theme="dark"]{
-  --fondo:#070D22; --papel:#0E1733; --tinta:#E8EEFB; --tenue:#A7B3C8; --linea:#25335A; --acento:#5BB8FA;
-  --l11:#3CCB9F; --l12:#A98BF0; --l13:#F2A93B; --l14:#5BB0F5;
-  --l11-s:#0F2E27; --l12-s:#241B40; --l13-s:#33240C; --l14-s:#0F2742;
-  color-scheme:dark;
 }
 *{box-sizing:border-box}
 html,body{margin:0}
 body{background:var(--fondo);color:var(--tinta);font:400 15px/1.55 var(--display)}
 .envoltura{max-width:1500px;margin:0 auto;padding:28px clamp(16px,3vw,36px) 48px;display:grid;gap:20px}
 header h1{font-size:clamp(24px,3vw,34px);font-weight:600;margin:0;letter-spacing:-.02em;text-wrap:balance}
-header p{margin:6px 0 0;color:var(--tenue);max-width:80ch}
+header p{margin:6px 0 0;color:var(--tenue);max-width:90ch}
+h2.titulo-comp{margin:0;font-size:13px;font-weight:600;color:var(--tenue);text-transform:uppercase;letter-spacing:.06em}
 .controles{display:grid;gap:10px}
-.titulo-comp{margin:0;font-size:13px;font-weight:600;color:var(--tenue);text-transform:uppercase;letter-spacing:.06em}
+.tipos{display:grid;grid-template-columns:repeat(auto-fit,minmax(230px,1fr));gap:10px}
+.tipo{all:unset;box-sizing:border-box;cursor:pointer;background:var(--papel);border:1.5px solid var(--linea);border-left:6px solid var(--c);border-radius:12px;padding:12px 14px;display:grid;gap:4px;align-content:start}
+.tipo:focus-visible,.chip:focus-visible,.nodo:focus-visible{outline:3px solid var(--acento);outline-offset:3px}
+.tipo[aria-pressed="true"]{background:var(--tinta);color:var(--papel);border-color:var(--tinta);border-left-color:var(--c)}
+.tipo[aria-pressed="true"] small{color:var(--papel);opacity:.85}
+.tipo b{font-size:14px;font-weight:700}
+.tipo .n{font-family:var(--mono);font-size:11.5px;font-weight:500;color:var(--c)}
+.tipo[aria-pressed="true"] .n{color:var(--papel)}
+.tipo small{font-size:12.5px;color:var(--tenue);line-height:1.45}
 .grupos{display:grid;gap:8px}
 .grupo-comp{display:grid;grid-template-columns:110px 1fr;gap:10px;align-items:start}
 .grupo-comp>span{font-size:12.5px;font-weight:600;color:var(--tenue);padding-top:9px}
 @media (max-width:640px){.grupo-comp{grid-template-columns:1fr}.grupo-comp>span{padding-top:0}}
-.pildoras{display:flex;flex-wrap:wrap;gap:6px}
-.pildoras li{list-style:none}
-.panel .pildoras span{font-family:var(--mono);font-size:12px;padding:3px 8px;border-radius:6px;background:var(--fondo);border:1px solid var(--linea)}
-.grupo{display:grid;gap:6px}
-.grupo>span{font-size:12px;font-weight:600;color:var(--tenue);text-transform:uppercase;letter-spacing:.06em}
 .chips{display:flex;flex-wrap:wrap;gap:6px}
 .chip{font:600 13px var(--display);border:1.5px solid var(--linea);background:var(--papel);color:var(--tinta);padding:7px 12px;border-radius:999px;cursor:pointer;min-height:36px}
 .chip[aria-pressed="true"]{background:var(--tinta);color:var(--papel);border-color:var(--tinta)}
-.chip .punto{display:inline-block;width:9px;height:9px;border-radius:50%;margin-right:6px;vertical-align:1px}
-.chip:focus-visible,.nodo:focus-visible{outline:3px solid var(--acento);outline-offset:3px}
 .cuerpo{display:grid;grid-template-columns:minmax(0,1fr) 380px;gap:20px;align-items:start}
 @media (max-width:1100px){.cuerpo{grid-template-columns:1fr}}
 figure{margin:0;background:var(--papel);border:1px solid var(--linea);border-radius:16px;padding:14px;overflow-x:auto}
@@ -63,29 +57,30 @@ svg{display:block;width:100%;min-width:900px;height:auto;font-family:var(--displ
 .panel h3{margin:6px 0 0;font-size:12px;font-weight:600;color:var(--tenue);text-transform:uppercase;letter-spacing:.06em}
 .panel p{margin:0}
 .panel ul,.panel ol{margin:0;padding-left:20px;display:grid;gap:4px}
+.panel ul.pildoras{padding:0;display:flex;flex-wrap:wrap;gap:6px}
+.pildoras li{list-style:none}
+.panel .pildoras span{font-family:var(--mono);font-size:12px;padding:3px 8px;border-radius:6px;background:var(--fondo);border:1px solid var(--linea)}
 .mono{font-family:var(--mono);font-size:12.5px}
 .etiquetas{display:flex;gap:6px;flex-wrap:wrap}
-.etq{font-size:12px;font-weight:600;padding:3px 9px;border-radius:6px}
-.etq.l11{background:var(--l11-s);color:var(--l11)} .etq.l12{background:var(--l12-s);color:var(--l12)}
-.etq.l13{background:var(--l13-s);color:var(--l13)} .etq.l14{background:var(--l14-s);color:var(--l14)}
-.pasos li{padding-left:2px}
-.pasos li.actual{font-weight:600}
-.pasos button{all:unset;cursor:pointer}
-.pasos button:focus-visible{outline:2px solid var(--acento);outline-offset:2px}
+.etq{font-size:12px;font-weight:600;padding:3px 9px;border-radius:6px;color:var(--c);background:color-mix(in srgb,var(--c) 14%,transparent);border:1px solid color-mix(in srgb,var(--c) 40%,transparent)}
+.sub-tipo{display:grid;gap:4px}
+.sub-tipo>strong{font-size:13px;color:var(--c)}
+.nota{font-size:13px;color:var(--tenue);border-left:3px solid var(--linea);padding-left:10px}
 .nav-pasos{display:flex;gap:8px}
 .nav-pasos button{font:600 13px var(--display);padding:8px 14px;border-radius:10px;border:1.5px solid var(--tinta);background:transparent;color:var(--tinta);cursor:pointer;min-height:36px}
 .nav-pasos button:disabled{opacity:.4;cursor:default}
 /* SVG */
 .banda{fill:var(--fondo)}
 .banda-txt{fill:var(--tenue);font-size:11.5px;font-weight:600;letter-spacing:.04em}
-.banda-sub{fill:var(--tenue);font-size:10.5px}
+.banda-sub{fill:var(--tenue);font-size:10px}
 .nodo{cursor:pointer}
 .nodo rect.caja{fill:var(--papel);stroke-width:1.6;transition:opacity .2s,stroke-width .2s}
-.nodo text.t{fill:var(--tinta);font-size:13px;font-weight:600}
+.nodo text.t{fill:var(--tinta);font-size:12.5px;font-weight:600}
 .nodo text.s{fill:var(--tenue);font-size:10.5px}
 .nodo text.m{fill:var(--tenue);font-size:10px;font-family:var(--mono)}
-.nodo.atenuado{opacity:.22}
-.nodo.activo rect.caja{stroke-width:3}
+.nodo text.tg{font-size:9.5px;font-weight:700;letter-spacing:.06em}
+.nodo.atenuado{opacity:.2}
+.nodo.activo rect.caja{stroke-width:3.4}
 .nodo .numero circle{fill:var(--acento)} .nodo .numero text{fill:#00112e;font-size:11px;font-weight:700}
 .arista path{fill:none;stroke:var(--tenue);stroke-width:1.4}
 .arista.destacada path{stroke:var(--acento);stroke-width:2.4}
@@ -108,28 +103,33 @@ td.v{font-family:var(--mono);font-size:12.5px;white-space:nowrap;font-variant-nu
 <body>
 <div class="envoltura">
   <header>
-    <h1>Arquitectura de Curar · React 19 + TypeScript</h1>
-    <p>Así se reparten React y las librerías adicionales en las funcionalidades de Curar (reserva de citas EsSalud/SIS para paciente, médico y administrador). Elige un componente para ver su funcionalidad, los hooks de React y las librerías que usa, y qué capas atraviesa.</p>
+    <h1>Arquitectura de Curar · componentes de React por tipo</h1>
+    <p>Los componentes de Curar (reserva de citas EsSalud/SIS para paciente, médico y administrador) se clasifican en funcionales, de clase e integrados de React, más los funcionales que aportan las librerías. Elige un tipo para ver dónde se aplica, o una funcionalidad para ver qué tipos de componente usa.</p>
   </header>
 
+  <section class="controles" aria-labelledby="t-tipos">
+    <h2 id="t-tipos" class="titulo-comp">Tipos de componente</h2>
+    <div id="tipos" class="tipos"></div>
+  </section>
+
   <section class="controles" aria-labelledby="t-comp">
-    <h2 id="t-comp" class="titulo-comp">Componentes de Curar</h2>
+    <h2 id="t-comp" class="titulo-comp">Funcionalidades de Curar</h2>
     <div id="grupos" class="grupos"></div>
   </section>
 
   <div class="cuerpo">
     <figure>
-      <svg id="diagrama" viewBox="0 0 1180 912" role="img" aria-label="Diagrama por capas de Curar: navegador, arranque, rutas, páginas, componentes, estado en el cliente, estado remoto con TanStack Query, servicios HTTP y servidor json-server."></svg>
-      <figcaption>Las capas van del navegador (arriba) al servidor (abajo). Las flechas grises de la izquierda indican cómo se comunica cada capa con la siguiente; al elegir un componente o un bloque, sus conexiones aparecen en celeste.</figcaption>
+      <svg id="diagrama" viewBox="0 0 1180 1000" role="img" aria-label="Diagrama por capas de Curar con cada bloque etiquetado por tipo de componente: funcional, de clase, integrado de React o de librería."></svg>
+      <figcaption>Las capas van del navegador (arriba) al servidor (abajo). Cada bloque indica su tipo con color, barra lateral y etiqueta. Al elegir un tipo, una funcionalidad o un bloque, lo relacionado se resalta y sus conexiones aparecen en celeste.</figcaption>
     </figure>
     <aside class="panel" id="panel" aria-live="polite"></aside>
   </div>
 
   <section class="libs" aria-labelledby="t-libs">
-    <h2 id="t-libs">Librerías y para qué se usan</h2>
+    <h2 id="t-libs">Librerías y los componentes que aportan</h2>
     <div class="tabla-scroll">
       <table>
-        <thead><tr><th scope="col">Librería</th><th scope="col">Versión</th><th scope="col">Uso en Curar</th><th scope="col">Lab</th></tr></thead>
+        <thead><tr><th scope="col">Librería</th><th scope="col">Versión</th><th scope="col">Uso en Curar</th><th scope="col">Componentes que aporta</th></tr></thead>
         <tbody id="tabla-libs"></tbody>
       </table>
     </div>
@@ -137,111 +137,162 @@ td.v{font-family:var(--mono);font-size:12.5px;white-space:nowrap;font-variant-nu
 </div>
 
 <script>
-const LABS = {
-  11: { nombre: 'Lab 11 · Componentes', color: 'var(--l11)', suave: 'var(--l11-s)' },
-  12: { nombre: 'Lab 12 · Rutas y formularios', color: 'var(--l12)', suave: 'var(--l12-s)' },
-  13: { nombre: 'Lab 13 · Hooks de React 19', color: 'var(--l13)', suave: 'var(--l13-s)' },
-  14: { nombre: 'Lab 14 · Servicios REST', color: 'var(--l14)', suave: 'var(--l14-s)' },
+/* ---------- Tipos de componente ---------- */
+const ORDEN = ['fun', 'cls', 'int', 'lib', 'sop'];
+const TIPOS = {
+  fun: { nombre: 'Funcional (propio)', corto: 'FUNCIONAL', color: 'var(--fun)',
+    def: 'Función que recibe props y devuelve JSX; usa hooks para estado y efectos. Es el tipo por defecto en React moderno.',
+    reco: 'Una función con nombre en mayúscula que devuelve JSX. Si usa hooks (useState, useForm, useQuery…), tiene que ser funcional.',
+    nota: 'En Curar: todas las páginas, el Layout, los proveedores de contexto, las tarjetas, los formularios y la supervisión.' },
+  cls: { nombre: 'De clase', corto: 'CLASE', color: 'var(--cls)',
+    def: 'Clase que extiende Component y define render(). Hoy solo hace falta para los límites de error, que no tienen equivalente en hooks.',
+    reco: 'Aparece como class … extends Component. No puede usar hooks.',
+    nota: 'En Curar: uno solo, LimiteError (class ErrorBoundary), que envuelve la lectura de recetas.' },
+  int: { nombre: 'Integrado de React', corto: 'INTEGRADO', color: 'var(--int)',
+    def: 'Vienen con React o con el navegador, sin instalar nada: etiquetas HTML (div, main, table, button…) y componentes especiales como StrictMode, Suspense y ViewTransition.',
+    reco: 'Etiquetas HTML en minúscula, o componentes importados directamente de "react".',
+    nota: 'Usados según el diagrama: etiquetas HTML, StrictMode, Suspense y ViewTransition. Fragment, Profiler y Activity no aparecen en la descripción: confirmar con una búsqueda en src/.' },
+  lib: { nombre: 'Funcional de librería', corto: 'LIBRERÍA', color: 'var(--lib)',
+    def: 'Componentes funcionales que vienen en una librería externa y se importan de su paquete.',
+    reco: 'Se importan de un paquete instalado (react-router, @tanstack/react-query, react-hook-form, react-select).',
+    nota: 'En Curar: BrowserRouter, Routes, Route, Outlet, NavLink, Navigate, QueryClientProvider, FormProvider, Controller y Select.' },
+  sop: { nombre: 'Soporte (no es componente)', corto: 'SOPORTE', color: 'var(--sop)',
+    def: 'Contextos, hooks, reducer, TanStack Query, servicios y servidor. No pintan nada, pero los componentes dependen de ellos.',
+    reco: 'Funciones, módulos o procesos sin JSX.',
+    nota: 'Se muestran para ver de dónde salen los datos que consumen los componentes.' },
 };
 
-const X = [170, 423, 676, 929], W4 = 231;
+/* ---------- Capas y bloques ---------- */
 const CAPAS = [
-  { y: 20,  h: 56, nombre: 'NAVEGADOR', sub: 'Edge / Chrome' },
-  { y: 112, h: 64, nombre: 'ARRANQUE', sub: 'main.tsx · App.tsx' },
-  { y: 212, h: 64, nombre: 'RUTAS', sub: 'react-router 8' },
-  { y: 312, h: 74, nombre: 'PÁGINAS', sub: 'src/pages' },
-  { y: 422, h: 66, nombre: 'COMPONENTES', sub: 'src/components' },
-  { y: 524, h: 66, nombre: 'ESTADO CLIENTE', sub: 'context · hooks' },
-  { y: 626, h: 66, nombre: 'ESTADO REMOTO', sub: 'TanStack Query' },
-  { y: 728, h: 66, nombre: 'SERVICIOS', sub: 'src/services' },
-  { y: 830, h: 66, nombre: 'SERVIDOR', sub: 'solo desarrollo' },
+  { h: 56, nombre: 'NAVEGADOR', sub: 'Edge / Chrome' },
+  { h: 64, nombre: 'ARRANQUE', sub: 'main.tsx · App.tsx' },
+  { h: 64, nombre: 'RUTAS', sub: 'router · plantilla' },
+  { h: 74, nombre: 'PÁGINAS', sub: 'src/pages' },
+  { h: 66, nombre: 'COMPONENTES', sub: 'src/components' },
+  { h: 66, nombre: 'BASE', sub: 'HTML · React · libs' },
+  { h: 66, nombre: 'ESTADO CLIENTE', sub: 'context · hooks' },
+  { h: 66, nombre: 'ESTADO REMOTO', sub: 'TanStack Query' },
+  { h: 66, nombre: 'SERVICIOS', sub: 'src/services' },
+  { h: 66, nombre: 'SERVIDOR', sub: 'solo desarrollo' },
 ];
-const ESPINA = ['URL', 'monta', 'element', 'props', 'hooks', 'useQuery', 'queryFn', 'fetch /api'];
+let yy = 20; CAPAS.forEach((c) => { c.y = yy; yy += c.h + 36; });
+const ALTO = yy - 36 + 20;
+const ESPINA = ['createRoot', 'children', 'element', 'props', 'JSX', 'hooks', 'useQuery', 'queryFn', 'fetch /api'];
 
-const N = (id, capa, x, w, titulo, sub, mono, labs, info) => ({ id, capa, x, w, titulo, sub, mono, labs, ...info });
+const N = (id, capa, tipo, titulo, sub, mono, info) => ({ id, capa, tipo, titulo, sub, mono, peso: 1, ...info });
 const NODOS = [
-  N('nav', 0, 170, 990, 'Navegador · paciente, médico y administrador', 'Una SPA: el servidor entrega index.html y React pinta cada ruta', 'index.html → #root', [11],
-    { que: 'Punto de entrada. Vite sirve index.html y el bundle; todo lo demás ocurre en el navegador.', archivos: ['index.html', 'public/favicon.svg', 'public/medicos/*.jpg'], apis: ['createRoot (react-dom/client)'] }),
+  N('nav', 0, 'int', '<div id="root">', 'index.html: React monta aquí', '',
+    { que: 'Punto de entrada. Vite sirve index.html y el bundle; createRoot monta React dentro de esta etiqueta, que es un componente integrado (etiqueta HTML). Todo lo demás ocurre en el navegador.', archivos: ['index.html', 'public/favicon.svg', 'public/medicos/*.jpg'], apis: ['createRoot (react-dom/client)'] }),
 
-  N('strict', 1, X[0], W4, 'StrictMode', 'Detecta efectos sin limpieza', 'main.tsx', [11, 13],
-    { que: 'En desarrollo monta, desmonta y vuelve a montar cada componente para revelar efectos sin limpieza. Por eso en Network se ven peticiones canceladas al cargar.', archivos: ['src/main.tsx'], apis: ['<StrictMode>'] }),
-  N('qcp', 1, X[1], W4, 'QueryClientProvider', 'Una sola caché para toda la app', 'queries/cliente.ts', [14],
-    { que: 'Crea la caché única de TanStack Query: retry desactivado, staleTime de 30 s y sin recargas automáticas al volver a la ventana.', archivos: ['src/main.tsx', 'src/queries/cliente.ts'], apis: ['QueryClient', 'QueryClientProvider'] }),
-  N('br', 1, X[2], W4, 'BrowserRouter', 'Navega dentro de startTransition', 'main.tsx', [12],
-    { que: 'Escucha la URL. Cada navegación se aplica dentro de startTransition, y eso es lo que permite la transición animada entre páginas.', archivos: ['src/main.tsx'], apis: ['<BrowserRouter>'] }),
-  N('prov', 1, X[3], W4, 'AuthProvider · FlujoProvider', 'Contextos de React 19', 'App.tsx', [13],
-    { que: 'Envuelven todas las rutas con la sesión y con el flujo de reserva. Usan la sintaxis <Ctx value={…}> de React 19, sin .Provider.', archivos: ['src/App.tsx', 'src/context/AuthContext.tsx', 'src/context/FlujoContext.tsx'], apis: ['createContext', '<Ctx value>'] }),
+  N('strict', 1, 'int', 'StrictMode', 'Detecta efectos sin limpieza', '',
+    { que: 'Componente especial de React. En desarrollo monta, desmonta y vuelve a montar cada componente para revelar efectos sin limpieza. Por eso en Network se ven peticiones canceladas al cargar.', archivos: ['src/main.tsx'], apis: ['<StrictMode>'] }),
+  N('qcp', 1, 'lib', 'QueryClientProvider', 'Una sola caché para toda la app', '',
+    { que: 'Componente de TanStack Query. Entrega la caché única: retry desactivado, staleTime de 30 s y sin recargas automáticas al volver a la ventana.', archivos: ['src/main.tsx', 'src/queries/cliente.ts'], apis: ['QueryClient', 'QueryClientProvider'] }),
+  N('br', 1, 'lib', 'BrowserRouter', 'Navega dentro de startTransition', '',
+    { que: 'Componente de react-router. Escucha la URL y aplica cada navegación dentro de startTransition, lo que permite la transición animada entre páginas.', archivos: ['src/main.tsx'], apis: ['<BrowserRouter>'] }),
+  N('prov', 1, 'fun', 'Auth y FlujoProvider', 'Contextos de React 19', '',
+    { que: 'Componentes funcionales propios que envuelven todas las rutas con la sesión y con el flujo de reserva. Usan la sintaxis <Ctx value={…}> de React 19, sin .Provider.', archivos: ['src/App.tsx', 'src/context/AuthContext.tsx', 'src/context/FlujoContext.tsx'], apis: ['createContext', '<Ctx value>'] }),
 
-  N('layout', 2, 170, 320, 'Layout + Outlet', 'Cabecera, menú, foco y transición', 'components/Layout.tsx', [12, 13],
-    { que: 'Plantilla común: cabecera con NavLink según el rol, título de cada ruta (matchPath), foco en <main> al navegar, aviso sin conexión y <ViewTransition> alrededor del <Outlet>.', archivos: ['src/components/Layout.tsx', 'src/hooks/useConexion.ts'], apis: ['Outlet', 'NavLink', 'useLocation', 'matchPath', 'ViewTransition', 'useLayoutEffect', 'useSyncExternalStore'] }),
-  N('ruta', 2, 510, 300, 'RutaProtegida', 'Ruta de layout por permiso', 'components/RutaProtegida.tsx', [12],
-    { que: 'Ruta sin path que deja pasar solo si la sesión tiene el permiso (reservar, recetar o gestionar); si no, redirige al login.', archivos: ['src/components/RutaProtegida.tsx', 'src/model/auth.ts'], apis: ['<Navigate>', '<Outlet>'] }),
-  N('routes', 2, 830, 330, 'Routes · Route', '24 rutas declarativas, :id y *', 'App.tsx', [12],
-    { que: 'Mapa de rutas: públicas, paciente, médico y admin, con parámetros (/medicos/:id, /consulta/:id) y página 404.', archivos: ['src/App.tsx', 'src/pages/NoEncontrada.tsx'], apis: ['<Routes>', '<Route>', 'useParams', 'useSearchParams'] }),
+  N('ruta', 2, 'fun', 'RutaProtegida', 'Permiso o redirige al login', '',
+    { que: 'Componente funcional propio. Ruta sin path que deja pasar solo si la sesión tiene el permiso (reservar, recetar o gestionar); si no, redirige al login con Navigate.', archivos: ['src/components/RutaProtegida.tsx', 'src/model/auth.ts'], apis: ['<Navigate>', '<Outlet>'] }),
+  N('routes', 2, 'lib', 'Routes · Route', '24 rutas, :id y *', '',
+    { que: 'Componentes de react-router. Mapa de rutas: públicas, paciente, médico y admin, con parámetros (/medicos/:id, /consulta/:id) y página 404.', archivos: ['src/App.tsx', 'src/pages/NoEncontrada.tsx'], apis: ['<Routes>', '<Route>', 'useParams', 'useSearchParams'] }),
+  N('layout', 2, 'fun', 'Layout', 'Cabecera, foco y Outlet', '',
+    { que: 'Componente funcional propio. Plantilla común: cabecera con NavLink según el rol, título de cada ruta (matchPath), foco en <main> al navegar y aviso sin conexión. Compone ViewTransition y Outlet.', archivos: ['src/components/Layout.tsx', 'src/hooks/useConexion.ts'], apis: ['useLocation', 'matchPath', 'useLayoutEffect', 'useSyncExternalStore'] }),
+  N('vt', 2, 'int', 'ViewTransition', 'Anima el cambio de página', '',
+    { que: 'Componente especial de React. Anima la salida y la entrada del contenido al cambiar de ruta (key={ruta}). Funciona porque BrowserRouter navega dentro de startTransition.', archivos: ['src/components/Layout.tsx'], apis: ['<ViewTransition key>'] }),
+  N('nl', 2, 'lib', 'Outlet · NavLink', 'Enlaces y redirección', '',
+    { que: 'Componentes de react-router. Outlet pinta la página hija de la ruta, NavLink crea los enlaces del menú y Navigate redirige.', archivos: ['src/components/Layout.tsx', 'src/components/RutaProtegida.tsx'], apis: ['<Outlet>', '<NavLink>', '<Navigate>'] }),
 
-  N('pPub', 3, X[0], W4, 'Públicas', 'Inicio, médicos, perfil, centros', 'Home · Medicos · Login…', [11, 12],
-    { que: 'Inicio (carrusel, buscador, contadores), elegir seguro y sede, buscar médicos sin tildes, perfil, centros con comentarios, libro de reclamaciones, login y registro.', archivos: ['Home.tsx', 'ElegirSeguro.tsx', 'ElegirSede.tsx', 'Medicos.tsx', 'PerfilMedico.tsx', 'Centros.tsx', 'Reclamaciones.tsx', 'Login.tsx', 'Registro.tsx', 'Verificar.tsx'], apis: ['useEffectEvent (carrusel)', 'useForm + zodResolver', 'useWatch'] }),
-  N('pPac', 3, X[1], W4, 'Paciente', 'Reservar, citas, historial, recetas', 'Reservar · Citas · Recetas…', [12, 13, 14],
-    { que: 'Panel, reserva en 4 pasos, mis citas, historial con rango de fechas, recetas con use(), familiares, mensajes y mi cuenta.', archivos: ['PanelPaciente.tsx', 'Reservar.tsx', 'Citas.tsx', 'Historial.tsx', 'Recetas.tsx', 'Familiares.tsx', 'Mensajes.tsx', 'CuentaPaciente.tsx'], apis: ['use()', 'Suspense', 'useForm', 'useWatch', 'useMutation'] }),
-  N('pMed', 3, X[2], W4, 'Médico', 'Panel, agenda, gestión, consulta', 'PanelMedico · Consulta…', [12, 13, 14],
-    { que: 'Panel con siguiente paciente, agenda paginada con recetas, gestión de citas y consulta con informe y receta en un solo formulario.', archivos: ['PanelMedico.tsx', 'Agenda.tsx', 'GestionCitas.tsx', 'Consulta.tsx'], apis: ['FormProvider', 'useFieldArray', 'useDeferredValue', 'useMemo', 'useEffectEvent'] }),
-  N('pAdm', 3, X[3], W4, 'Administrador', 'Directorio, supervisión, reclamos', 'Admin.tsx', [13, 14],
-    { que: 'Altas y bajas de médicos, supervisión de 3000 citas con Actualizar y Cancelar consulta, y avance de reclamos.', archivos: ['src/pages/Admin.tsx'], apis: ['useReducer', 'useTransition', 'useCallback', 'cancelQueries'] }),
+  N('pPub', 3, 'fun', 'Públicas', 'Inicio, médicos, perfil, centros', 'Home · Medicos · Login…',
+    { que: 'Componentes funcionales propios. Inicio (carrusel, buscador, contadores), elegir seguro y sede, buscar médicos sin tildes, perfil, centros con comentarios, libro de reclamaciones, login y registro.', archivos: ['Home.tsx', 'ElegirSeguro.tsx', 'ElegirSede.tsx', 'Medicos.tsx', 'PerfilMedico.tsx', 'Centros.tsx', 'Reclamaciones.tsx', 'Login.tsx', 'Registro.tsx', 'Verificar.tsx'], apis: ['useEffectEvent (carrusel)', 'useForm + zodResolver', 'useWatch'] }),
+  N('pPac', 3, 'fun', 'Paciente', 'Reservar, citas, historial, recetas', 'Reservar · Citas · Recetas…',
+    { que: 'Componentes funcionales propios. Panel, reserva en 4 pasos, mis citas, historial con rango de fechas, recetas con use(), familiares, mensajes y mi cuenta.', archivos: ['PanelPaciente.tsx', 'Reservar.tsx', 'Citas.tsx', 'Historial.tsx', 'Recetas.tsx', 'Familiares.tsx', 'Mensajes.tsx', 'CuentaPaciente.tsx'], apis: ['use()', 'useForm', 'useWatch', 'useMutation'] }),
+  N('pMed', 3, 'fun', 'Médico', 'Panel, agenda, gestión, consulta', 'PanelMedico · Consulta…',
+    { que: 'Componentes funcionales propios. Panel con siguiente paciente, agenda paginada con recetas, gestión de citas y consulta con informe y receta en un solo formulario.', archivos: ['PanelMedico.tsx', 'Agenda.tsx', 'GestionCitas.tsx', 'Consulta.tsx'], apis: ['FormProvider', 'useFieldArray', 'useDeferredValue', 'useMemo', 'useEffectEvent'] }),
+  N('pAdm', 3, 'fun', 'Administrador', 'Directorio, supervisión, reclamos', 'Admin.tsx',
+    { que: 'Componente funcional propio. Altas y bajas de médicos, supervisión de 3000 citas con Actualizar y Cancelar consulta, y avance de reclamos.', archivos: ['src/pages/Admin.tsx'], apis: ['useReducer', 'useTransition', 'useCallback', 'cancelQueries'] }),
 
-  N('ui', 4, 170, 316, 'Componentes UI', 'Props readonly y callbacks', 'Tarjeta* · BotonFavorito…', [11, 13],
-    { que: 'Piezas reutilizables: TarjetaMedico, TarjetaCita, FiltroBotones (aria-pressed), BotonFavorito (useOptimistic), MostrarMas, Contador (IntersectionObserver) y LimiteError (límite de errores).', archivos: ['TarjetaMedico.tsx', 'TarjetaCita.tsx', 'FiltroBotones.tsx', 'BotonFavorito.tsx', 'MostrarMas.tsx', 'Contador.tsx', 'LimiteError.tsx'], apis: ['useOptimistic', 'startTransition', 'class ErrorBoundary', 'useRef + useEffect'] }),
-  N('forms', 4, 507, 316, 'Formularios RHF + Zod', 'Campo accesible y esquemas tipados', 'Campo · FiltroFechas · model/*', [12],
-    { que: 'Campo enlaza etiqueta, ayuda y error con useId. Los esquemas Zod definen tipos de entrada y salida (z.input / z.output), y las reglas entre campos (contraseña, rango de fechas).', archivos: ['Campo.tsx', 'FiltroFechas.tsx', 'admin/MedicoForm.tsx', 'consulta/*Fields.tsx', 'src/model/*.ts'], apis: ['useForm', 'zodResolver', 'Controller (react-select)', 'useFieldArray', 'useFormContext', 'useId'] }),
-  N('superv', 4, 844, 316, 'SupervisionCitas', 'Filtra 3000 citas sin bloquear', 'admin/SupervisionCitas.tsx', [13],
-    { que: 'La búsqueda usa el texto diferido, el filtrado está memorizado y las filas son memo: escribir no congela la tabla.', archivos: ['src/components/admin/SupervisionCitas.tsx', 'src/utils/filtrarCitas.ts', 'src/utils/texto.ts'], apis: ['memo', 'useMemo', 'useDeferredValue', 'useTransition'] }),
+  N('ui', 4, 'fun', 'Tarjetas y botones', 'Props readonly y callbacks', '',
+    { que: 'Piezas reutilizables sin lógica de negocio: TarjetaMedico, TarjetaCita, FiltroBotones (aria-pressed), BotonFavorito (useOptimistic), MostrarMas y Contador (IntersectionObserver). Todas son funciones con props readonly.', archivos: ['TarjetaMedico.tsx', 'TarjetaCita.tsx', 'FiltroBotones.tsx', 'BotonFavorito.tsx', 'MostrarMas.tsx', 'Contador.tsx'], apis: ['useOptimistic', 'startTransition', 'useRef + useEffect'] }),
+  N('forms', 4, 'fun', 'Campo · FiltroFechas', 'Etiqueta, ayuda y error', '',
+    { que: 'Campo enlaza etiqueta, ayuda y error con useId; FiltroFechas valida el rango de fechas. Los esquemas Zod (src/model) definen los tipos de entrada y salida (z.input / z.output) y las reglas entre campos.', archivos: ['Campo.tsx', 'FiltroFechas.tsx', 'src/model/*.ts'], apis: ['useForm', 'zodResolver', 'useWatch', 'useId'] }),
+  N('cons', 4, 'fun', 'MedicoForm · *Fields', 'Admin y consulta médica', '',
+    { que: 'MedicoForm (alta y edición de médicos) y las secciones de la consulta (signos vitales, informe y receta con varios medicamentos). Cada sección es un componente funcional que lee el formulario padre.', archivos: ['components/admin/MedicoForm.tsx', 'components/consulta/SignosVitalesFields.tsx', 'components/consulta/InformeFields.tsx', 'components/consulta/RecetasFields.tsx'], apis: ['useFormContext', 'useFieldArray', 'Controller'] }),
+  N('superv', 4, 'fun', 'SupervisionCitas', 'memo + useDeferredValue', '',
+    { que: 'Filtra 3000 citas sin bloquear: la búsqueda usa el texto diferido, el filtrado está memorizado y las filas son memo.', archivos: ['src/components/admin/SupervisionCitas.tsx', 'src/utils/filtrarCitas.ts', 'src/utils/texto.ts'], apis: ['memo', 'useMemo', 'useDeferredValue', 'useTransition'] }),
+  N('limite', 4, 'cls', 'LimiteError', 'Límite de errores (class)', '',
+    { que: 'Único componente de clase del proyecto. Captura fallos de render de sus hijos y muestra un botón Reintentar. Se escribe como clase porque React no ofrece un hook equivalente para los límites de error.', archivos: ['src/components/LimiteError.tsx'], apis: ['class ErrorBoundary'] }),
 
-  N('auth', 5, X[0], W4, 'AuthContext', 'Sesión, permisos y logout', 'context/AuthContext.tsx', [13],
+  N('html', 5, 'int', 'Etiquetas HTML', 'main · table · form · button…', '',
+    { que: 'Componentes integrados: React los convierte en elementos del DOM. La lista (main, table, button, label, input, form, img) se deduce de las descripciones de cada funcionalidad: confirmar la lista exacta en src/.', archivos: ['Todos los .tsx de src/pages y src/components'], apis: ['main', 'table', 'button', 'label', 'input', 'form', 'img'] }),
+  N('susp', 5, 'int', 'Suspense', 'Muestra «Cargando…» con use()', '',
+    { que: 'Componente especial de React. Muestra un contenido de reserva mientras un hijo espera una promesa con use(). En Curar envuelve la lectura de recetas, dentro de LimiteError.', archivos: ['src/pages/Recetas.tsx'], apis: ['<Suspense fallback>', 'use()'] }),
+  N('rhf', 5, 'lib', 'FormProvider · Controller', 'react-hook-form', '',
+    { que: 'Componentes de react-hook-form. FormProvider reparte el formulario a las secciones de la consulta; Controller conecta componentes controlados como react-select.', archivos: ['src/pages/Consulta.tsx', 'components/admin/MedicoForm.tsx'], apis: ['<FormProvider>', '<Controller>'] }),
+  N('rsel', 5, 'lib', 'react-select', 'Selector de sede accesible', '',
+    { que: 'Componente Select de react-select, integrado en el formulario del médico mediante Controller.', archivos: ['components/admin/MedicoForm.tsx'], apis: ['Select', 'Controller'] }),
+
+  N('auth', 6, 'sop', 'AuthContext', 'Sesión, permisos y logout', '',
     { que: 'Guarda la sesión en localStorage, expone ingresar, registrar, verificar y salir. Al salir vacía la caché de TanStack Query para no mostrar datos de otra persona.', archivos: ['src/context/AuthContext.tsx'], apis: ['useContext', 'useRef', 'useMemo', 'queryClient.clear()'] }),
-  N('flujo', 5, X[1], W4, 'FlujoContext', 'Seguro, sede y especialidad', 'context/FlujoContext.tsx', [13],
+  N('flujo', 6, 'sop', 'FlujoContext', 'Seguro, sede y especialidad', '',
     { que: 'Recuerda las elecciones del flujo de reserva entre páginas (seguro → sede → médico).', archivos: ['src/context/FlujoContext.tsx'], apis: ['useContext', 'useCallback', 'useMemo'] }),
-  N('reducer', 5, X[2], W4, 'adminReducer', 'Estado de interfaz del admin', 'useReducer', [13],
+  N('reducer', 6, 'sop', 'adminReducer', 'Estado de interfaz del admin', '',
     { que: 'Reducer puro para pestaña, formulario abierto, baja pendiente, cita anulándose y aviso: acciones que cambian varias piezas a la vez.', archivos: ['src/components/admin/adminReducer.ts', 'src/test/adminReducer.test.ts'], apis: ['useReducer'] }),
-  N('hooks', 5, X[3], W4, 'Hooks propios', 'useCandado · usePaginado · useConexion', 'src/hooks', [13, 14],
+  N('hooks', 6, 'sop', 'Hooks propios', 'Candado, paginado, conexión', '',
     { que: 'useCandado bloquea el doble envío con un useRef; usePaginado muestra listas por bloques; useConexion lee navigator.onLine con useSyncExternalStore.', archivos: ['useCandado.ts', 'usePaginado.ts', 'useConexion.ts'], apis: ['useRef', 'useState', 'useSyncExternalStore', 'useDebugValue'] }),
 
-  N('claves', 6, X[0], W4, 'claves.ts', 'queryKey jerárquicas', "['citas', 'medico', id]", [14],
+  N('claves', 7, 'sop', 'claves.ts', 'queryKey jerárquicas', '',
     { que: 'Todas las claves en un solo lugar. Invalidar el prefijo ["citas"] actualiza a la vez Mis citas, el panel médico, la agenda y la supervisión.', archivos: ['src/queries/claves.ts'], apis: ['invalidateQueries({ queryKey })'] }),
-  N('qcat', 6, X[1], W4, 'catalogo.ts', 'Médicos, sedes, comentarios', 'useCatalogo · useMedico', [14],
+  N('qcat', 7, 'sop', 'catalogo.ts', 'Médicos, sedes, comentarios', '',
     { que: 'Lecturas del catálogo (con select y placeholderData) y mutaciones de médicos y comentarios.', archivos: ['src/queries/catalogo.ts'], apis: ['useQuery', 'queryOptions', 'useMutation'] }),
-  N('qcit', 6, X[2], W4, 'citas.ts', 'Citas, favoritos, familiares, recetas', 'useReservarCita…', [14],
+  N('qcit', 7, 'sop', 'citas.ts', 'Citas, favoritos, recetas', '',
     { que: 'Lecturas por paciente o médico, horas ocupadas (staleTime 0) y mutaciones que invalidan ["citas"].', archivos: ['src/queries/citas.ts'], apis: ['useQuery', 'useMutation', 'ensureQueryData'] }),
-  N('qcue', 6, X[3], W4, 'cuentas.ts', 'Usuarios, mensajes, reclamos', 'useReclamos…', [14],
+  N('qcue', 7, 'sop', 'cuentas.ts', 'Usuarios, mensajes, reclamos', '',
     { que: 'Cuenta del paciente, mensajes y libro de reclamaciones.', archivos: ['src/queries/cuentas.ts'], apis: ['useQuery', 'useMutation'] }),
 
-  N('api', 7, X[0], W4, 'curarApi.ts', 'Un método por operación', 'curarApi.citas(dni, signal)', [14],
+  N('api', 8, 'sop', 'curarApi.ts', 'Un método por operación', '',
     { que: 'Fachada del backend: cada método llama a http() y valida la respuesta con su esquema. Recibe el AbortSignal de TanStack Query.', archivos: ['src/services/curarApi.ts'], apis: ['AbortSignal'] }),
-  N('http', 7, X[1], W4, 'http.ts', 'Fetch + timeout + cancelación', 'AbortSignal.any', [14],
+  N('http', 8, 'sop', 'http.ts', 'Fetch + timeout + cancelación', '',
     { que: 'Único transporte HTTP. Combina la señal de la consulta con un límite de 6 s y clasifica los fallos en network, timeout, http y format.', archivos: ['src/services/http.ts'], apis: ['fetch', 'AbortSignal.any', 'AbortSignal.timeout'] }),
-  N('contract', 7, X[2], W4, 'contract.ts', 'Zod valida cada respuesta', 'ApiError(\'format\')', [14],
+  N('contract', 8, 'sop', 'contract.ts', 'Zod valida cada respuesta', '',
     { que: 'Toda respuesta entra como unknown y se valida. Un 200 con forma incorrecta se trata como error de formato, no se muestra.', archivos: ['src/services/contract.ts', 'src/test/contrato.test.ts'], apis: ['z.object', 'safeParse', 'ApiError'] }),
-  N('msg', 7, X[3], W4, 'mensajeHttp.ts', 'Errores legibles', 'red · 404 · 409 · 5xx', [14],
+  N('msg', 8, 'sop', 'mensajeHttp.ts', 'Errores legibles', '',
     { que: 'Traduce cada tipo de error a un mensaje para el usuario. Los errores de lectura y de escritura se muestran por separado.', archivos: ['src/services/mensajeHttp.ts'], apis: ['textoError(e)'] }),
 
-  N('proxy', 8, X[0], W4, 'Proxy de Vite', '/api → :3000 sin CORS', 'vite.config.ts', [14],
+  N('proxy', 9, 'sop', 'Proxy de Vite', '/api → :3000 sin CORS', '',
     { que: 'El navegador pide /api/… al mismo origen y Vite lo reenvía a json-server quitando el prefijo.', archivos: ['vite.config.ts'], apis: ['server.proxy'] }),
-  N('jsonsrv', 8, X[1], W4, 'json-server :3000', 'API REST de prueba', 'npm run api', [14],
+  N('jsonsrv', 9, 'sop', 'json-server :3000', 'API REST de prueba', '',
     { que: 'Expone cada colección como REST (GET, POST, PATCH, DELETE). No valida conflictos: por eso el 409 se documenta como límite.', archivos: ['package.json (script api)'], apis: ['REST'] }),
-  N('db', 8, X[2], W4, 'db.json · seed.json', '125 médicos · ~3000 citas', 'api/', [14],
+  N('db', 9, 'sop', 'db.json · seed.json', '125 médicos · ~3000 citas', '',
     { que: 'db.json es el archivo vivo; seed.json la copia limpia (npm run reset). base.json alimenta las pruebas.', archivos: ['api/db.json', 'api/seed.json', 'api/base.json'], apis: [] }),
-  N('gen', 8, X[3], W4, 'generar-datos.mjs', 'Datos con semilla fija', 'npm run datos', [14],
+  N('gen', 9, 'sop', 'generar-datos.mjs', 'Datos con semilla fija', '',
     { que: 'Genera médicos y citas deterministas, con fechas a partir de hoy, y asigna las fotos de demostración.', archivos: ['scripts/generar-datos.mjs'], apis: [] }),
 ];
 
+/* Reparto horizontal automático dentro de cada capa. */
+const X0 = 170, X1 = 1160, GAP = 12;
+CAPAS.forEach((c, i) => {
+  const ns = NODOS.filter((n) => n.capa === i);
+  const ancho = X1 - X0 - GAP * (ns.length - 1);
+  let x = X0;
+  ns.forEach((n) => { n.w = ancho / ns.length; n.x = x; x += n.w + GAP; });
+});
 const POR_ID = Object.fromEntries(NODOS.map((n) => [n.id, n]));
 const capaDe = (n) => CAPAS[n.capa];
 
-/* Conexiones concretas: aparecen al elegir un bloque. */
+/* Conexiones concretas: aparecen al elegir un bloque o una funcionalidad. */
 const ARISTAS = [
-  ['nav', 'br', 'URL'], ['br', 'routes', 'location'], ['routes', 'layout', 'element'], ['routes', 'ruta', 'rutas privadas'],
-  ['ruta', 'auth', 'permiso'], ['prov', 'auth', 'value'], ['prov', 'flujo', 'value'], ['qcp', 'claves', 'caché única'],
-  ['layout', 'hooks', 'useConexion'], ['layout', 'pPub', 'Outlet'], ['ruta', 'pPac', 'Outlet'], ['ruta', 'pMed', 'Outlet'], ['ruta', 'pAdm', 'Outlet'],
-  ['pPub', 'ui', 'props'], ['pPub', 'forms', 'useForm'], ['pPac', 'forms', 'useForm'], ['pMed', 'forms', 'FormProvider'],
-  ['pAdm', 'superv', 'props'], ['pAdm', 'reducer', 'dispatch'], ['pPac', 'flujo', 'useFlujo'],
+  ['nav', 'strict', 'createRoot'], ['strict', 'qcp', ''], ['qcp', 'br', ''], ['br', 'prov', ''], ['prov', 'routes', 'children'],
+  ['routes', 'ruta', ''], ['routes', 'layout', ''], ['layout', 'vt', ''], ['vt', 'nl', ''],
+  ['layout', 'pPub', 'Outlet'], ['ruta', 'pPac', 'Outlet'], ['ruta', 'pMed', 'Outlet'], ['ruta', 'pAdm', 'Outlet'],
+  ['pPub', 'ui', 'props'], ['pPac', 'ui', 'props'], ['pPub', 'forms', 'useForm'], ['pPac', 'forms', 'useForm'],
+  ['pMed', 'cons', 'FormProvider'], ['pAdm', 'cons', 'MedicoForm'], ['pAdm', 'superv', 'props'],
+  ['pPac', 'limite', 'LimiteError'], ['limite', 'susp', 'envuelve'], ['pPac', 'susp', 'Suspense'],
+  ['ui', 'html', 'JSX'], ['forms', 'html', 'label · input'], ['superv', 'html', 'table'], ['layout', 'html', 'main'],
+  ['cons', 'rhf', 'useFormContext'], ['cons', 'rsel', 'Controller'],
+  ['qcp', 'claves', 'caché única'], ['ruta', 'auth', 'permiso'], ['prov', 'auth', 'value'], ['prov', 'flujo', 'value'],
+  ['pPac', 'flujo', 'useFlujo'], ['pAdm', 'reducer', 'dispatch'], ['layout', 'hooks', 'useConexion'],
   ['pPub', 'qcat', 'useCatalogo'], ['pPac', 'qcit', 'useQuery'], ['pMed', 'qcit', 'useMutation'], ['pAdm', 'qcue', 'useReclamos'],
   ['qcit', 'claves', 'invalidate'], ['qcat', 'claves', 'queryKey'], ['qcue', 'claves', 'queryKey'],
   ['qcat', 'api', 'queryFn'], ['qcit', 'api', 'queryFn'], ['qcue', 'api', 'queryFn'], ['auth', 'api', 'usuarios(dni)'],
@@ -252,8 +303,8 @@ const ARISTAS = [
 
 /* Recorridos de funcionalidades reales: cada paso señala un bloque. */
 const RECORRIDOS = [
-  { id: 'reservar', nombre: 'Reservar una cita', pasos: [
-    ['pPac', 'Reservar.tsx: formulario en 4 pasos con useForm + zodResolver; useWatch reacciona al médico y la fecha elegidos.'],
+  { id: 'reservar', pasos: [
+    ['pPac', 'Reservar.tsx (funcional): formulario en 4 pasos con useForm + zodResolver; useWatch reacciona al médico y la fecha elegidos.'],
     ['flujo', 'FlujoContext aporta el seguro, la sede y la especialidad elegidos antes.'],
     ['qcit', 'Antes del POST se vuelve a leer useHorasOcupadas (staleTime 0) para no reservar una hora ya tomada.'],
     ['hooks', 'useCandado + isPending impiden un segundo envío por doble clic.'],
@@ -264,147 +315,150 @@ const RECORRIDOS = [
     ['contract', 'La respuesta se valida con Zod: el recibo "N.º de cita" sale del POST.'],
     ['claves', 'onSuccess invalida ["citas"]: Mis citas, el panel médico y la agenda se actualizan sin recargar.'],
   ] },
-  { id: 'login', nombre: 'Iniciar sesión', pasos: [
-    ['pPub', 'Login.tsx valida DNI y contraseña con Zod; el error del servidor va a root.server.'],
+  { id: 'login', pasos: [
+    ['pPub', 'Login.tsx (funcional) valida DNI y contraseña con Zod; el error del servidor va a root.server.'],
     ['auth', 'AuthContext.ingresar busca al usuario y guarda la sesión en localStorage.'],
     ['api', 'curarApi.usuarios(dni) pide el registro.'],
     ['jsonsrv', 'json-server responde; la contraseña se compara en el navegador (límite documentado).'],
     ['ruta', 'RutaProtegida lee el permiso de la sesión y deja pasar a /panel, /panel-medico o /admin.'],
   ] },
-  { id: 'favorito', nombre: 'Favorito optimista', pasos: [
-    ['ui', 'BotonFavorito pinta la estrella marcada al instante con useOptimistic dentro de startTransition.'],
+  { id: 'favorito', pasos: [
+    ['ui', 'BotonFavorito (funcional) pinta la estrella marcada al instante con useOptimistic dentro de startTransition.'],
     ['qcit', 'useAlternarFavorito envía POST o DELETE a /favoritos.'],
     ['http', 'Si la petición falla, la transición termina y la estrella vuelve a su estado real.'],
     ['claves', 'Si sale bien, se invalida ["favoritos", dni] y la caché confirma el cambio.'],
   ] },
-  { id: 'recetas', nombre: 'Recetas con use()', pasos: [
-    ['pPac', 'Recetas.tsx crea la promesa en un efecto o en un clic, nunca durante el render.'],
+  { id: 'recetas', pasos: [
+    ['pPac', 'Recetas.tsx (funcional) crea la promesa en un efecto o en un clic, nunca durante el render.'],
     ['qcit', 'ensureQueryData reutiliza la caché; Actualizar fuerza fetchQuery con staleTime 0.'],
-    ['ui', 'use(promesa) suspende; Suspense muestra "Cargando…" y LimiteError captura el fallo con un botón Reintentar.'],
+    ['susp', 'use(promesa) suspende el componente; Suspense (integrado) muestra "Cargando…".'],
+    ['limite', 'Si la carga falla, LimiteError (el único componente de clase) captura el error y ofrece Reintentar.'],
   ] },
-  { id: 'supervision', nombre: 'Supervisión del admin', pasos: [
-    ['pAdm', 'Admin.tsx cambia de pestaña con useTransition; adminReducer guarda el estado de la interfaz.'],
+  { id: 'supervision', pasos: [
+    ['pAdm', 'Admin.tsx (funcional) cambia de pestaña con useTransition; adminReducer guarda el estado de la interfaz.'],
     ['superv', 'Buscar entre 3000 citas usa useDeferredValue + useMemo; las filas son memo.'],
     ['qcit', 'useTodasCitas lee la lista; Actualizar hace refetch y Cancelar consulta llama a cancelQueries.'],
     ['http', 'La cancelación llega al fetch por el AbortSignal: sin datos previos se muestra "Sin consulta activa".'],
   ] },
-  { id: 'navegar', nombre: 'Navegar entre páginas', pasos: [
-    ['nav', 'Un clic en NavLink cambia la URL sin recargar la página.'],
+  { id: 'navegar', pasos: [
+    ['nl', 'Un clic en NavLink (librería) cambia la URL sin recargar la página.'],
     ['br', 'BrowserRouter aplica el cambio dentro de startTransition.'],
-    ['layout', '<ViewTransition key={ruta}> anima la salida y la entrada; useLayoutEffect ajusta el margen de la cabecera fija y el foco pasa a <main>.'],
+    ['vt', '<ViewTransition key={ruta}> (integrado) anima la salida y la entrada.'],
+    ['layout', 'Layout (funcional): useLayoutEffect ajusta el margen de la cabecera fija y el foco pasa a <main>.'],
     ['routes', 'Routes elige la página según el path; las privadas pasan antes por RutaProtegida.'],
   ] },
 ];
 
-/* Componentes (funcionalidades) de Curar: dónde se aplicó React y con qué librerías. */
+/* Funcionalidades: qué hooks, librerías y bloques (de cada tipo) usa cada una. */
 const GRUPOS = ['Público', 'Paciente', 'Médico', 'Administrador'];
-const C = (id, grupo, nombre, func, react, libs, archivos, nodos, labs, recorrido) => ({ id, grupo, nombre, func, react, libs, archivos, nodos, labs, recorrido });
+const C = (id, grupo, nombre, func, react, libs, archivos, nodos, recorrido) => ({ id, grupo, nombre, func, react, libs, archivos, nodos, recorrido });
 const COMPONENTES = [
   C('layout', 'Público', 'Navegación', 'Cabecera con el menú según el rol, título y foco al cambiar de página, transición animada entre páginas, aviso sin conexión y rutas protegidas por permiso.',
     ['ViewTransition', 'useLayoutEffect', 'useSyncExternalStore', 'useDebugValue', 'useEffect', 'useRef', 'useState', 'useContext (useAuth)'],
     ['react-router: BrowserRouter, Routes, Outlet, NavLink, matchPath, Navigate'],
-    ['App.tsx', 'components/Layout.tsx', 'components/RutaProtegida.tsx', 'hooks/useConexion.ts'], ['nav', 'br', 'routes', 'layout', 'ruta', 'auth', 'hooks'], [12, 13], 'navegar'),
+    ['App.tsx', 'components/Layout.tsx', 'components/RutaProtegida.tsx', 'hooks/useConexion.ts'], ['nav', 'br', 'routes', 'ruta', 'layout', 'vt', 'nl', 'html', 'auth', 'hooks'], 'navegar'),
   C('home', 'Público', 'Inicio', 'Carrusel de dos mensajes, buscador de disponibilidad, cifras que se animan al verse y ocho médicos destacados (primero los que tienen foto).',
     ['useEffect + useEffectEvent (carrusel)', 'useMemo (destacados)', 'useState', 'useNavigate', 'Contador (IntersectionObserver)'],
     ['react-hook-form + Zod: buscador (model/busqueda.ts)', 'TanStack Query: useCatalogo', 'react-router'],
-    ['pages/Home.tsx', 'components/TarjetaMedico.tsx', 'components/Contador.tsx'], ['pPub', 'ui', 'forms', 'flujo', 'qcat', 'api'], [11, 12, 13, 14]),
+    ['pages/Home.tsx', 'components/TarjetaMedico.tsx', 'components/Contador.tsx'], ['pPub', 'ui', 'forms', 'html', 'flujo', 'qcat', 'api']),
   C('login', 'Público', 'Login y registro', 'Iniciar sesión, crear cuenta (la contraseña debe coincidir) y verificar con un código de demostración.',
     ['useForm', 'useWatch (Registro)', 'useNavigate', 'useContext (AuthContext)', 'useId (Campo)'],
     ['react-hook-form + Zod: model/auth.ts (regla entre campos)', 'react-router'],
-    ['pages/Login.tsx', 'pages/Registro.tsx', 'pages/Verificar.tsx', 'context/AuthContext.tsx'], ['pPub', 'forms', 'auth', 'api', 'http', 'jsonsrv', 'ruta'], [12, 13], 'login'),
+    ['pages/Login.tsx', 'pages/Registro.tsx', 'pages/Verificar.tsx', 'context/AuthContext.tsx'], ['pPub', 'forms', 'html', 'auth', 'api', 'http', 'jsonsrv', 'ruta'], 'login'),
   C('buscar', 'Público', 'Buscar médico', 'Elegir seguro y sede, y buscar médicos por nombre sin importar las tildes, filtrando por especialidad.',
     ['useState', 'useEffect', 'useNavigate', 'useContext (FlujoContext)'],
     ['TanStack Query: useCatalogo (select: solo activos)', 'react-router'],
-    ['pages/ElegirSeguro.tsx', 'pages/ElegirSede.tsx', 'pages/Medicos.tsx', 'utils/texto.ts'], ['pPub', 'flujo', 'qcat', 'api'], [11, 13, 14]),
+    ['pages/ElegirSeguro.tsx', 'pages/ElegirSede.tsx', 'pages/Medicos.tsx', 'utils/texto.ts'], ['pPub', 'flujo', 'qcat', 'api']),
   C('perfil', 'Público', 'Perfil y favorito', 'Ficha del médico con su sede y reconocimientos; la estrella de favorito cambia al instante y se deshace sola si el servidor falla.',
     ['useParams', 'useOptimistic + startTransition', 'useState'],
     ['TanStack Query: useMedico (placeholderData), useSedes, useFavoritos, useAlternarFavorito', 'react-router'],
-    ['pages/PerfilMedico.tsx', 'components/BotonFavorito.tsx'], ['pPub', 'ui', 'qcat', 'qcit', 'claves', 'api'], [12, 13, 14], 'favorito'),
+    ['pages/PerfilMedico.tsx', 'components/BotonFavorito.tsx'], ['pPub', 'ui', 'qcat', 'qcit', 'claves', 'api'], 'favorito'),
   C('centros', 'Público', 'Centros de salud', 'Hospitales, policlínicos y clínicas filtrados por tipo, con comentarios y calificación; el error al comentar se muestra aparte del de lectura.',
     ['useState', 'useForm'],
     ['react-hook-form + Zod: model/comentario.ts', 'TanStack Query: useComentarios, useCrearComentario'],
-    ['pages/Centros.tsx'], ['pPub', 'forms', 'qcat', 'msg'], [12, 14]),
+    ['pages/Centros.tsx'], ['pPub', 'forms', 'html', 'qcat', 'msg']),
   C('reclamos', 'Público', 'Libro de reclamaciones', 'Formulario de reclamo o queja; el texto de ayuda cambia según el tipo elegido y al enviar se entrega un código de seguimiento.',
     ['useForm', 'useWatch', 'useState'],
     ['react-hook-form + Zod: model/reclamo.ts', 'TanStack Query: useCrearReclamo'],
-    ['pages/Reclamaciones.tsx'], ['pPub', 'forms', 'qcue', 'api'], [12, 14]),
+    ['pages/Reclamaciones.tsx'], ['pPub', 'forms', 'html', 'qcue', 'api']),
 
   C('panelPac', 'Paciente', 'Mi panel', 'Resumen con citas activas, recetas y familiares; próximas citas con opción de cancelar e historial reciente.',
     ['useState', 'useEffect', 'useCandado'],
     ['TanStack Query: useCitasPaciente, useRecetas, useFamiliares, useCambiarEstadoCita'],
-    ['pages/PanelPaciente.tsx', 'components/TarjetaCita.tsx'], ['pPac', 'ui', 'hooks', 'qcit'], [11, 14]),
+    ['pages/PanelPaciente.tsx', 'components/TarjetaCita.tsx'], ['pPac', 'ui', 'hooks', 'qcit']),
   C('reservar', 'Paciente', 'Reservar cita', 'Reserva en cuatro pasos: seguro y especialidad, médico, fecha y hora libres, y confirmación con número de cita.',
     ['useForm', 'useWatch', 'useMemo', 'useRef', 'useEffect', 'useSearchParams', 'useCandado', 'useContext (FlujoContext)'],
     ['react-hook-form + Zod: model/reserva.ts', 'TanStack Query: useHorasOcupadas, useReservarCita, useFamiliares', 'react-router'],
-    ['pages/Reservar.tsx', 'components/BotonFavorito.tsx'], ['pPac', 'forms', 'flujo', 'hooks', 'qcit', 'claves', 'api', 'http', 'contract', 'proxy', 'jsonsrv'], [12, 13, 14], 'reservar'),
+    ['pages/Reservar.tsx', 'components/BotonFavorito.tsx'], ['pPac', 'forms', 'ui', 'html', 'flujo', 'hooks', 'qcit', 'claves', 'api', 'http', 'contract', 'proxy', 'jsonsrv'], 'reservar'),
   C('citas', 'Paciente', 'Mis citas', 'Lista de citas filtrada por estado; cancelar actualiza todas las vistas que muestran citas.',
     ['useState', 'useCandado'],
     ['TanStack Query: useCitasPaciente, useCambiarEstadoCita (invalida ["citas"])', 'react-router'],
-    ['pages/Citas.tsx', 'components/FiltroBotones.tsx'], ['pPac', 'ui', 'hooks', 'qcit', 'claves'], [11, 14]),
+    ['pages/Citas.tsx', 'components/FiltroBotones.tsx'], ['pPac', 'ui', 'html', 'hooks', 'qcit', 'claves']),
   C('historial', 'Paciente', 'Historial', 'Atenciones y recetas en una sola línea de tiempo, con filtros por tipo, paciente y rango de fechas (reto obligatorio del Lab 12).',
     ['useState (rango aplicado)', 'useForm (FiltroFechas)'],
     ['react-hook-form + Zod: model/rango.ts (fecha final ≥ inicial)', 'TanStack Query: useCitasPaciente, useRecetas'],
-    ['pages/Historial.tsx', 'components/FiltroFechas.tsx'], ['pPac', 'forms', 'ui', 'qcit'], [11, 12, 14]),
+    ['pages/Historial.tsx', 'components/FiltroFechas.tsx'], ['pPac', 'forms', 'ui', 'qcit']),
   C('recetas', 'Paciente', 'Recetas', 'Recetas emitidas al paciente; se leen con use() mientras se muestra «Cargando…» y, si falla la carga, aparece un botón para reintentar.',
     ['use()', 'Suspense', 'LimiteError (límite de errores)', 'useEffect + useEffectEvent', 'useRef', 'useState'],
     ['TanStack Query: ensureQueryData, fetchQuery (useQueryClient)'],
-    ['pages/Recetas.tsx', 'components/LimiteError.tsx'], ['pPac', 'ui', 'qcit', 'api'], [13, 14], 'recetas'),
+    ['pages/Recetas.tsx', 'components/LimiteError.tsx'], ['pPac', 'susp', 'limite', 'qcit', 'api'], 'recetas'),
   C('familiares', 'Paciente', 'Familiares', 'Registrar y quitar familiares para reservarles citas.',
     ['useForm', 'useState'],
     ['react-hook-form + Zod: model/familiar.ts', 'TanStack Query: useFamiliares, useAgregarFamiliar, useQuitarFamiliar'],
-    ['pages/Familiares.tsx'], ['pPac', 'forms', 'qcit'], [12, 14]),
+    ['pages/Familiares.tsx'], ['pPac', 'forms', 'html', 'qcit']),
   C('mensajes', 'Paciente', 'Mensajes', 'Escribir al centro de salud y filtrar entre enviados y recibidos.',
     ['useForm', 'useState'],
     ['react-hook-form + Zod: model/mensaje.ts', 'TanStack Query: useMensajes, useCrearMensaje'],
-    ['pages/Mensajes.tsx', 'components/FiltroBotones.tsx'], ['pPac', 'forms', 'ui', 'qcue'], [12, 14]),
+    ['pages/Mensajes.tsx', 'components/FiltroBotones.tsx'], ['pPac', 'forms', 'ui', 'html', 'qcue']),
   C('cuenta', 'Paciente', 'Mi cuenta', 'Editar los datos personales precargados; si el servidor rechaza el cambio, el error aparece en el formulario sin perder lo escrito.',
     ['useForm', 'useRef (precarga una vez)', 'useEffect', 'useState'],
     ['react-hook-form + Zod: model/cuenta.ts (errores en root.server)', 'TanStack Query: useUsuario, useActualizarUsuario'],
-    ['pages/CuentaPaciente.tsx'], ['pPac', 'forms', 'qcue', 'api'], [12, 14]),
+    ['pages/CuentaPaciente.tsx'], ['pPac', 'forms', 'html', 'qcue', 'api']),
 
   C('panelMed', 'Médico', 'Panel médico', 'Cifras del día, agenda paginada con búsqueda, siguiente paciente; las pendientes se confirman y las confirmadas se atienden. Se recarga al volver a la pestaña.',
     ['useDeferredValue', 'useMemo', 'useEffect + useEffectEvent', 'usePaginado', 'useCandado', 'useState'],
     ['TanStack Query: useCitasMedico, useCambiarEstadoCita', 'react-router'],
-    ['pages/PanelMedico.tsx', 'utils/agenda.ts'], ['pMed', 'hooks', 'qcit', 'claves'], [13, 14]),
+    ['pages/PanelMedico.tsx', 'utils/agenda.ts'], ['pMed', 'hooks', 'qcit', 'claves']),
   C('gestion', 'Médico', 'Gestión de citas', 'Tabla de citas filtrada por estado para marcar atendidas; en móvil cada fila pasa a ser una tarjeta.',
     ['usePaginado', 'useCandado', 'useState'],
     ['TanStack Query: useCitasMedico, useCambiarEstadoCita', 'react-router'],
-    ['pages/GestionCitas.tsx', 'components/MostrarMas.tsx'], ['pMed', 'ui', 'hooks', 'qcit'], [11, 14]),
+    ['pages/GestionCitas.tsx', 'components/MostrarMas.tsx'], ['pMed', 'ui', 'html', 'hooks', 'qcit']),
   C('agenda', 'Médico', 'Agenda y recetas', 'Confirmar o cancelar citas y emitir una receta en un formulario que se abre debajo de la cita elegida.',
     ['useForm', 'usePaginado', 'useCandado', 'useState'],
     ['react-hook-form + Zod: medicamentoSchema (model/consulta.ts)', 'TanStack Query: useCitasMedico, useCambiarEstadoCita, useCrearReceta'],
-    ['pages/Agenda.tsx'], ['pMed', 'forms', 'hooks', 'qcit'], [12, 14]),
+    ['pages/Agenda.tsx'], ['pMed', 'forms', 'html', 'hooks', 'qcit']),
   C('consulta', 'Médico', 'Consulta médica', 'Un solo formulario repartido en secciones (signos vitales, informe y receta con varios medicamentos) que al finalizar actualiza citas y recetas.',
     ['FormProvider + useFormContext', 'useFieldArray', 'useParams', 'useRef', 'useEffect', 'useState'],
     ['react-hook-form + Zod: model/consulta.ts', 'TanStack Query: useCita, useMutation (invalida ["citas"] y ["recetas"])', 'react-router'],
-    ['pages/Consulta.tsx', 'components/consulta/SignosVitalesFields.tsx', 'components/consulta/InformeFields.tsx', 'components/consulta/RecetasFields.tsx'], ['pMed', 'forms', 'qcit', 'claves', 'api'], [12, 14]),
+    ['pages/Consulta.tsx', 'components/consulta/SignosVitalesFields.tsx', 'components/consulta/InformeFields.tsx', 'components/consulta/RecetasFields.tsx'], ['pMed', 'cons', 'rhf', 'forms', 'qcit', 'claves', 'api']),
 
   C('admin', 'Administrador', 'Administración', 'Directorio de médicos (altas, edición y bajas), supervisión de 3000 citas con Actualizar y Cancelar consulta, y avance de reclamos.',
     ['useReducer (adminReducer)', 'useTransition', 'useDeferredValue', 'useMemo', 'memo', 'useCallback', 'usePaginado'],
     ['TanStack Query: useTodasCitas, useReclamos, useGuardarMedico, cancelQueries', 'react-hook-form + Zod + react-select (Controller) en MedicoForm'],
-    ['pages/Admin.tsx', 'components/admin/adminReducer.ts', 'components/admin/MedicoForm.tsx', 'components/admin/SupervisionCitas.tsx'], ['pAdm', 'forms', 'superv', 'reducer', 'qcat', 'qcit', 'qcue', 'claves', 'http'], [12, 13, 14], 'supervision'),
+    ['pages/Admin.tsx', 'components/admin/adminReducer.ts', 'components/admin/MedicoForm.tsx', 'components/admin/SupervisionCitas.tsx'], ['pAdm', 'cons', 'rhf', 'rsel', 'superv', 'html', 'reducer', 'qcat', 'qcit', 'qcue', 'claves', 'http'], 'supervision'),
 ];
 
 const LIBRERIAS = [
-  ['React + React DOM', '19.3.1', 'Componentes, hooks, use(), useOptimistic, ViewTransition', '11 · 13'],
-  ['TypeScript (strict)', '7.0.2', 'Tipos estrictos, props readonly, sin any', '11'],
-  ['Vite + plugin React', '8.3.5', 'Servidor de desarrollo, proxy /api y build', '11 · 14'],
-  ['Bootstrap + Bootstrap Icons', '5.3.8 · 1.13.2', 'Rejilla y estilos base (sin su JavaScript) e iconos', '11'],
-  ['react-router', '8.5.1', 'BrowserRouter, Routes, Outlet, NavLink, rutas protegidas', '12'],
-  ['react-hook-form + @hookform/resolvers', '7.92 · 7.0', 'Formularios sin duplicar estado; FormProvider, useFieldArray, Controller', '12'],
-  ['Zod', '4.6', 'Esquemas de formularios y contrato de la API (ApiError format)', '12 · 14'],
-  ['react-select', '5.10', 'Selector de sede accesible, integrado con Controller', '12'],
-  ['@tanstack/react-query', '5.107', 'Caché única, claves jerárquicas, mutaciones e invalidación', '14'],
-  ['json-server', '1.0 beta', 'API REST de desarrollo sobre api/db.json', '14'],
-  ['Vitest + Testing Library + jsdom', '5.0 · 16.3 · 30.1', '121 pruebas: esquemas, hooks, páginas y resiliencia HTTP', '11–14'],
+  ['React + React DOM', '19.3.1', 'Componentes, hooks, use(), useOptimistic, ViewTransition', 'Integrados: StrictMode, Suspense, ViewTransition y las etiquetas HTML'],
+  ['TypeScript (strict)', '7.0.2', 'Tipos estrictos, props readonly, sin any', '—'],
+  ['Vite + plugin React', '8.3.5', 'Servidor de desarrollo, proxy /api y build', '—'],
+  ['Bootstrap + Bootstrap Icons', '5.3.8 · 1.13.2', 'Rejilla y estilos base (sin su JavaScript) e iconos', '— (solo clases CSS)'],
+  ['react-router', '8.5.1', 'BrowserRouter, Routes, Outlet, NavLink, rutas protegidas', 'BrowserRouter, Routes, Route, Outlet, NavLink, Navigate'],
+  ['react-hook-form + @hookform/resolvers', '7.92 · 7.0', 'Formularios sin duplicar estado; FormProvider, useFieldArray, Controller', 'FormProvider, Controller'],
+  ['Zod', '4.6', 'Esquemas de formularios y contrato de la API (ApiError format)', '—'],
+  ['react-select', '5.10', 'Selector de sede accesible, integrado con Controller', 'Select'],
+  ['@tanstack/react-query', '5.107', 'Caché única, claves jerárquicas, mutaciones e invalidación', 'QueryClientProvider'],
+  ['json-server', '1.0 beta', 'API REST de desarrollo sobre api/db.json', '—'],
+  ['Vitest + Testing Library + jsdom', '5.0 · 16.3 · 30.1', '121 pruebas: esquemas, hooks, páginas y resiliencia HTTP', '—'],
 ];
 
+/* ---------- Dibujo ---------- */
 const ns = 'http://www.w3.org/2000/svg';
 const el = (tag, attrs = {}, padre) => { const e = document.createElementNS(ns, tag); for (const [k, v] of Object.entries(attrs)) e.setAttribute(k, v); if (padre) padre.append(e); return e; };
 const svg = document.getElementById('diagrama');
+svg.setAttribute('viewBox', `0 0 1180 ${ALTO}`);
 const capaAristas = el('g'); const capaNodos = el('g');
 
-/* Bandas y espina (cómo habla cada capa con la siguiente). */
 CAPAS.forEach((c, i) => {
   el('rect', { x: 8, y: c.y - 8, width: 1164, height: c.h + 16, rx: 12, class: 'banda' }, svg);
   const t = el('text', { x: 20, y: c.y + c.h / 2 - 2, class: 'banda-txt' }, svg); t.textContent = c.nombre;
@@ -423,16 +477,16 @@ for (const [id, color] of [['flecha-gris', 'var(--linea)'], ['flecha', 'var(--te
 }
 svg.append(capaAristas, capaNodos);
 
-/* Nodos */
 const elementosNodo = {};
 for (const n of NODOS) {
-  const c = capaDe(n); const color = LABS[n.labs[n.labs.length - 1]].color;
-  const g = el('g', { class: 'nodo', tabindex: 0, role: 'button', 'aria-label': `${n.titulo}. ${n.sub}`, 'data-id': n.id }, capaNodos);
-  el('rect', { class: 'caja', x: n.x, y: c.y, width: n.w, height: c.h, rx: 10, stroke: color }, g);
-  n.labs.forEach((l, i) => el('rect', { x: n.x + n.w - 14 - i * 12, y: c.y + 8, width: 8, height: 8, rx: 4, fill: LABS[l].color }, g));
-  const t = el('text', { class: 't', x: n.x + 12, y: c.y + 21 }, g); t.textContent = n.titulo;
-  const s = el('text', { class: 's', x: n.x + 12, y: c.y + 37 }, g); s.textContent = n.sub;
-  if (c.h > 56) { const m = el('text', { class: 'm', x: n.x + 12, y: c.y + c.h - 11 }, g); m.textContent = n.mono; }
+  const c = capaDe(n); const t = TIPOS[n.tipo];
+  const g = el('g', { class: 'nodo', tabindex: 0, role: 'button', 'aria-label': `${n.titulo}. ${t.nombre}. ${n.sub}`, 'data-id': n.id }, capaNodos);
+  el('rect', { class: 'caja', x: n.x, y: c.y, width: n.w, height: c.h, rx: 10, stroke: t.color }, g);
+  el('rect', { x: n.x, y: c.y, width: 7, height: c.h, rx: 3.5, fill: t.color }, g);
+  const ti = el('text', { class: 't', x: n.x + 17, y: c.y + 21 }, g); ti.textContent = n.titulo;
+  const su = el('text', { class: 's', x: n.x + 17, y: c.y + 37 }, g); su.textContent = n.sub;
+  if (n.mono) { const m = el('text', { class: 'm', x: n.x + 17, y: c.y + 52 }, g); m.textContent = n.mono; }
+  const tg = el('text', { class: 'tg', x: n.x + 17, y: c.y + c.h - 9, fill: t.color }, g); tg.textContent = t.corto;
   const num = el('g', { class: 'numero', style: 'display:none' }, g);
   el('circle', { cx: n.x + 2, cy: c.y + 2, r: 11 }, num);
   el('text', { x: n.x + 2, y: c.y + 6, 'text-anchor': 'middle' }, num);
@@ -441,7 +495,6 @@ for (const n of NODOS) {
   elementosNodo[n.id] = g;
 }
 
-/* Arista curva entre dos nodos, con etiqueta. */
 function dibujarArista(a, b, etiqueta, destacada) {
   const A = POR_ID[a], B = POR_ID[b], ca = capaDe(A), cb = capaDe(B);
   let x1, y1, x2, y2, d;
@@ -458,19 +511,20 @@ function dibujarArista(a, b, etiqueta, destacada) {
   if (etiqueta) { const t = el('text', { x: (x1 + x2) / 2, y: (y1 + y2) / 2 + 4, 'text-anchor': 'middle' }, g); t.textContent = etiqueta; }
 }
 
-/* Estado de la vista: un componente elegido (y su paso, si tiene recorrido) o un bloque del diagrama. */
-let componente = null, paso = 0, seleccionado = null;
+/* ---------- Estado de la vista: un tipo, una funcionalidad o un bloque ---------- */
+let tipoSel = null, componente = null, paso = 0, seleccionado = null;
 const panel = document.getElementById('panel');
 const recorridoDe = (c) => (c && c.recorrido ? RECORRIDOS.find((r) => r.id === c.recorrido) : null);
-
-function etiquetasLab(labs) { return `<div class="etiquetas">${labs.map((l) => `<span class="etq l${l}">${LABS[l].nombre}</span>`).join('')}</div>`; }
 const esc = (t) => String(t).replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
+const insignia = (k) => `<span class="etq" style="--c:${TIPOS[k].color}">${TIPOS[k].nombre}</span>`;
 function lista(items, mono) { return items.length ? `<ul>${items.map((i) => `<li${mono ? ' class="mono"' : ''}>${esc(i)}</li>`).join('')}</ul>` : '<p>—</p>'; }
 
 function pintar() {
   capaAristas.replaceChildren();
   const rec = recorridoDe(componente);
-  const activos = componente ? new Set(componente.nodos) : null;
+  let activos = null;
+  if (tipoSel) activos = new Set(NODOS.filter((n) => n.tipo === tipoSel).map((n) => n.id));
+  else if (componente) activos = new Set(componente.nodos);
   for (const n of NODOS) {
     const g = elementosNodo[n.id];
     g.classList.toggle('atenuado', Boolean(activos) && !activos.has(n.id));
@@ -485,7 +539,7 @@ function pintar() {
       const [a] = rec.pasos[i], [b] = rec.pasos[i + 1];
       if (a !== b) dibujarArista(a, b, '', i < paso);
     }
-  } else if (activos) {
+  } else if (componente) {
     for (const [a, b, t] of ARISTAS) if (activos.has(a) && activos.has(b)) dibujarArista(a, b, t, true);
   } else if (seleccionado) {
     for (const [a, b, t] of ARISTAS) if (a === seleccionado || b === seleccionado) dibujarArista(a, b, t, true);
@@ -494,9 +548,21 @@ function pintar() {
 }
 
 function pintarPanel() {
+  if (tipoSel) {
+    const t = TIPOS[tipoSel];
+    const ns2 = NODOS.filter((n) => n.tipo === tipoSel);
+    panel.innerHTML = `<h3>Tipo de componente</h3><h2>${esc(t.nombre)}</h2>${insignia(tipoSel)}
+      <p>${esc(t.def)}</p>
+      <h3>Cómo reconocerlo</h3><p>${esc(t.reco)}</p>
+      <h3>En Curar (${ns2.length} ${ns2.length === 1 ? 'bloque' : 'bloques'})</h3>
+      <ul>${ns2.map((n) => `<li><strong>${esc(n.titulo)}</strong> · ${esc(n.sub)}</li>`).join('')}</ul>
+      <p class="nota">${esc(t.nota)}</p>`;
+    return;
+  }
   if (componente) {
     const c = componente, rec = recorridoDe(c);
-    let html = `<h3>${esc(c.grupo)}</h3><h2>${esc(c.nombre)}</h2>${etiquetasLab(c.labs)}
+    const presentes = ORDEN.filter((k) => k !== 'sop' && c.nodos.some((id) => POR_ID[id].tipo === k));
+    let html = `<h3>${esc(c.grupo)}</h3><h2>${esc(c.nombre)}</h2><div class="etiquetas">${presentes.map(insignia).join('')}</div>
       <h3>Funcionalidad</h3><p>${esc(c.func)}</p>`;
     if (rec) {
       const [id, texto] = rec.pasos[paso];
@@ -504,7 +570,12 @@ function pintarPanel() {
         <p><strong>Paso ${paso + 1} de ${rec.pasos.length} · ${esc(POR_ID[id].titulo)}</strong></p><p>${esc(texto)}</p>
         <div class="nav-pasos"><button type="button" id="ant" ${paso === 0 ? 'disabled' : ''}>← Anterior</button><button type="button" id="sig" ${paso === rec.pasos.length - 1 ? 'disabled' : ''}>Siguiente →</button></div>`;
     }
-    html += `<h3>React</h3><ul class="pildoras">${c.react.map((r) => `<li><span>${esc(r)}</span></li>`).join('')}</ul>
+    html += '<h3>Componentes que usa, por tipo</h3>';
+    for (const k of ORDEN.filter((x) => x !== 'sop')) {
+      const ids = c.nodos.filter((id) => POR_ID[id].tipo === k);
+      if (ids.length) html += `<div class="sub-tipo" style="--c:${TIPOS[k].color}"><strong>${esc(TIPOS[k].nombre)}</strong><ul>${ids.map((id) => `<li>${esc(POR_ID[id].titulo)}</li>`).join('')}</ul></div>`;
+    }
+    html += `<h3>Hooks y APIs de React</h3><ul class="pildoras">${c.react.map((r) => `<li><span>${esc(r)}</span></li>`).join('')}</ul>
       <h3>Librerías</h3>${lista(c.libs)}
       <h3>Archivos</h3>${lista(c.archivos, true)}`;
     panel.innerHTML = html;
@@ -517,20 +588,31 @@ function pintarPanel() {
   if (seleccionado) {
     const n = POR_ID[seleccionado];
     const usan = COMPONENTES.filter((c) => c.nodos.includes(n.id)).map((c) => c.nombre);
-    panel.innerHTML = `<h3>${CAPAS[n.capa].nombre}</h3><h2>${esc(n.titulo)}</h2>${etiquetasLab(n.labs)}
+    panel.innerHTML = `<h3>${esc(CAPAS[n.capa].nombre)}</h3><h2>${esc(n.titulo)}</h2>${insignia(n.tipo)}
       <p>${esc(n.que)}</p><h3>Archivos</h3>${lista(n.archivos, true)}
       <h3>APIs de React y librerías</h3>${lista(n.apis, true)}<h3>Lo usan</h3>${lista(usan)}`;
     return;
   }
-  panel.innerHTML = `<h3>Cómo leer el diagrama</h3><h2>Elige un componente</h2>
-    <p>Arriba están los componentes de Curar agrupados por rol. Al elegir uno se resaltan las capas que usa y aquí aparecen su funcionalidad, los hooks de React, las librerías y sus archivos.</p>
-    <p>Los componentes con recorrido (Navegación, Login y registro, Perfil y favorito, Reservar cita, Recetas y Administración) se pueden seguir paso a paso.</p>
+  panel.innerHTML = `<h3>Cómo leer el diagrama</h3><h2>Elige un tipo o una funcionalidad</h2>
+    <p>Los tipos siguen la clasificación de React: funcionales, de clase e integrados (etiquetas HTML y componentes especiales). Se suma un cuarto grupo, los funcionales que traen las librerías, porque Curar usa varios.</p>
+    <p>Al elegir un tipo se resaltan todos sus bloques. Al elegir una funcionalidad se ve qué tipos usa, y Navegación, Login y registro, Perfil y favorito, Reservar cita, Recetas y Administración se pueden seguir paso a paso.</p>
     <p>También puedes pulsar cualquier bloque del diagrama.</p>`;
 }
 
-function elegirNodo(id) { componente = null; seleccionado = seleccionado === id ? null : id; actualizarChips(); pintar(); }
+function limpiar() { tipoSel = null; componente = null; seleccionado = null; paso = 0; }
+function elegirNodo(id) { const igual = seleccionado === id; limpiar(); seleccionado = igual ? null : id; actualizar(); }
+function actualizar() { actualizarChips(); pintar(); }
 
-/* Controles: una fila de componentes por rol. */
+/* ---------- Controles ---------- */
+const contTipos = document.getElementById('tipos');
+const botonesTipo = [];
+for (const k of ORDEN) {
+  const t = TIPOS[k]; const cant = NODOS.filter((n) => n.tipo === k).length;
+  const b = document.createElement('button'); b.type = 'button'; b.className = 'tipo'; b.style.setProperty('--c', t.color);
+  b.innerHTML = `<b>${esc(t.nombre)}</b><span class="n">${cant} ${cant === 1 ? 'bloque' : 'bloques'}</span><small>${esc(t.def)}</small>`;
+  b.onclick = () => { const igual = tipoSel === k; limpiar(); tipoSel = igual ? null : k; actualizar(); };
+  contTipos.append(b); botonesTipo.push([b, k]);
+}
 const grupos = document.getElementById('grupos');
 const chipsComp = [];
 for (const grupo of GRUPOS) {
@@ -539,22 +621,25 @@ for (const grupo of GRUPOS) {
   const chips = document.createElement('div'); chips.className = 'chips'; chips.setAttribute('role', 'group'); chips.setAttribute('aria-labelledby', etiqueta.id);
   for (const c of COMPONENTES.filter((x) => x.grupo === grupo)) {
     const b = document.createElement('button'); b.type = 'button'; b.className = 'chip'; b.textContent = c.nombre;
-    b.onclick = () => { seleccionado = null; componente = componente === c ? null : c; paso = 0; actualizarChips(); pintar(); };
+    b.onclick = () => { const igual = componente === c; limpiar(); componente = igual ? null : c; actualizar(); };
     chips.append(b); chipsComp.push([b, c]);
   }
   fila.append(etiqueta, chips); grupos.append(fila);
 }
-function actualizarChips() { chipsComp.forEach(([b, c]) => b.setAttribute('aria-pressed', String(componente === c))); }
+function actualizarChips() {
+  chipsComp.forEach(([b, c]) => b.setAttribute('aria-pressed', String(componente === c)));
+  botonesTipo.forEach(([b, k]) => b.setAttribute('aria-pressed', String(tipoSel === k)));
+}
 document.addEventListener('keydown', (e) => {
   const rec = recorridoDe(componente);
-  if (e.key === 'Escape') { componente = null; seleccionado = null; actualizarChips(); pintar(); return; }
+  if (e.key === 'Escape') { limpiar(); actualizar(); return; }
   if (!rec) return;
   if (e.key === 'ArrowRight' && paso < rec.pasos.length - 1) { paso++; pintar(); }
   if (e.key === 'ArrowLeft' && paso > 0) { paso--; pintar(); }
 });
 
-document.getElementById('tabla-libs').innerHTML = LIBRERIAS.map(([n, v, u, l]) => `<tr><td><strong>${n}</strong></td><td class="v">${v}</td><td>${u}</td><td>${l}</td></tr>`).join('');
-actualizarChips(); pintar();
+document.getElementById('tabla-libs').innerHTML = LIBRERIAS.map(([n, v, u, k]) => `<tr><td><strong>${esc(n)}</strong></td><td class="v">${esc(v)}</td><td>${esc(u)}</td><td>${esc(k)}</td></tr>`).join('');
+actualizar();
 </script>
 </body>
 </html>
