@@ -1,4 +1,4 @@
-import { useEffect, useLayoutEffect, useRef, useState } from 'react';
+import { useEffect, useLayoutEffect, useRef, useState, ViewTransition } from 'react';
 import { useConexion } from '../hooks/useConexion';
 import { Link, matchPath, NavLink, Outlet, useLocation } from 'react-router';
 import { useAuth } from '../context/AuthContext';
@@ -133,7 +133,14 @@ export function Layout() {
         )}
       </header>
       <main id="main" tabIndex={-1} ref={mainRef}>
-        <Outlet />
+        {/* View Transitions (React 19): BrowserRouter navega dentro de startTransition, así que al cambiar de ruta
+            la página saliente se desvanece y la nueva entra. key = ruta: solo anima al navegar; default="none" evita
+            animar las actualizaciones internas (filtros diferidos, pestañas). Sin soporte del navegador, no hace nada. */}
+        <ViewTransition key={pathname} enter="vt-entrar" exit="vt-salir" default="none">
+          <div>
+            <Outlet />
+          </div>
+        </ViewTransition>
       </main>
       <footer>
         <div className="cols">

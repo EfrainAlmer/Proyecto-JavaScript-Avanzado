@@ -49,7 +49,10 @@ const nuevosMedicos = Array.from({ length: medicosExtra }, (_, i) => {
     reconocimientos: [], horario: horario.length >= 3 ? horario : HORAS.slice(0, 4),
   };
 });
-const medicos = [...base.medicos, ...nuevosMedicos];
+// Fotos de demostración (public/medicos/m6–m8.jpg) para tres médicos generados. Sus ids no cambian entre
+// ejecuciones porque el azar usa semilla fija; las citas sí, porque se calculan desde la fecha de hoy.
+const FOTOS = { m80024: '/medicos/m6.jpg', m91523: '/medicos/m7.jpg', m19296: '/medicos/m8.jpg' };
+const medicos = [...base.medicos, ...nuevosMedicos.map((m) => (FOTOS[m.id] ? { ...m, foto: FOTOS[m.id] } : m))];
 
 // ---- Citas: de hace 3 meses a dentro de 1 mes, sin domingos y sin repetir médico + fecha + hora.
 const hoy = new Date();

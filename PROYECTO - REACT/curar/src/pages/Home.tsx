@@ -8,6 +8,7 @@ import { useFlujo } from '../context/FlujoContext';
 import { busquedaInicial, busquedaSchema, type BusquedaData, type BusquedaInput } from '../model/busqueda';
 import { useCatalogo } from '../queries/catalogo';
 import { isoLocal } from '../utils/formato';
+import { Contador } from '../components/Contador';
 
 const TOTAL_SLIDES = 2;
 
@@ -16,7 +17,11 @@ export function Home() {
   // Lab 14: los médicos vienen de la caché de TanStack Query (antes: CitasContext + cargarMedicos en un efecto).
   const { activos, cargando, error } = useCatalogo();
   // Con más de 100 médicos, el inicio muestra solo los 8 mejor calificados; se recalcula solo si cambia la lista.
-  const destacados = useMemo(() => activos.toSorted((a, b) => b.calificacion - a.calificacion).slice(0, 8), [activos]);
+  // Primero los médicos con foto y, entre ellos, los mejor calificados: la portada no muestra avatares genéricos.
+  const destacados = useMemo(
+    () => activos.toSorted((a, b) => Number(Boolean(b.foto)) - Number(Boolean(a.foto)) || b.calificacion - a.calificacion).slice(0, 8),
+    [activos],
+  );
   const { actualizarFlujo } = useFlujo();
   const navigate = useNavigate();
   const [indice, setIndice] = useState(0);
@@ -124,10 +129,10 @@ export function Home() {
             <p>La mayoría de hogares peruanos ya tiene un celular con internet. Diseñamos para pantallas pequeñas, letra legible y pocos toques, pensando también en personas mayores que necesitan atención rápida.</p>
           </div>
           <div className="stats" role="list">
-            <div role="listitem"><b>4</b><span>pasos para reservar</span></div>
-            <div role="listitem"><b>94<i>%</i></b><span>de hogares con un celular con internet*</span></div>
-            <div role="listitem"><b>3</b><span>tipos de centro: hospital, policlínico, clínica</span></div>
-            <div role="listitem"><b>2</b><span>seguros: EsSalud y SIS</span></div>
+            <div role="listitem"><b><Contador valor={4} /></b><span>pasos para reservar</span></div>
+            <div role="listitem"><b><Contador valor={94} /><i>%</i></b><span>de hogares con un celular con internet*</span></div>
+            <div role="listitem"><b><Contador valor={3} /></b><span>tipos de centro: hospital, policlínico, clínica</span></div>
+            <div role="listitem"><b><Contador valor={2} /></b><span>seguros: EsSalud y SIS</span></div>
           </div>
           <p className="sources">*Más de 94 % de hogares con al menos un dispositivo móvil con acceso a internet (Osiptel/Erestel, datos a 2023).</p>
         </div>

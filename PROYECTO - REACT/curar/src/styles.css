@@ -89,7 +89,8 @@ section{padding:96px 0}
 .stats>div:first-child{border-left:0}
 .stats b{display:block;font-size:48px;font-weight:600;color:var(--navy);line-height:1;margin-bottom:10px}
 .stats b i{font-size:24px;font-style:normal;font-weight:600}
-.stats span{display:block;font-size:14px;color:var(--slate-text);max-width:22ch;margin-inline:auto}
+/* Solo la etiqueta (hijo directo): antes `.stats span` también alcanzaba a los <span> del <Contador> y los encogía. */
+.stats>div>span{display:block;font-size:14px;color:var(--slate-text);max-width:22ch;margin-inline:auto}
 @media(max-width:900px){.stats{grid-template-columns:1fr 1fr}.stats>div:nth-child(3){border-left:0}.stats>div:nth-child(n+3){border-top:1px solid var(--line)}}
 .sources{margin-top:28px;text-align:center;font-size:12px;color:var(--slate-text);margin-inline:auto}
 
@@ -247,4 +248,38 @@ label.chk{display:flex;gap:10px;align-items:flex-start;font-weight:400;font-size
   header.top nav[data-final="false"]{-webkit-mask-image:linear-gradient(to right,#000 85%,transparent);mask-image:linear-gradient(to right,#000 85%,transparent)}
   header.top nav[data-inicio="false"]{-webkit-mask-image:linear-gradient(to left,#000 85%,transparent);mask-image:linear-gradient(to left,#000 85%,transparent)}
   header.top nav[data-inicio="false"][data-final="false"]{-webkit-mask-image:linear-gradient(to right,transparent,#000 15%,#000 85%,transparent);mask-image:linear-gradient(to right,transparent,#000 15%,#000 85%,transparent)}
+}
+
+/* ===== Movimiento (todo se desactiva con prefers-reduced-motion) ===== */
+
+/* 1. Transición entre páginas (<ViewTransition> en Layout). */
+::view-transition-old(.vt-salir){animation:vt-salir .18s ease-in both}
+::view-transition-new(.vt-entrar){animation:vt-entrar .38s cubic-bezier(.2,.7,.2,1) .05s both}
+@keyframes vt-salir{to{opacity:0;transform:translateY(-8px)}}
+@keyframes vt-entrar{from{opacity:0;transform:translateY(16px)}}
+
+@media(prefers-reduced-motion:no-preference){
+  /* 2. Revelado al hacer scroll: cada bloque aparece al entrar en pantalla (CSS scroll-driven, sin JavaScript).
+     Navegadores sin soporte (p. ej. Firefox) muestran el contenido normal, sin efecto. */
+  @supports (animation-timeline: view()){
+    .mission>*,.stats,.steps li,.feat article,.panel>div:first-child,.docs>*,h2.sec{
+      animation:revelar linear both;animation-timeline:view();animation-range:entry 0% entry 90%}
+    /* Escalonado dentro de una misma fila: cada columna termina un poco después. */
+    .steps li:nth-child(4n+2),.docs>*:nth-child(4n+2),.feat article:nth-child(2){animation-range:entry 8% entry 98%}
+    .steps li:nth-child(4n+3),.docs>*:nth-child(4n+3),.feat article:nth-child(3){animation-range:entry 16% cover 30%}
+    .steps li:nth-child(4n),.docs>*:nth-child(4n),.feat article:nth-child(4){animation-range:entry 24% cover 36%}
+
+    /* 3. Parallax ligero del hero (solo con la ilustración visible, >900 px): el arte baja más despacio que el texto. */
+    @media(min-width:901px){
+      .art{animation:parallax-arte linear both;animation-timeline:scroll(root);animation-range:0 700px}
+      .mock{animation:parallax-mock linear both;animation-timeline:scroll(root);animation-range:0 700px}
+    }
+  }
+}
+@keyframes revelar{from{opacity:0;transform:translateY(28px) scale(.98)}to{opacity:1;transform:none}}
+@keyframes parallax-arte{from{transform:translateY(-58%)}to{transform:translateY(calc(-58% + 140px))}}
+@keyframes parallax-mock{from{transform:translateY(-55%)}to{transform:translateY(calc(-55% + 90px))}}
+
+@media(prefers-reduced-motion:reduce){
+  ::view-transition-group(*),::view-transition-old(*),::view-transition-new(*){animation:none!important}
 }
