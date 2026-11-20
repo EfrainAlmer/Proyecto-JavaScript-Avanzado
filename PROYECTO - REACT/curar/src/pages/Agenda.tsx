@@ -68,11 +68,20 @@ export function Agenda() {
       {pagina.visibles.map((c) => (
         <div key={c.id}>
           <ArticuloEstado estado={c.estado}>
-            <b>{fechaHora(c.fecha, c.hora)}</b> — {c.paciente ?? 'Paciente'} · DNI {c.dniPaciente} · {c.seguro} <small>· Motivo: {c.motivo ?? 'No indicado'}</small>{' '}
-            <span className="pill" data-estado={c.estado}>{c.estado}</span>
+            {/* Dos columnas: datos a la izquierda y acciones a la derecha. Antes todo iba en una línea y los botones
+                saltaban a cualquier posición según el largo del nombre y del motivo. */}
+            <div className="agenda-fila">
+              <div className="agenda-info">
+                <p><b>{fechaHora(c.fecha, c.hora)}</b> <span className="pill" data-estado={c.estado}>{c.estado}</span></p>
+                <p>{c.paciente ?? 'Paciente'} · DNI {c.dniPaciente} · {c.seguro}</p>
+                <small>Motivo: {c.motivo ?? 'No indicado'}</small>
+              </div>
+              <div className="agenda-acc">
             {c.estado === 'Pendiente' && <button className="btn" type="button" disabled={cargando} onClick={() => void cambiar(c, 'Confirmada')}>Confirmar</button>}
             {(c.estado === 'Pendiente' || c.estado === 'Confirmada') && <button className="btn ghost" type="button" disabled={cargando} onClick={() => void cambiar(c, 'Cancelada')}>Cancelar</button>}
             {(c.estado === 'Confirmada' || c.estado === 'Atendida') && <button className="btn ghost" type="button" aria-expanded={receta?.id === c.id} onClick={() => { reset({ ...MEDICAMENTO_VACIO }); setReceta(receta?.id === c.id ? null : c); }}>Emitir receta</button>}
+              </div>
+            </div>
           </ArticuloEstado>
           {/* El formulario se abre debajo de SU cita: antes aparecía al final de cientos de citas, fuera de la vista. */}
           {receta?.id === c.id && (

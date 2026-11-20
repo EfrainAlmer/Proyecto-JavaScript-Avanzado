@@ -283,3 +283,10 @@ label.chk{display:flex;gap:10px;align-items:flex-start;font-weight:400;font-size
 @media(prefers-reduced-motion:reduce){
   ::view-transition-group(*),::view-transition-old(*),::view-transition-new(*){animation:none!important}
 }
+
+/* Agenda del médico: datos a la izquierda y acciones alineadas a la derecha; en móvil, las acciones bajan. */
+.agenda-fila{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:16px;align-items:center}
+.agenda-info p{margin:0}
+.agenda-info small{color:var(--slate-text)}
+.agenda-acc{display:flex;gap:8px;flex-wrap:wrap;justify-content:flex-end}
+@media(max-width:640px){.agenda-fila{grid-template-columns:1fr}.agenda-acc{justify-content:flex-start}}

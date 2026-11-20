@@ -389,6 +389,17 @@ describe('Prueba de humo: cada página se monta con datos reales de db.json', ()
     }
   });
 
+  it('/panel-medico: una cita pendiente se confirma (no se atiende) y solo las confirmadas ofrecen Atender', async () => {
+    await montar('/panel-medico', MEDICO);
+    await userEvent.click(await screen.findByRole('button', { name: 'Pendientes' }));
+    expect(screen.queryByRole('link', { name: 'Atender' })).not.toBeInTheDocument();
+    await userEvent.click((await screen.findAllByRole('button', { name: 'Confirmar' }))[0]!);
+    await waitFor(() => {
+      const patch = vi.mocked(fetch).mock.calls.find(([, init]) => init?.method === 'PATCH');
+      expect(String(patch?.[1]?.body)).toContain('"estado":"Confirmada"');
+    });
+  });
+
   it('/panel-medico: recarga la agenda al volver a la pestaña con un único listener', async () => {
     const llamadas = (fetch as unknown as ReturnType<typeof vi.fn>).mock.calls;
     const citasPedidas = (): number => llamadas.filter(([url]) => String(url).endsWith('/citas')).length;

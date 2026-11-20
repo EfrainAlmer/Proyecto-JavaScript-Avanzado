@@ -82,6 +82,10 @@ export function PanelMedico() {
   const restantes = Math.max(0, porAtender.length - 1);
   const diaDe = (fecha: string): string => (fecha === hoyIso ? 'Hoy' : fechaCorta(fecha));
 
+  function confirmar(id: string): void {
+    void conCandado(() => cambiarEstado.mutateAsync({ id, estado: 'Confirmada' })).catch(() => undefined);
+  }
+
   function cancelar(id: string): void {
     void conCandado(() => cambiarEstado.mutateAsync({ id, estado: 'Cancelada' })).then(() => setConfirmando(''), () => undefined);
   }
@@ -144,7 +148,12 @@ export function PanelMedico() {
                       </>
                     ) : (
                       <>
-                        <Link className="btn pm-b" to={`/consulta/${encodeURIComponent(c.id)}`}>Atender</Link>
+                        {/* Pendiente → Confirmar (pasa a la pestaña Confirmadas); solo una cita confirmada se atiende. */}
+                        {c.estado === 'Pendiente' ? (
+                          <button className="btn pm-b" type="button" disabled={guardando} onClick={() => confirmar(c.id)}>Confirmar</button>
+                        ) : (
+                          <Link className="btn pm-b" to={`/consulta/${encodeURIComponent(c.id)}`}>Atender</Link>
+                        )}
                         <button className="btn ghost pm-b pm-cancelar" type="button" onClick={() => setConfirmando(`c:${c.id}`)}>Cancelar</button>
                       </>
                     ))}
