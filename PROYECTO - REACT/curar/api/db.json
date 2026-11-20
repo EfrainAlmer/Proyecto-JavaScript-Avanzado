@@ -21284,7 +21284,7 @@
       "seguro": "SIS",
       "fecha": "2026-11-20",
       "hora": "11:15",
-      "estado": "Pendiente",
+      "estado": "Confirmada",
       "motivo": "Fiebre persistente"
     },
     {
@@ -35817,5 +35817,6 @@
       "puntaje": 3,
       "fecha": "2026-09-28"
     }
-  ]
+  ],
+  "$schema": "./node_modules/json-server/schema.json"
 }
