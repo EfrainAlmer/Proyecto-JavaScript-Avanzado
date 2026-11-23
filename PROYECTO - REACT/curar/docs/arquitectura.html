@@ -3,14 +3,14 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Arquitectura de Curar por tipo de componente</title>
+<title>Arquitectura de Curar</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
 <style>
 /* Un color por tipo de componente. Cada bloque repite el tipo con texto y barra lateral, no solo con color. */
 :root{
   --fondo:#F4F7FC; --papel:#FFFFFF; --tinta:#000B33; --tenue:#4F5B65; --linea:#D9E2F1; --acento:#3BA8F8;
-  --fun:#1D74C9; --cls:#C0392B; --int:#7A4FD0; --lib:#9A5B00; --sop:#5C6770;
+  --acento-txt:#0B63B8; --fun:#1D74C9; --cls:#C0392B; --int:#7A4FD0; --lib:#9A5B00; --sop:#5C6770;
   --display:"Montserrat",system-ui,-apple-system,"Segoe UI",sans-serif;
   --mono:"JetBrains Mono",ui-monospace,Consolas,monospace;
   color-scheme:light;
@@ -18,7 +18,7 @@
 @media (prefers-color-scheme:dark){
   :root{
     --fondo:#070D22; --papel:#0E1733; --tinta:#E8EEFB; --tenue:#A7B3C8; --linea:#25335A; --acento:#5BB8FA;
-    --fun:#5BB0F5; --cls:#F2877D; --int:#A98BF0; --lib:#F2A93B; --sop:#A7B3C8;
+    --acento-txt:#5BB8FA; --fun:#5BB0F5; --cls:#F2877D; --int:#A98BF0; --lib:#F2A93B; --sop:#A7B3C8;
     color-scheme:dark;
   }
 }
@@ -69,6 +69,23 @@ svg{display:block;width:100%;min-width:900px;height:auto;font-family:var(--displ
 .nav-pasos{display:flex;gap:8px}
 .nav-pasos button{font:600 13px var(--display);padding:8px 14px;border-radius:10px;border:1.5px solid var(--tinta);background:transparent;color:var(--tinta);cursor:pointer;min-height:36px}
 .nav-pasos button:disabled{opacity:.4;cursor:default}
+/* Reparto del equipo */
+.chip.asignada{text-decoration:underline;text-decoration-thickness:3px;text-underline-offset:4px;text-decoration-color:var(--acento);border-color:var(--acento)}
+.chip.asignada .quien{font-size:11px;font-weight:700;margin-left:6px;padding:1px 7px;border-radius:999px;background:var(--acento);color:#00112e;text-decoration:none;display:inline-block}
+.chip.libre{opacity:.5}
+.chip.asignada[aria-pressed="true"] .quien{background:var(--papel);color:var(--tinta)}
+.nodo .dueno rect{fill:var(--papel);stroke:var(--tenue);stroke-width:1}
+.nodo .dueno text{fill:var(--tinta);font-size:9.5px;font-weight:700}
+.nodo.mio .dueno rect{fill:var(--acento);stroke:var(--acento)}
+.nodo.mio .dueno text{fill:#00112e}
+.nodo.mio rect.caja{stroke-width:3}
+.dueno-linea{font-size:13px;font-weight:700;color:var(--tinta)}
+.orden{margin:0;padding-left:20px}
+.abrir{display:inline-block;font:600 13px var(--display);padding:8px 14px;border-radius:10px;border:1.5px solid var(--tinta);background:var(--tinta);color:var(--papel);text-decoration:none}
+.abrir:focus-visible{outline:3px solid var(--acento);outline-offset:3px}
+.botones-vista{display:flex;flex-wrap:wrap;gap:8px}
+.campo-url{display:grid;gap:4px;font-size:12px;color:var(--tenue)}
+.campo-url input{font:500 12.5px var(--mono);padding:7px 9px;border-radius:8px;border:1.5px solid var(--linea);background:var(--fondo);color:var(--tinta)}
 /* SVG */
 .banda{fill:var(--fondo)}
 .banda-txt{fill:var(--tenue);font-size:11.5px;font-weight:600;letter-spacing:.04em}
@@ -103,8 +120,8 @@ td.v{font-family:var(--mono);font-size:12.5px;white-space:nowrap;font-variant-nu
 <body>
 <div class="envoltura">
   <header>
-    <h1>Arquitectura de Curar · componentes de React por tipo</h1>
-    <p>Los componentes de Curar (reserva de citas EsSalud/SIS para paciente, médico y administrador) se clasifican en funcionales, de clase e integrados de React, más los funcionales que aportan las librerías. Elige un tipo para ver dónde se aplica, o una funcionalidad para ver qué tipos de componente usa.</p>
+    <h1>Arquitectura de Curar</h1>
+    <p>Curar es una aplicación web para reservar citas médicas con seguro EsSalud o SIS. Cualquier persona puede buscar médicos y centros de salud; el paciente inicia sesión para reservar y seguir sus citas, recetas y familiares; el médico atiende sus citas y emite recetas; y el administrador gestiona los médicos y supervisa las citas y los reclamos. Está hecha con React 19 y TypeScript. Este esquema muestra cómo se aplican los componentes de React y las librerías en cada funcionalidad.</p>
   </header>
 
   <section class="controles" aria-labelledby="t-tipos">
@@ -113,7 +130,7 @@ td.v{font-family:var(--mono);font-size:12.5px;white-space:nowrap;font-variant-nu
   </section>
 
   <section class="controles" aria-labelledby="t-comp">
-    <h2 id="t-comp" class="titulo-comp">Funcionalidades de Curar</h2>
+    <h2 id="t-comp" class="titulo-comp">Funcionalidades de Curar (subrayadas: las que se exponen)</h2>
     <div id="grupos" class="grupos"></div>
   </section>
 
@@ -334,8 +351,17 @@ const RECORRIDOS = [
     ['susp', 'use(promesa) suspende el componente; Suspense (integrado) muestra "Cargando…".'],
     ['limite', 'Si la carga falla, LimiteError (el único componente de clase) captura el error y ofrece Reintentar.'],
   ] },
+  { id: 'consulta', pasos: [
+    ['pMed', 'Consulta.tsx (funcional) arma un solo formulario con react-hook-form + Zod y lo envuelve en FormProvider.'],
+    ['rhf', 'FormProvider (librería) reparte el formulario a las secciones de la consulta.'],
+    ['cons', 'SignosVitalesFields, InformeFields y RecetasFields (funcionales) lo leen con useFormContext; la receta admite varios medicamentos con useFieldArray.'],
+    ['qcit', 'Al finalizar, una mutación (useMutation) actualiza la cita y crea la receta.'],
+    ['claves', 'Se invalidan ["citas"] y ["recetas"]: las pantallas que muestran citas y recetas se actualizan sin recargar.'],
+  ] },
   { id: 'supervision', pasos: [
     ['pAdm', 'Admin.tsx (funcional) cambia de pestaña con useTransition; adminReducer guarda el estado de la interfaz.'],
+    ['cons', 'MedicoForm (funcional) da de alta y edita médicos con react-hook-form + Zod.'],
+    ['rsel', 'Controller (librería) conecta react-select, el selector de sede accesible.'],
     ['superv', 'Buscar entre 3000 citas usa useDeferredValue + useMemo; las filas son memo.'],
     ['qcit', 'useTodasCitas lee la lista; Actualizar hace refetch y Cancelar consulta llama a cancelQueries.'],
     ['http', 'La cancelación llega al fetch por el AbortSignal: sin datos previos se muestra "Sin consulta activa".'],
@@ -348,6 +374,34 @@ const RECORRIDOS = [
     ['routes', 'Routes elige la página según el path; las privadas pasan antes por RutaProtegida.'],
   ] },
 ];
+
+/* Reparto: una funcionalidad por persona. Cada bloque tiene un solo responsable: quien lo explica por primera vez, en el orden del flujo. */
+const REPARTO = [
+  { persona: 'Jesus', sigla: 'Je', func: 'layout', nota: 'Empieza por el arranque (main.tsx y App.tsx) y termina con un ejemplo de página pública.',
+    bloques: ['nav', 'strict', 'qcp', 'br', 'prov', 'routes', 'ruta', 'layout', 'vt', 'nl', 'pPub', 'html', 'auth'] },
+  { persona: 'Angelo', sigla: 'An', func: 'reservar', nota: 'Es la que recorre todas las capas: del formulario hasta json-server. Detente solo en los pasos clave.',
+    bloques: ['pPac', 'forms', 'ui', 'flujo', 'hooks', 'qcit', 'claves', 'api', 'http', 'contract', 'msg', 'proxy', 'jsonsrv', 'db', 'gen'] },
+  { persona: 'Omar', sigla: 'Om', func: 'consulta', nota: 'La parte del médico. Lo que comparte con Reservar (servicios y caché) solo lo menciona.',
+    bloques: ['pMed', 'rhf', 'cons'] },
+  { persona: 'Jhon', sigla: 'Jh', func: 'admin', nota: 'La parte del administrador, con los hooks de rendimiento y el selector react-select.',
+    bloques: ['pAdm', 'superv', 'reducer', 'rsel', 'qcat', 'qcue'] },
+  { persona: 'Efrain', sigla: 'Ef', func: 'recetas', nota: 'Cierra con el único componente de clase (LimiteError) y Suspense.',
+    bloques: ['susp', 'limite'] },
+];
+/* La vista (pantalla de la web) que muestra cada persona. ruta: null = por confirmar en App.tsx. */
+const VISTAS = {
+  layout: { pantalla: 'Cabecera y menú, que se ven en todas las páginas', archivo: 'components/Layout.tsx', ruta: '/' },
+  reservar: { pantalla: 'Reservar cita', archivo: 'pages/Reservar.tsx', ruta: null },
+  consulta: { pantalla: 'Consulta médica', archivo: 'pages/Consulta.tsx', ruta: '/consulta/:id', nota: 'La dirección lleva el id de una cita, así que se llega desde la agenda.' },
+  admin: { pantalla: 'Administración', archivo: 'pages/Admin.tsx', ruta: '/admin', nota: 'Entra antes con un usuario administrador.' },
+  recetas: { pantalla: 'Recetas', archivo: 'pages/Recetas.tsx', ruta: null },
+};
+const RUTA_LOGIN = '/login'; /* supuesta: confirmar en App.tsx */
+let urlApp = 'http://localhost:5173';
+try { urlApp = localStorage.getItem('curar-url') || urlApp; } catch (e) { /* sin almacenamiento */ }
+const DUENO = {};
+for (const r of REPARTO) for (const id of r.bloques) DUENO[id] = r;
+const repartoDe = (c) => (c ? REPARTO.find((r) => r.func === c.id) || null : null);
 
 /* Funcionalidades: qué hooks, librerías y bloques (de cada tipo) usa cada una. */
 const GRUPOS = ['Público', 'Paciente', 'Médico', 'Administrador'];
@@ -430,7 +484,7 @@ const COMPONENTES = [
   C('consulta', 'Médico', 'Consulta médica', 'Un solo formulario repartido en secciones (signos vitales, informe y receta con varios medicamentos) que al finalizar actualiza citas y recetas.',
     ['FormProvider + useFormContext', 'useFieldArray', 'useParams', 'useRef', 'useEffect', 'useState'],
     ['react-hook-form + Zod: model/consulta.ts', 'TanStack Query: useCita, useMutation (invalida ["citas"] y ["recetas"])', 'react-router'],
-    ['pages/Consulta.tsx', 'components/consulta/SignosVitalesFields.tsx', 'components/consulta/InformeFields.tsx', 'components/consulta/RecetasFields.tsx'], ['pMed', 'cons', 'rhf', 'forms', 'qcit', 'claves', 'api']),
+    ['pages/Consulta.tsx', 'components/consulta/SignosVitalesFields.tsx', 'components/consulta/InformeFields.tsx', 'components/consulta/RecetasFields.tsx'], ['pMed', 'cons', 'rhf', 'forms', 'qcit', 'claves', 'api'], 'consulta'),
 
   C('admin', 'Administrador', 'Administración', 'Directorio de médicos (altas, edición y bajas), supervisión de 3000 citas con Actualizar y Cancelar consulta, y avance de reclamos.',
     ['useReducer (adminReducer)', 'useTransition', 'useDeferredValue', 'useMemo', 'memo', 'useCallback', 'usePaginado'],
@@ -487,6 +541,11 @@ for (const n of NODOS) {
   const su = el('text', { class: 's', x: n.x + 17, y: c.y + 37 }, g); su.textContent = n.sub;
   if (n.mono) { const m = el('text', { class: 'm', x: n.x + 17, y: c.y + 52 }, g); m.textContent = n.mono; }
   const tg = el('text', { class: 'tg', x: n.x + 17, y: c.y + c.h - 9, fill: t.color }, g); tg.textContent = t.corto;
+  if (DUENO[n.id]) {
+    const d = el('g', { class: 'dueno' }, g);
+    el('rect', { x: n.x + n.w - 30, y: c.y + c.h - 21, width: 22, height: 14, rx: 7 }, d);
+    const dt = el('text', { x: n.x + n.w - 19, y: c.y + c.h - 11, 'text-anchor': 'middle' }, d); dt.textContent = DUENO[n.id].sigla;
+  }
   const num = el('g', { class: 'numero', style: 'display:none' }, g);
   el('circle', { cx: n.x + 2, cy: c.y + 2, r: 11 }, num);
   el('text', { x: n.x + 2, y: c.y + 6, 'text-anchor': 'middle' }, num);
@@ -522,12 +581,14 @@ function lista(items, mono) { return items.length ? `<ul>${items.map((i) => `<li
 function pintar() {
   capaAristas.replaceChildren();
   const rec = recorridoDe(componente);
+  const duenoSel = repartoDe(componente);
   let activos = null;
   if (tipoSel) activos = new Set(NODOS.filter((n) => n.tipo === tipoSel).map((n) => n.id));
   else if (componente) activos = new Set(componente.nodos);
   for (const n of NODOS) {
     const g = elementosNodo[n.id];
     g.classList.toggle('atenuado', Boolean(activos) && !activos.has(n.id));
+    g.classList.toggle('mio', Boolean(duenoSel) && duenoSel.bloques.includes(n.id));
     g.classList.toggle('activo', seleccionado === n.id || Boolean(rec && rec.pasos[paso][0] === n.id));
     const num = g.querySelector('.numero');
     const indices = rec ? rec.pasos.map(([id], i) => (id === n.id ? i + 1 : null)).filter(Boolean) : [];
@@ -562,8 +623,32 @@ function pintarPanel() {
   if (componente) {
     const c = componente, rec = recorridoDe(c);
     const presentes = ORDEN.filter((k) => k !== 'sop' && c.nodos.some((id) => POR_ID[id].tipo === k));
-    let html = `<h3>${esc(c.grupo)}</h3><h2>${esc(c.nombre)}</h2><div class="etiquetas">${presentes.map(insignia).join('')}</div>
-      <h3>Funcionalidad</h3><p>${esc(c.func)}</p>`;
+    const rp = repartoDe(c);
+    const v = VISTAS[c.id];
+    let vistaHtml = '';
+    if (rp && v) {
+      const rutaOk = v.ruta && !v.ruta.includes(':');
+      vistaHtml += `<h3>Vista que muestra ${esc(rp.persona)}</h3><p><strong>${esc(v.pantalla)}</strong></p><p class="mono">${esc(v.archivo)}</p>`;
+      if (v.ruta) vistaHtml += `<p>Ruta: <span class="mono">${esc(v.ruta)}</span></p>`;
+      else vistaHtml += `<p class="nota">Ruta por confirmar: búscala en App.tsx.</p>`;
+      if (v.nota) vistaHtml += `<p class="nota">${esc(v.nota)}</p>`;
+      vistaHtml += `<p class="botones-vista">${rutaOk ? `<a class="abrir" id="abrir" href="${esc(urlApp + v.ruta)}" target="_blank" rel="noopener">Abrir esta vista</a>` : ''}<a class="abrir" id="abrirLogin" href="${esc(urlApp + RUTA_LOGIN)}" target="_blank" rel="noopener">Abrir el login</a></p>
+        <label class="campo-url">Dirección de la app (puerto por defecto de Vite; cámbiala si usas otro)<input id="urlapp" value="${esc(urlApp)}"></label>
+        <p class="nota">El login se supone en ${RUTA_LOGIN}. Si no abre, confirma la ruta en App.tsx.</p>`;
+    }
+    let html = `<h3>${esc(c.grupo)}</h3><h2>${esc(c.nombre)}</h2><div class="etiquetas">${presentes.map(insignia).join('')}</div>`;
+    if (rp) {
+      const propios = rp.bloques.map((id) => POR_ID[id]).sort((a, b) => a.capa - b.capa);
+      const ajenos = c.nodos.filter((id) => !rp.bloques.includes(id) && POR_ID[id].tipo !== 'sop');
+      html += `<h3>Quién la expone</h3><p class="dueno-linea">${esc(rp.persona)} (${rp.sigla})</p>
+        <ol class="orden"><li>La funcionalidad, en la página web.</li><li>El código, siguiendo el flujo del diagrama.</li></ol>
+        <p class="nota">${esc(rp.nota)}</p>
+        ${vistaHtml}
+        <h3>Bloques que explica ${esc(rp.persona)} (marcados ${rp.sigla})</h3>
+        <ul>${propios.map((b) => `<li><strong>${esc(b.titulo)}</strong> · ${esc(TIPOS[b.tipo].corto.toLowerCase())}</li>`).join('')}</ul>`;
+      if (ajenos.length) html += `<h3>Los usa, pero los explica otra persona</h3><ul>${ajenos.map((id) => `<li>${esc(POR_ID[id].titulo)} (${esc(DUENO[id].persona)})</li>`).join('')}</ul>`;
+    }
+    html += `<h3>Funcionalidad</h3><p>${esc(c.func)}</p>`;
     if (rec) {
       const [id, texto] = rec.pasos[paso];
       html += `<h3>Cómo funciona, paso a paso</h3>
@@ -575,10 +660,21 @@ function pintarPanel() {
       const ids = c.nodos.filter((id) => POR_ID[id].tipo === k);
       if (ids.length) html += `<div class="sub-tipo" style="--c:${TIPOS[k].color}"><strong>${esc(TIPOS[k].nombre)}</strong><ul>${ids.map((id) => `<li>${esc(POR_ID[id].titulo)}</li>`).join('')}</ul></div>`;
     }
+    if (rp) {
+      const orden = rp.bloques.map((id) => POR_ID[id]).sort((a, b) => a.capa - b.capa).filter((b) => b.archivos.length);
+      html += `<h3>Código, en el orden del flujo</h3><ul>${orden.map((b) => `<li><strong>${esc(b.titulo)}</strong><br><span class="mono">${esc(b.archivos.join(' · '))}</span></li>`).join('')}</ul>`;
+    }
     html += `<h3>Hooks y APIs de React</h3><ul class="pildoras">${c.react.map((r) => `<li><span>${esc(r)}</span></li>`).join('')}</ul>
       <h3>Librerías</h3>${lista(c.libs)}
       <h3>Archivos</h3>${lista(c.archivos, true)}`;
     panel.innerHTML = html;
+    const campo = panel.querySelector('#urlapp');
+    if (campo) campo.oninput = () => {
+      urlApp = campo.value.trim().replace(/\/+$/, '');
+      try { localStorage.setItem('curar-url', urlApp); } catch (e) { /* sin almacenamiento */ }
+      const a1 = panel.querySelector('#abrir'); if (a1) a1.href = urlApp + VISTAS[c.id].ruta;
+      panel.querySelector('#abrirLogin').href = urlApp + RUTA_LOGIN;
+    };
     if (rec) {
       panel.querySelector('#ant').onclick = () => { paso--; pintar(); };
       panel.querySelector('#sig').onclick = () => { paso++; pintar(); };
@@ -589,13 +685,14 @@ function pintarPanel() {
     const n = POR_ID[seleccionado];
     const usan = COMPONENTES.filter((c) => c.nodos.includes(n.id)).map((c) => c.nombre);
     panel.innerHTML = `<h3>${esc(CAPAS[n.capa].nombre)}</h3><h2>${esc(n.titulo)}</h2>${insignia(n.tipo)}
-      <p>${esc(n.que)}</p><h3>Archivos</h3>${lista(n.archivos, true)}
+      <p class="dueno-linea">${DUENO[n.id] ? `Lo explica: ${esc(DUENO[n.id].persona)} (${DUENO[n.id].sigla})` : ''}</p><p>${esc(n.que)}</p><h3>Archivos</h3>${lista(n.archivos, true)}
       <h3>APIs de React y librerías</h3>${lista(n.apis, true)}<h3>Lo usan</h3>${lista(usan)}`;
     return;
   }
-  panel.innerHTML = `<h3>Cómo leer el diagrama</h3><h2>Elige un tipo o una funcionalidad</h2>
+  panel.innerHTML = `<h3>Cómo leer el diagrama</h3><h2>Elige una funcionalidad, un tipo o un bloque</h2>
+    <p>Cada integrante expone una funcionalidad distinta: son las subrayadas arriba, con su nombre. En cada bloque del diagrama, el círculo pequeño dice quién lo explica: Je, An, Om, Jh o Ef. Ningún bloque tiene dos responsables.</p>
     <p>Los tipos siguen la clasificación de React: funcionales, de clase e integrados (etiquetas HTML y componentes especiales). Se suma un cuarto grupo, los funcionales que traen las librerías, porque Curar usa varios.</p>
-    <p>Al elegir un tipo se resaltan todos sus bloques. Al elegir una funcionalidad se ve qué tipos usa, y Navegación, Login y registro, Perfil y favorito, Reservar cita, Recetas y Administración se pueden seguir paso a paso.</p>
+    <p>Al elegir un tipo se resaltan todos sus bloques. Al elegir una funcionalidad se ve qué tipos usa, y Navegación, Login y registro, Perfil y favorito, Reservar cita, Recetas, Consulta médica y Administración se pueden seguir paso a paso.</p>
     <p>También puedes pulsar cualquier bloque del diagrama.</p>`;
 }
 
@@ -620,7 +717,9 @@ for (const grupo of GRUPOS) {
   const etiqueta = document.createElement('span'); etiqueta.textContent = grupo; etiqueta.id = `g-${grupo}`;
   const chips = document.createElement('div'); chips.className = 'chips'; chips.setAttribute('role', 'group'); chips.setAttribute('aria-labelledby', etiqueta.id);
   for (const c of COMPONENTES.filter((x) => x.grupo === grupo)) {
-    const b = document.createElement('button'); b.type = 'button'; b.className = 'chip'; b.textContent = c.nombre;
+    const rp = repartoDe(c);
+    const b = document.createElement('button'); b.type = 'button'; b.className = 'chip ' + (rp ? 'asignada' : 'libre'); b.append(c.nombre);
+    if (rp) { const q = document.createElement('span'); q.className = 'quien'; q.textContent = rp.persona; b.append(q); }
     b.onclick = () => { const igual = componente === c; limpiar(); componente = igual ? null : c; actualizar(); };
     chips.append(b); chipsComp.push([b, c]);
   }
