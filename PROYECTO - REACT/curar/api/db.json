@@ -14706,7 +14706,7 @@
       "seguro": "EsSalud",
       "fecha": "2026-11-20",
       "hora": "16:00",
-      "estado": "Atendida",
+      "estado": "Confirmada",
       "motivo": "Mareos"
     },
     {
@@ -20580,7 +20580,7 @@
       "seguro": "SIS",
       "fecha": "2026-11-20",
       "hora": "15:30",
-      "estado": "Atendida",
+      "estado": "Confirmada",
       "motivo": "Fiebre persistente"
     },
     {
@@ -21284,7 +21284,7 @@
       "seguro": "SIS",
       "fecha": "2026-11-20",
       "hora": "11:15",
-      "estado": "Atendida",
+      "estado": "Pendiente",
       "motivo": "Fiebre persistente"
     },
     {
@@ -26465,7 +26465,7 @@
       "seguro": "EsSalud",
       "fecha": "2026-11-20",
       "hora": "08:00",
-      "estado": "Atendida",
+      "estado": "Pendiente",
       "motivo": "Control de diabetes"
     },
     {
@@ -31085,7 +31085,7 @@
       "seguro": "SIS",
       "fecha": "2026-11-20",
       "hora": "09:30",
-      "estado": "Atendida",
+      "estado": "Pendiente",
       "motivo": "Fiebre persistente"
     },
     {
@@ -35817,6 +35817,5 @@
       "puntaje": 3,
       "fecha": "2026-09-28"
     }
-  ],
-  "$schema": "./node_modules/json-server/schema.json"
+  ]
 }

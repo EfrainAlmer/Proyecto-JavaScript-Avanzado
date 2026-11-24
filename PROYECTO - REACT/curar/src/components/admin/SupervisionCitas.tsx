@@ -112,7 +112,7 @@ export function SupervisionCitas({ lectura, onActualizar, onCancelarConsulta, ci
               ? 'Actualizando citas…'
               : actualizando
                 ? 'Actualizando resultados…'
-                : `${filas.length} citas encontradas. Se muestran ${visibles.length}.${lectura.actualizadoA ? ` Actualizado a las ${lectura.actualizadoA}.` : ''}`}
+                : `${filas.length} citas encontradas. Se muestran ${visibles.length}.${lectura.actualizadoA ? ` Actualizado a las ${lectura.actualizadoA}` : ''}`}
       </p>
       <table className="table align-middle t-apilada" style={{ margin: 0, opacity: actualizando ? 0.6 : 1 }}>
         <caption className="visually-hidden">Citas</caption>
